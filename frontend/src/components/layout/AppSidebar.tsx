@@ -2,9 +2,9 @@ import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Compass, Droplets, LineChart, CloudRain, FlaskConical, 
+  Home, Compass, Droplets, CloudRain, FlaskConical, 
   AlertTriangle, Target, ShieldCheck, Users, ClipboardList, 
-  Layers, Bot, FileText, UserCheck, Settings, Home, ArrowLeft, Award
+  Layers, Bot, FileText, Settings, ArrowLeft, Landmark
 } from 'lucide-react';
 
 interface AppSidebarProps {
@@ -18,135 +18,74 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   currentModule, 
   onSelectModule, 
   onBackToLanding,
-  onOpenPresentation
 }) => {
-  const { t } = useLanguage();
-  const { user, role } = useAuth();
+  const { t, lang } = useLanguage();
 
-  const navigationSections = [
-    {
-      title: "Geospatial & Twin",
-      items: [
-        { id: 'dashboard', label: t('overview'), icon: <Home className="w-4 h-4" /> },
-        { id: 'digital_twin', label: t('digital_twin'), icon: <Compass className="w-4 h-4" /> },
-      ]
-    },
-    {
-      title: "Environmental Analytics",
-      items: [
-        { id: 'groundwater', label: t('groundwater'), icon: <Droplets className="w-4 h-4" /> },
-        { id: 'forecasting', label: t('forecasting'), icon: <LineChart className="w-4 h-4" /> },
-        { id: 'rainfall', label: t('rainfall'), icon: <CloudRain className="w-4 h-4" /> },
-        { id: 'water_quality', label: t('water_quality'), icon: <FlaskConical className="w-4 h-4" /> },
-      ]
-    },
-    {
-      title: "Risk & Response",
-      items: [
-        { id: 'anomalies', label: t('anomalies'), icon: <AlertTriangle className="w-4 h-4" /> },
-        { id: 'risk_priority', label: t('risk_priority'), icon: <Target className="w-4 h-4" /> },
-        { id: 'investigations', label: t('investigations'), icon: <ClipboardList className="w-4 h-4" /> },
-        { id: 'recharge', label: t('recharge'), icon: <Layers className="w-4 h-4" /> },
-      ]
-    },
-    {
-      title: "Community & Intelligence",
-      items: [
-        { id: 'community', label: t('community'), icon: <Users className="w-4 h-4" /> },
-        { id: 'assistant', label: t('assistant'), icon: <Bot className="w-4 h-4" /> },
-        { id: 'confidence', label: t('confidence'), icon: <ShieldCheck className="w-4 h-4" /> },
-        { id: 'analytics', label: t('analytics'), icon: <FileText className="w-4 h-4" /> },
-      ]
-    },
-    {
-      title: "System & Governance",
-      items: [
-        { id: 'role_access', label: t('role_access'), icon: <UserCheck className="w-4 h-4" /> },
-        { id: 'admin_audit', label: t('admin_audit'), icon: <Settings className="w-4 h-4" /> },
-      ]
-    }
+  const menuItems = [
+    { id: 'dashboard', label: t('overview'), icon: <Home className="w-4 h-4 shrink-0" /> },
+    { id: 'digital_twin', label: t('digital_twin'), icon: <Compass className="w-4 h-4 shrink-0" /> },
+    { id: 'groundwater', label: t('groundwater'), icon: <Droplets className="w-4 h-4 shrink-0" /> },
+    { id: 'rainfall', label: t('rainfall'), icon: <CloudRain className="w-4 h-4 shrink-0" /> },
+    { id: 'water_quality', label: t('water_quality'), icon: <FlaskConical className="w-4 h-4 shrink-0" /> },
+    { id: 'anomalies', label: t('anomalies'), icon: <AlertTriangle className="w-4 h-4 shrink-0" /> },
+    { id: 'risk_priority', label: t('risk_priority'), icon: <Target className="w-4 h-4 shrink-0" /> },
+    { id: 'confidence', label: t('confidence'), icon: <ShieldCheck className="w-4 h-4 shrink-0" /> },
+    { id: 'community', label: t('community'), icon: <Users className="w-4 h-4 shrink-0" /> },
+    { id: 'investigations', label: t('investigations'), icon: <ClipboardList className="w-4 h-4 shrink-0" /> },
+    { id: 'recharge', label: t('recharge'), icon: <Layers className="w-4 h-4 shrink-0" /> },
+    { id: 'assistant', label: t('assistant'), icon: <Bot className="w-4 h-4 shrink-0" /> },
+    { id: 'analytics', label: t('analytics'), icon: <FileText className="w-4 h-4 shrink-0" /> },
+    { id: 'admin_audit', label: t('admin_audit'), icon: <Settings className="w-4 h-4 shrink-0" /> },
   ];
 
   return (
-    <aside className="w-64 bg-[#05150e] border-r border-white/[0.08] flex flex-col h-screen select-none shrink-0">
-      {/* Top Console Header */}
-      <div className="p-4 border-b border-white/[0.08] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center">
-            <Droplets className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <span className="font-extrabold text-sm text-ivory tracking-tight">PALAR CONSOLE</span>
-            <p className="text-[10px] text-stone-400 font-mono">16 Integrated Modules</p>
-          </div>
-        </div>
-        <button
-          onClick={onBackToLanding}
-          className="p-1.5 rounded-md hover:bg-white/5 text-stone-400 hover:text-white"
-          title="Back to Landing Page"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-      </div>
-
+    <aside className="w-60 md:w-64 bg-[#051811] border-r border-white/[0.08] flex flex-col h-full select-none shrink-0 transition-all duration-300">
       {/* Navigation Modules List */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        {navigationSections.map((sec, sIdx) => (
-          <div key={sIdx} className="space-y-1">
-            <h5 className="px-3 text-[10px] font-mono uppercase tracking-wider text-stone-400 font-semibold mb-1">
-              {sec.title}
-            </h5>
-            {sec.items.map((item) => {
-              const isActive = currentModule === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onSelectModule(item.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
-                    isActive 
-                      ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30' 
-                      : 'text-stone-300 hover:bg-white/[0.04] hover:text-ivory'
-                  }`}
-                >
-                  <span className={isActive ? 'text-emerald-400' : 'text-stone-400'}>
-                    {item.icon}
-                  </span>
-                  <span className="truncate">{item.label}</span>
-                  {isActive && (
-                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+      <div className="flex-1 overflow-y-auto px-2.5 py-3 space-y-1 scrollbar-thin scrollbar-thumb-emerald-900/40">
+        {menuItems.map((item) => {
+          const isActive = currentModule === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onSelectModule(item.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 group text-left ${
+                isActive
+                  ? 'bg-[#10b981] text-[#041a11] font-semibold shadow-lg shadow-emerald-950/40'
+                  : 'text-stone-300 hover:text-white hover:bg-white/[0.04]'
+              }`}
+            >
+              <span className={`${isActive ? 'text-[#041a11]' : 'text-stone-400 group-hover:text-emerald-400'} transition-colors`}>
+                {item.icon}
+              </span>
+              <span className="truncate tracking-wide">{item.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Hackathon Pitch Walkthrough Button */}
-      {onOpenPresentation && (
-        <div className="px-3 pb-3">
-          <button
-            onClick={onOpenPresentation}
-            className="w-full py-2 px-3 rounded-lg bg-emerald-950/70 border border-emerald-500/40 hover:bg-emerald-900/60 text-emerald-300 text-xs font-mono font-medium flex items-center justify-center gap-2 transition-all shadow-forest-sm"
-          >
-            <Award className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Launch Pitch Mode (P)</span>
-          </button>
-        </div>
-      )}
-
-      {/* User Status Bar */}
-      <div className="p-3 bg-[#030d08] border-t border-white/[0.08] flex items-center justify-between">
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-7 h-7 rounded-full bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-xs font-bold text-emerald-300 shrink-0">
-            {user?.full_name?.charAt(0) || 'U'}
-          </div>
-          <div className="truncate">
-            <div className="text-xs font-medium text-white truncate">{user?.full_name || 'Guest User'}</div>
-            <div className="text-[10px] text-emerald-400/90 font-mono flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              {role}
+      {/* Bottom Scenic Banner (Temple & River) matching reference image */}
+      <div className="p-3 border-t border-white/[0.06] bg-[#03110b]">
+        <div className="relative rounded-xl overflow-hidden p-3 border border-emerald-500/20 bg-gradient-to-t from-[#021008] via-[#052216] to-[#041a11] shadow-inner text-center">
+          <div className="flex justify-center mb-1.5 opacity-80">
+            <div className="relative w-full h-12 flex items-center justify-center">
+              {/* Temple Gopuram Silhouette & River Waves SVG */}
+              <svg viewBox="0 0 160 50" className="w-full h-full text-emerald-400/50" fill="none">
+                {/* Temple Gopuram */}
+                <path d="M80 5 L85 14 L75 14 Z" fill="currentColor" opacity="0.8" />
+                <path d="M74 14 L86 14 L88 24 L72 24 Z" fill="currentColor" opacity="0.7" />
+                <path d="M70 24 L90 24 L93 35 L67 35 Z" fill="currentColor" opacity="0.6" />
+                <rect x="76" y="27" width="8" height="8" rx="1" fill="#03110b" />
+                {/* River waves */}
+                <path d="M10 40 Q45 35 80 40 T150 40" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+                <path d="M5 45 Q40 41 80 45 T155 45" stroke="#34d399" strokeWidth="1" opacity="0.8" />
+              </svg>
             </div>
+          </div>
+          <div className="text-[12px] font-bold text-emerald-200 tracking-tight leading-snug">
+            {t('sidebar_banner_title')}
+          </div>
+          <div className="text-[10px] text-stone-400 mt-0.5 font-medium">
+            {t('sidebar_banner_subtitle')}
           </div>
         </div>
       </div>

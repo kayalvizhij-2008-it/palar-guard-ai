@@ -27,7 +27,7 @@ import { RoleAccessModule } from './components/modules/RoleAccessModule';
 import { AdminAuditModule } from './components/modules/AdminAuditModule';
 
 export function AppContent() {
-  const [currentView, setCurrentView] = useState<string>('landing');
+  const [currentView, setCurrentView] = useState<string>('dashboard');
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
   const [presentationOpen, setPresentationOpen] = useState<boolean>(false);
 
@@ -116,8 +116,8 @@ export function AppContent() {
             onBackToLanding={() => handleNavigate('landing')}
             onOpenPresentation={() => setPresentationOpen(true)}
           />
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#04120c]">
-            <div className="max-w-7xl mx-auto">
+          <main className="flex-1 overflow-y-auto p-3 sm:p-4 bg-[#04120c]">
+            <div className="w-full">
               {renderConsoleModule()}
             </div>
           </main>
