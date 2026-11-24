@@ -158,7 +158,8 @@ class CommunityReportOut(BaseModel):
 
 # AI Assistant Query & Response
 class AssistantQuery(BaseModel):
-    query: str
+    query: Optional[str] = None
+    prompt: Optional[str] = None
     location_id: Optional[int] = None
 
 class AssistantResponse(BaseModel):

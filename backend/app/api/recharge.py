@@ -6,6 +6,7 @@ from ..models.models import RechargeAssessment, Location
 
 router = APIRouter(prefix="/recharge", tags=["Recharge Intervention Intelligence"])
 
+@router.get("/")
 @router.get("/assessments")
 def get_recharge_assessments(db: Session = Depends(get_db)):
     results = db.query(RechargeAssessment, Location).join(Location, RechargeAssessment.location_id == Location.id).all()

@@ -9,7 +9,9 @@ import {
   RECHARGE_ASSESSMENTS_DATA, RAINFALL_SERIES 
 } from '../data/palarData';
 
-export const API_BASE_URL = 'http://localhost:8000/api/v1';
+const envBase = (import.meta as any).env?.VITE_API_BASE_URL;
+export const API_ROOT = envBase ? envBase.replace(/\/$/, '') : 'http://localhost:8000';
+export const API_BASE_URL = `${API_ROOT}/api/v1`;
 
 // Helper for standard JSON fetches with timeout and fallback
 async function fetchWithFallback<T>(url: string, fallback: T, options?: RequestInit): Promise<T> {
@@ -41,7 +43,7 @@ export const apiService = {
   // Check backend server health
   async checkHealth(): Promise<{ status: string; database?: string } | null> {
     try {
-      const res = await fetch('http://localhost:8000/health', { method: 'GET' });
+      const res = await fetch(`${API_ROOT}/health`, { method: 'GET' });
       if (res.ok) return await res.json();
       return null;
     } catch {

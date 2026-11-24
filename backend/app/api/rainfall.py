@@ -7,6 +7,7 @@ from ..schemas.schemas import RainfallRecordOut
 
 router = APIRouter(prefix="/rainfall", tags=["Rainfall & Recharge"])
 
+@router.get("/", response_model=List[RainfallRecordOut])
 @router.get("/records", response_model=List[RainfallRecordOut])
 def get_rainfall_records(location_id: Optional[int] = None, db: Session = Depends(get_db)):
     query = db.query(RainfallRecord)

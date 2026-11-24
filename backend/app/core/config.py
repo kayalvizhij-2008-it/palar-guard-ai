@@ -8,14 +8,27 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./palar_guard.db")
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     
-    # CORS
+    # CORS defaults
     BACKEND_CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
+        "https://palar-guard-ai.vercel.app",
+        "https://palar-guard-ai-frontend.vercel.app",
     ]
+
+    def get_cors_origins(self) -> list[str]:
+        origins = list(self.BACKEND_CORS_ORIGINS)
+        env_origins = os.getenv("CORS_ORIGINS", "")
+        if env_origins:
+            for item in env_origins.split(","):
+                clean = item.strip()
+                if clean and clean not in origins:
+                    origins.append(clean)
+        return origins
 
     class Config:
         case_sensitive = True

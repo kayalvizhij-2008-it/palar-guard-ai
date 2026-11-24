@@ -1,11 +1,11 @@
 services:
-  # FastAPI Environmental Intelligence Backend
+  # FastAPI Environmental Intelligence Backend on Render
   - type: web
     name: palar-guard-ai-backend
     env: python
     region: singapore
     plan: free
-    buildCommand: "cd backend && pip install -r requirements.txt && python -m app.seed_data"
+    buildCommand: "cd backend && pip install -r requirements.txt && python -c 'from app.seed_data import init_db; init_db()'"
     startCommand: "cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /health
     envVars:
@@ -16,11 +16,11 @@ services:
       - key: DATABASE_URL
         value: sqlite:///./palar_guard.db
       - key: CORS_ORIGINS
-        value: "https://palar-guard-ai.vercel.app,http://localhost:5173"
+        value: "https://frontend-tau-kohl-99.vercel.app,https://frontend-6xbla5345-kayalvizhij-2008-its-projects.vercel.app,http://localhost:5173,http://127.0.0.1:5173"
       - key: SECRET_KEY
         generateValue: true
 
-  # Static Frontend Single Page Application
+  # Static Frontend on Render (Backup / Multi-Cloud Mirror)
   - type: web
     name: palar-guard-ai-frontend
     env: static

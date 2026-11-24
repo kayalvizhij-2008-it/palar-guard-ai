@@ -8,7 +8,7 @@ router = APIRouter(prefix="/assistant", tags=["PALAR AI Assistant"])
 
 @router.post("/query", response_model=AssistantResponse)
 def query_assistant(payload: AssistantQuery, db: Session = Depends(get_db)):
-    q = payload.query.lower()
+    q = (payload.query or payload.prompt or "").lower()
     
     # Context retrieval from database
     locations = db.query(Location).all()

@@ -1,6 +1,9 @@
+import os
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
+from .core.database import engine
 from .seed_data import init_db
 from .api import (
     auth, locations, groundwater, water_quality, 
@@ -14,10 +17,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS Middleware
+# Production CORS Configuration
+cors_origins = settings.get_cors_origins()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In development mode allow all origins
+    allow_origins=["*"] if settings.ENVIRONMENT != "production" else cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -53,13 +57,26 @@ def root():
             "institution": "Chennai Institute of Technology"
         },
         "docs": "/docs",
-        "health": "operational"
+        "health": "operational",
+        "geography": "Palar River Basin (17,810 km² Catchment), Tamil Nadu, India"
     }
 
 @app.get("/health")
 def health_check():
+    db_status = "connected"
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception as e:
+        db_status = f"unhealthy: {str(e)}"
+
     return {
-        "status": "healthy",
-        "database": "sqlite_connected",
-        "geography": "Palar River Basin, Tamil Nadu"
+        "status": "healthy" if "unhealthy" not in db_status else "degraded",
+        "service": "PALAR GUARD AI Environmental Intelligence API",
+        "version": "1.0.0",
+        "database": db_status,
+        "environment": settings.ENVIRONMENT,
+        "geography": "Palar River Basin (17,810 km² Catchment), Tamil Nadu, India",
+        "timestamp": datetime.utcnow().isoformat()
     }

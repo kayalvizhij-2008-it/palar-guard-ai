@@ -7,6 +7,7 @@ from ..schemas.schemas import CommunityReportOut, CommunityReportCreate
 
 router = APIRouter(prefix="/community", tags=["Community Water Reporting"])
 
+@router.get("/", response_model=List[CommunityReportOut])
 @router.get("/reports", response_model=List[CommunityReportOut])
 def get_reports(status: Optional[str] = None, db: Session = Depends(get_db)):
     query = db.query(CommunityReport)
@@ -14,6 +15,7 @@ def get_reports(status: Optional[str] = None, db: Session = Depends(get_db)):
         query = query.filter(CommunityReport.status == status)
     return query.order_by(CommunityReport.created_at.desc()).all()
 
+@router.post("/", response_model=CommunityReportOut)
 @router.post("/reports", response_model=CommunityReportOut)
 def submit_report(report_in: CommunityReportCreate, db: Session = Depends(get_db)):
     report = CommunityReport(

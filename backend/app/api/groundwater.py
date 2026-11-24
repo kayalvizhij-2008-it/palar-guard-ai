@@ -7,6 +7,7 @@ from ..schemas.schemas import GroundwaterRecordOut
 
 router = APIRouter(prefix="/groundwater", tags=["Groundwater Intelligence"])
 
+@router.get("/", response_model=List[GroundwaterRecordOut])
 @router.get("/records", response_model=List[GroundwaterRecordOut])
 def get_records(location_id: Optional[int] = None, db: Session = Depends(get_db)):
     query = db.query(GroundwaterRecord)
@@ -15,12 +16,13 @@ def get_records(location_id: Optional[int] = None, db: Session = Depends(get_db)
     return query.order_by(GroundwaterRecord.observation_date.asc()).all()
 
 @router.get("/forecast")
-def get_forecast(location_id: int = Query(..., description="Target Location ID"), db: Session = Depends(get_db)):
-    loc = db.query(Location).filter(Location.id == location_id).first()
+def get_forecast(location_id: Optional[int] = Query(default=1, description="Target Location ID"), db: Session = Depends(get_db)):
+    target_id = location_id or 1
+    loc = db.query(Location).filter(Location.id == target_id).first()
     if not loc:
         raise HTTPException(status_code=404, detail="Location not found")
     
-    historical = db.query(GroundwaterRecord).filter(GroundwaterRecord.location_id == location_id).order_by(GroundwaterRecord.observation_date.asc()).all()
+    historical = db.query(GroundwaterRecord).filter(GroundwaterRecord.location_id == target_id).order_by(GroundwaterRecord.observation_date.asc()).all()
     if not historical:
         raise HTTPException(status_code=404, detail="No historical records for location")
     

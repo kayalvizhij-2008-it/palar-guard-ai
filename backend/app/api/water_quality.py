@@ -7,6 +7,7 @@ from ..schemas.schemas import WaterQualityRecordOut
 
 router = APIRouter(prefix="/water-quality", tags=["Water Quality Intelligence"])
 
+@router.get("/", response_model=List[WaterQualityRecordOut])
 @router.get("/records", response_model=List[WaterQualityRecordOut])
 def get_quality_records(location_id: Optional[int] = None, db: Session = Depends(get_db)):
     query = db.query(WaterQualityRecord)
