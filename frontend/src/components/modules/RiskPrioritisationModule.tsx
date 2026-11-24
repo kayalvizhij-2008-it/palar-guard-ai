@@ -5,16 +5,37 @@ import { Target, Shield, CheckCircle, Info, Sliders, ArrowUpRight } from 'lucide
 
 export const RiskPrioritisationModule: React.FC = () => {
   const [selectedStationId, setSelectedStationId] = useState<number>(1);
+  const [preset, setPreset] = useState<'standard' | 'drought' | 'pollution'>('standard');
   const selectedLocation = PALAR_LOCATIONS.find(l => l.id === selectedStationId) || PALAR_LOCATIONS[0];
 
   const isIndustrial = selectedLocation.id === 1 || selectedLocation.id === 2;
 
+  const weights = preset === 'drought' 
+    ? { gw: 50, wq: 20, rain: 15, rec: 10, conf: 5 }
+    : preset === 'pollution'
+    ? { gw: 20, wq: 55, rain: 10, rec: 10, conf: 5 }
+    : { gw: 30, wq: 35, rain: 15, rec: 10, conf: 10 };
+
+  const gwScore = isIndustrial ? 82 : 54;
+  const wqScore = isIndustrial ? 88 : 38;
+  const rainScore = 52;
+  const recScore = 92;
+  const confScore = selectedLocation.confidence_level === 'High' ? 85 : 65;
+
+  const calculatedScore = Number((
+    (gwScore * weights.gw + 
+     wqScore * weights.wq + 
+     rainScore * weights.rain + 
+     recScore * weights.rec + 
+     confScore * weights.conf) / 100
+  ).toFixed(1));
+
   const criteriaDimensions = [
-    { name: "Groundwater Stress", weight: "30%", score: isIndustrial ? 82 : 54, status: isIndustrial ? "Severe Drawdown" : "Moderate", color: "text-amber-400" },
-    { name: "Water Quality Concern", weight: "35%", score: isIndustrial ? 88 : 38, status: isIndustrial ? "Chromium/TDS Elevated" : "Normal Baseline", color: isIndustrial ? "text-red-400" : "text-emerald-400" },
-    { name: "Rainfall & Recharge Deficit", weight: "15%", score: 52, status: "Moderate Infiltration Window", color: "text-stone-300" },
-    { name: "Observation Recency", weight: "10%", score: 92, status: "Current Quarter Verified", color: "text-emerald-400" },
-    { name: "Data Confidence Level", weight: "10%", score: 85, status: selectedLocation.confidence_level === 'High' ? "High Grounding" : "Medium", color: "text-emerald-400" },
+    { name: "Groundwater Stress", weight: `${weights.gw}%`, score: gwScore, status: isIndustrial ? "Severe Drawdown" : "Moderate", color: "text-amber-400" },
+    { name: "Water Quality Concern", weight: `${weights.wq}%`, score: wqScore, status: isIndustrial ? "Chromium/TDS Elevated" : "Normal Baseline", color: isIndustrial ? "text-red-400" : "text-emerald-400" },
+    { name: "Rainfall & Recharge Deficit", weight: `${weights.rain}%`, score: rainScore, status: "Moderate Infiltration Window", color: "text-stone-300" },
+    { name: "Observation Recency", weight: `${weights.rec}%`, score: recScore, status: "Current Quarter Verified", color: "text-emerald-400" },
+    { name: "Data Confidence Level", weight: `${weights.conf}%`, score: confScore, status: selectedLocation.confidence_level === 'High' ? "High Grounding" : "Medium", color: "text-emerald-400" },
   ];
 
   return (
@@ -50,6 +71,34 @@ export const RiskPrioritisationModule: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Explainable Dimensions Breakdown */}
         <div className="lg:col-span-7 p-5 bg-[#092218] border border-white/[0.08] rounded-xl space-y-4">
+          {/* Policy Preset Switcher */}
+          <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-[#05140d] rounded-lg border border-white/[0.08]">
+            <div className="text-xs font-mono text-stone-400 flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Weight Policy Preset:</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-mono">
+              <button
+                onClick={() => setPreset('standard')}
+                className={`px-2.5 py-1 rounded transition-colors ${preset === 'standard' ? 'bg-emerald-600 text-white font-bold' : 'text-stone-400 hover:text-white bg-white/5'}`}
+              >
+                Standard (30/35/15)
+              </button>
+              <button
+                onClick={() => setPreset('drought')}
+                className={`px-2.5 py-1 rounded transition-colors ${preset === 'drought' ? 'bg-amber-600 text-white font-bold' : 'text-stone-400 hover:text-white bg-white/5'}`}
+              >
+                Dry Season (50% GW)
+              </button>
+              <button
+                onClick={() => setPreset('pollution')}
+                className={`px-2.5 py-1 rounded transition-colors ${preset === 'pollution' ? 'bg-red-600 text-white font-bold' : 'text-stone-400 hover:text-white bg-white/5'}`}
+              >
+                Tannery Focus (55% WQ)
+              </button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
             <div>
               <h3 className="text-sm font-bold text-white">Transparent MCDA Scoring Matrix</h3>
@@ -57,7 +106,7 @@ export const RiskPrioritisationModule: React.FC = () => {
             </div>
             <div className="text-right">
               <span className="text-[10px] text-stone-400 font-mono">Aggregated Score: </span>
-              <span className="text-lg font-bold font-mono text-amber-400 tabular-nums">{selectedLocation.risk_score} / 100</span>
+              <span className="text-lg font-bold font-mono text-amber-400 tabular-nums">{calculatedScore} / 100</span>
             </div>
           </div>
 

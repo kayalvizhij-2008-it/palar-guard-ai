@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { PALAR_LOCATIONS, WATER_QUALITY_STATIONS, ANOMALIES_DATA } from '../../data/palarData';
+import { LocationData } from '../../types';
 import { DataBadge } from '../common/DataBadge';
 import { BasinHero3D } from '../hero/BasinHero3D';
-import { Layers, Compass, AlertCircle, Box, Map as MapIcon } from 'lucide-react';
+import { 
+  Layers, Compass, AlertCircle, Box, Map as MapIcon, 
+  X, Droplets, Activity, ShieldCheck, ArrowRight, Info, CheckCircle2 
+} from 'lucide-react';
 
 const riverPathCoords: [number, number][] = [
   [12.6825, 78.6186], // Vaniyambadi
@@ -22,6 +26,7 @@ interface DigitalTwinMapProps {
 export const DigitalTwinMap: React.FC<DigitalTwinMapProps> = ({ onSelectLocation }) => {
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
   const [activeLayer, setActiveLayer] = useState<'all' | 'risk' | 'water_quality' | 'anomalies'>('all');
+  const [selectedStation, setSelectedStation] = useState<LocationData | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
@@ -128,7 +133,7 @@ export const DigitalTwinMap: React.FC<DigitalTwinMapProps> = ({ onSelectLocation
         .addTo(layerGroup);
 
       marker.on('click', () => {
-        if (onSelectLocation) onSelectLocation(loc.id);
+        setSelectedStation(loc);
       });
     });
 
@@ -237,6 +242,101 @@ export const DigitalTwinMap: React.FC<DigitalTwinMapProps> = ({ onSelectLocation
               </div>
             </div>
           </div>
+
+          {/* Station Telemetry Slide-Over Drawer */}
+          {selectedStation && (() => {
+            const wq = WATER_QUALITY_STATIONS.find(w => w.location_id === selectedStation.id);
+            const alert = ANOMALIES_DATA.find(a => a.location_id === selectedStation.id && a.status === 'Open');
+            return (
+              <div className="absolute top-4 right-4 bottom-4 z-[1001] w-80 sm:w-96 bg-[#061811]/95 backdrop-blur-md rounded-2xl border border-emerald-500/40 p-5 shadow-2xl flex flex-col justify-between overflow-y-auto animate-fade-in text-left">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">
+                        <span>{selectedStation.station_code}</span>
+                        <span className="text-stone-500">•</span>
+                        <span>{selectedStation.basin_zone}</span>
+                      </div>
+                      <h3 className="text-base font-extrabold text-white mt-0.5">{selectedStation.name}</h3>
+                      <p className="text-xs text-stone-300">{selectedStation.district} District, Tamil Nadu</p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedStation(null)}
+                      className="p-1 rounded-lg text-stone-400 hover:text-white hover:bg-white/10 transition-colors"
+                      title="Close drawer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Badges strip */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DataBadge provenance="VERIFIED_PUBLIC" />
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-500/30">
+                      {selectedStation.cpcb_stretch_priority}
+                    </span>
+                  </div>
+
+                  {/* Telemetry Grid */}
+                  <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                    <div className="p-2.5 rounded-xl bg-[#04120c] border border-white/10">
+                      <div className="text-[10px] text-stone-400 mb-0.5">Risk Score</div>
+                      <div className="text-lg font-bold text-amber-400 tabular-nums">
+                        {selectedStation.risk_score} / 100
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-[#04120c] border border-white/10">
+                      <div className="text-[10px] text-stone-400 mb-0.5">TDS Value</div>
+                      <div className="text-lg font-bold text-emerald-300 tabular-nums">
+                        {wq?.tds_mg_l || 'N/A'} mg/L
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-[#04120c] border border-white/10">
+                      <div className="text-[10px] text-stone-400 mb-0.5">Total Chromium</div>
+                      <div className="text-lg font-bold text-red-400 tabular-nums">
+                        {wq?.chromium_mg_l || 0.015} mg/L
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-[#04120c] border border-white/10">
+                      <div className="text-[10px] text-stone-400 mb-0.5">Aquifer Type</div>
+                      <div className="text-[11px] font-medium text-stone-200 truncate">
+                        {selectedStation.aquifer_type.split(' ')[0]}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Active Anomaly Banner if present */}
+                  {alert && (
+                    <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-xs space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold text-red-300">
+                        <AlertCircle className="w-3.5 h-3.5 text-red-400" />
+                        <span>Active Statistical Anomaly</span>
+                      </div>
+                      <p className="text-[11px] text-stone-300 leading-relaxed">
+                        {alert.trigger_reason} (Robust Z-Score: {alert.z_score})
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Provenance Description */}
+                  <div className="text-[11px] text-stone-400 leading-relaxed border-t border-white/10 pt-3">
+                    <span className="font-semibold text-stone-300">Source:</span> {selectedStation.verified_source}
+                  </div>
+                </div>
+
+                {/* Direct Action Button */}
+                <button
+                  onClick={() => {
+                    if (onSelectLocation) onSelectLocation(selectedStation.id);
+                  }}
+                  className="mt-4 w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-forest-sm transition-colors"
+                >
+                  <span>Open Full Station Hydrographs</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            );
+          })()}
         </div>
       ) : (
         <div className="relative flex-1 min-h-[500px] w-full p-4 flex flex-col items-center justify-center bg-[#04120c]">

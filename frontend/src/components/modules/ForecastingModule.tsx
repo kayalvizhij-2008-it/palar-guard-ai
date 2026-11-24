@@ -6,7 +6,10 @@ import { LineChart as ChartIcon, AlertCircle, TrendingUp, Info, HelpCircle } fro
 
 export const ForecastingModule: React.FC = () => {
   const [selectedStationId, setSelectedStationId] = useState<number>(1);
+  const [scenario, setScenario] = useState<'normal' | 'deficit' | 'surplus'>('normal');
   const selectedLocation = PALAR_LOCATIONS.find(l => l.id === selectedStationId) || PALAR_LOCATIONS[0];
+
+  const scenarioMultiplier = scenario === 'deficit' ? 1.15 : scenario === 'surplus' ? 0.85 : 1.0;
 
   const forecastData = [
     { period: "2025-Q1", actual: 14.3, projected: null, lower: null, upper: null },
@@ -14,10 +17,34 @@ export const ForecastingModule: React.FC = () => {
     { period: "2025-Q3", actual: 15.7, projected: null, lower: null, upper: null },
     { period: "2025-Q4", actual: 12.3, projected: null, lower: null, upper: null },
     { period: "2026-Q1", actual: 14.9, projected: 14.9, lower: 14.9, upper: 14.9 },
-    { period: "2026-Q2 (Fcst)", actual: null, projected: 17.0, lower: 15.8, upper: 18.2 },
-    { period: "2026-Q3 (Fcst)", actual: null, projected: 15.2, lower: 13.9, upper: 16.5 },
-    { period: "2026-Q4 (Fcst)", actual: null, projected: 12.0, lower: 10.5, upper: 13.5 },
-    { period: "2027-Q1 (Fcst)", actual: null, projected: 14.3, lower: 12.6, upper: 16.0 },
+    { 
+      period: "2026-Q2 (Fcst)", 
+      actual: null, 
+      projected: Number((17.0 * scenarioMultiplier).toFixed(1)), 
+      lower: Number(((17.0 - 1.2) * scenarioMultiplier).toFixed(1)), 
+      upper: Number(((17.0 + 1.2) * scenarioMultiplier).toFixed(1)) 
+    },
+    { 
+      period: "2026-Q3 (Fcst)", 
+      actual: null, 
+      projected: Number((15.2 * scenarioMultiplier).toFixed(1)), 
+      lower: Number(((15.2 - 1.3) * scenarioMultiplier).toFixed(1)), 
+      upper: Number(((15.2 + 1.3) * scenarioMultiplier).toFixed(1)) 
+    },
+    { 
+      period: "2026-Q4 (Fcst)", 
+      actual: null, 
+      projected: Number((12.0 * scenarioMultiplier).toFixed(1)), 
+      lower: Number(((12.0 - 1.5) * scenarioMultiplier).toFixed(1)), 
+      upper: Number(((12.0 + 1.5) * scenarioMultiplier).toFixed(1)) 
+    },
+    { 
+      period: "2027-Q1 (Fcst)", 
+      actual: null, 
+      projected: Number((14.3 * scenarioMultiplier).toFixed(1)), 
+      lower: Number(((14.3 - 1.7) * scenarioMultiplier).toFixed(1)), 
+      upper: Number(((14.3 + 1.7) * scenarioMultiplier).toFixed(1)) 
+    },
   ];
 
   return (
@@ -52,6 +79,34 @@ export const ForecastingModule: React.FC = () => {
       {/* Main Forecast Chart & Uncertainty Interval */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8 p-5 bg-[#092218] border border-white/[0.08] rounded-xl space-y-4">
+          {/* Scenario Simulation Controls */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 bg-[#05140d] rounded-lg border border-white/[0.08]">
+            <div className="text-xs font-mono text-stone-400 flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Climate Scenario Simulation:</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-mono">
+              <button
+                onClick={() => setScenario('normal')}
+                className={`px-3 py-1 rounded-md transition-colors ${scenario === 'normal' ? 'bg-emerald-600 text-white font-bold shadow-forest-sm' : 'text-stone-400 hover:text-white bg-white/5'}`}
+              >
+                Normal (980mm)
+              </button>
+              <button
+                onClick={() => setScenario('deficit')}
+                className={`px-3 py-1 rounded-md transition-colors ${scenario === 'deficit' ? 'bg-amber-600 text-white font-bold shadow-forest-sm' : 'text-stone-400 hover:text-white bg-white/5'}`}
+              >
+                Deficit (-20% Rain)
+              </button>
+              <button
+                onClick={() => setScenario('surplus')}
+                className={`px-3 py-1 rounded-md transition-colors ${scenario === 'surplus' ? 'bg-cyan-600 text-white font-bold shadow-forest-sm' : 'text-stone-400 hover:text-white bg-white/5'}`}
+              >
+                Surplus (+25% Rain)
+              </button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white">4-Quarter Water Table Projection (mbgl)</span>
