@@ -4,16 +4,22 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Compass, Droplets, LineChart, CloudRain, FlaskConical, 
   AlertTriangle, Target, ShieldCheck, Users, ClipboardList, 
-  Layers, Bot, FileText, UserCheck, Settings, Home, ArrowLeft
+  Layers, Bot, FileText, UserCheck, Settings, Home, ArrowLeft, Award
 } from 'lucide-react';
 
 interface AppSidebarProps {
   currentModule: string;
   onSelectModule: (moduleId: string) => void;
   onBackToLanding: () => void;
+  onOpenPresentation?: () => void;
 }
 
-export const AppSidebar: React.FC<AppSidebarProps> = ({ currentModule, onSelectModule, onBackToLanding }) => {
+export const AppSidebar: React.FC<AppSidebarProps> = ({ 
+  currentModule, 
+  onSelectModule, 
+  onBackToLanding,
+  onOpenPresentation
+}) => {
   const { t } = useLanguage();
   const { user, role } = useAuth();
 
@@ -115,6 +121,19 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ currentModule, onSelectM
           </div>
         ))}
       </div>
+
+      {/* Hackathon Pitch Walkthrough Button */}
+      {onOpenPresentation && (
+        <div className="px-3 pb-3">
+          <button
+            onClick={onOpenPresentation}
+            className="w-full py-2 px-3 rounded-lg bg-emerald-950/70 border border-emerald-500/40 hover:bg-emerald-900/60 text-emerald-300 text-xs font-mono font-medium flex items-center justify-center gap-2 transition-all shadow-forest-sm"
+          >
+            <Award className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Launch Pitch Mode (P)</span>
+          </button>
+        </div>
+      )}
 
       {/* User Status Bar */}
       <div className="p-3 bg-[#030d08] border-t border-white/[0.08] flex items-center justify-between">

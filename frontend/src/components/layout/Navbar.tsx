@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
-import { Droplet, Globe, Menu, X, Shield, ArrowRight, User as UserIcon } from 'lucide-react';
+import { Droplet, Globe, Menu, X, Shield, ArrowRight, User as UserIcon, Award } from 'lucide-react';
 
 interface NavbarProps {
   currentView: string;
   onNavigate: (view: string) => void;
   onOpenAuth: () => void;
+  onOpenPresentation?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenAuth }) => {
+export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenAuth, onOpenPresentation }) => {
   const { lang, setLang, t } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -59,6 +60,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenA
 
         {/* Right Action Controls */}
         <div className="flex items-center gap-3">
+          {/* Hackathon Presentation Mode Button */}
+          {onOpenPresentation && (
+            <button
+              onClick={onOpenPresentation}
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/70 border border-emerald-500/40 hover:bg-emerald-900/60 text-xs font-mono text-emerald-300 transition-colors shadow-forest-sm"
+              title="Launch 5-7 Min Jury Presentation Walkthrough (Press 'P')"
+            >
+              <Award className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Pitch Mode</span>
+            </button>
+          )}
+
           {/* Tamil / English Language Switcher */}
           <button
             onClick={() => setLang(lang === 'en' ? 'ta' : 'en')}

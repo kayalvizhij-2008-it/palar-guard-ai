@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { PALAR_LOCATIONS, WATER_QUALITY_STATIONS, ANOMALIES_DATA } from '../../data/palarData';
 import { DataBadge } from '../common/DataBadge';
-import { Layers, Compass, AlertCircle } from 'lucide-react';
+import { BasinHero3D } from '../hero/BasinHero3D';
+import { Layers, Compass, AlertCircle, Box, Map as MapIcon } from 'lucide-react';
 
 const riverPathCoords: [number, number][] = [
   [12.6825, 78.6186], // Vaniyambadi
@@ -19,11 +20,13 @@ interface DigitalTwinMapProps {
 }
 
 export const DigitalTwinMap: React.FC<DigitalTwinMapProps> = ({ onSelectLocation }) => {
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
   const [activeLayer, setActiveLayer] = useState<'all' | 'risk' | 'water_quality' | 'anomalies'>('all');
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
+    if (viewMode !== '2d') return;
     if (!mapContainerRef.current) return;
 
     if (mapInstanceRef.current) {
@@ -133,7 +136,7 @@ export const DigitalTwinMap: React.FC<DigitalTwinMapProps> = ({ onSelectLocation
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [activeLayer, onSelectLocation]);
+  }, [viewMode, activeLayer, onSelectLocation]);
 
   return (
     <div className="flex flex-col h-full bg-[#071912] rounded-xl border border-white/[0.08] overflow-hidden shadow-forest-md">
@@ -150,65 +153,98 @@ export const DigitalTwinMap: React.FC<DigitalTwinMapProps> = ({ onSelectLocation
           </div>
         </div>
 
-        {/* Layer Filters */}
-        <div className="flex items-center gap-1.5 bg-[#05140d] p-1 rounded-lg border border-white/[0.08]">
-          <button
-            onClick={() => setActiveLayer('all')}
-            className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${activeLayer === 'all' ? 'bg-emerald-600 text-ivory' : 'text-stone-300 hover:text-white'}`}
-          >
-            All Layers
-          </button>
-          <button
-            onClick={() => setActiveLayer('risk')}
-            className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${activeLayer === 'risk' ? 'bg-emerald-600 text-ivory' : 'text-stone-300 hover:text-white'}`}
-          >
-            Risk Zones
-          </button>
-          <button
-            onClick={() => setActiveLayer('water_quality')}
-            className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${activeLayer === 'water_quality' ? 'bg-emerald-600 text-ivory' : 'text-stone-300 hover:text-white'}`}
-          >
-            Water Quality
-          </button>
-          <button
-            onClick={() => setActiveLayer('anomalies')}
-            className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${activeLayer === 'anomalies' ? 'bg-emerald-600 text-ivory' : 'text-stone-300 hover:text-white'}`}
-          >
-            Active Anomalies
-          </button>
+        {/* View Mode Toggle (2D GIS vs 3D Digital Twin) & Layer Filters */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-1 bg-[#05140d] p-1 rounded-lg border border-emerald-500/30">
+            <button
+              onClick={() => setViewMode('2d')}
+              className={`px-2.5 py-1 text-xs rounded font-medium flex items-center gap-1.5 transition-colors ${
+                viewMode === '2d' ? 'bg-emerald-600 text-ivory shadow-forest-sm' : 'text-stone-300 hover:text-white'
+              }`}
+            >
+              <MapIcon className="w-3.5 h-3.5" />
+              <span>2D GIS Map</span>
+            </button>
+            <button
+              onClick={() => setViewMode('3d')}
+              className={`px-2.5 py-1 text-xs rounded font-medium flex items-center gap-1.5 transition-colors ${
+                viewMode === '3d' ? 'bg-emerald-600 text-ivory shadow-forest-sm' : 'text-stone-300 hover:text-white'
+              }`}
+            >
+              <Box className="w-3.5 h-3.5" />
+              <span>3D WebGL Twin</span>
+            </button>
+          </div>
+
+          {viewMode === '2d' && (
+            <div className="flex items-center gap-1.5 bg-[#05140d] p-1 rounded-lg border border-white/[0.08]">
+              <button
+                onClick={() => setActiveLayer('all')}
+                className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${activeLayer === 'all' ? 'bg-emerald-600 text-ivory' : 'text-stone-300 hover:text-white'}`}
+              >
+                All Layers
+              </button>
+              <button
+                onClick={() => setActiveLayer('risk')}
+                className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${activeLayer === 'risk' ? 'bg-emerald-600 text-ivory' : 'text-stone-300 hover:text-white'}`}
+              >
+                Risk Zones
+              </button>
+              <button
+                onClick={() => setActiveLayer('water_quality')}
+                className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${activeLayer === 'water_quality' ? 'bg-emerald-600 text-ivory' : 'text-stone-300 hover:text-white'}`}
+              >
+                Water Quality
+              </button>
+              <button
+                onClick={() => setActiveLayer('anomalies')}
+                className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${activeLayer === 'anomalies' ? 'bg-emerald-600 text-ivory' : 'text-stone-300 hover:text-white'}`}
+              >
+                Active Anomalies
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Leaflet DOM Node */}
-      <div className="relative flex-1 min-h-[460px] w-full">
-        <div ref={mapContainerRef} className="h-full w-full min-h-[460px]" />
+      {/* Main Display: 2D Leaflet DOM or 3D WebGL Canvas */}
+      {viewMode === '2d' ? (
+        <div className="relative flex-1 min-h-[460px] w-full">
+          <div ref={mapContainerRef} className="h-full w-full min-h-[460px]" />
 
-        {/* Legend Box */}
-        <div className="absolute bottom-4 left-4 z-[1000] bg-[#071912]/90 backdrop-blur-md p-3 rounded-lg border border-white/10 shadow-forest-md text-xs pointer-events-none">
-          <div className="font-bold text-ivory mb-2 flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Basin Map Legend</span>
-          </div>
-          <div className="space-y-1.5 font-mono text-[11px]">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-              <span className="text-stone-300">High Risk Priority (&gt; 70)</span>
+          {/* Legend Box */}
+          <div className="absolute bottom-4 left-4 z-[1000] bg-[#071912]/90 backdrop-blur-md p-3 rounded-lg border border-white/10 shadow-forest-md text-xs pointer-events-none">
+            <div className="font-bold text-ivory mb-2 flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Basin Map Legend</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-              <span className="text-stone-300">Moderate Stress (50 - 70)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-              <span className="text-stone-300">Normal Baseline (&lt; 50)</span>
-            </div>
-            <div className="flex items-center gap-2 pt-1 border-t border-white/10">
-              <span className="w-4 h-0.5 bg-emerald-400 border-dashed"></span>
-              <span className="text-stone-300">Palar Main River Reach</span>
+            <div className="space-y-1.5 font-mono text-[11px]">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                <span className="text-stone-300">High Risk Priority (&gt; 70)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <span className="text-stone-300">Moderate Stress (50 - 70)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span className="text-stone-300">Normal Baseline (&lt; 50)</span>
+              </div>
+              <div className="flex items-center gap-2 pt-1 border-t border-white/10">
+                <span className="w-4 h-0.5 bg-emerald-400 border-dashed"></span>
+                <span className="text-stone-300">Palar Main River Reach</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="relative flex-1 min-h-[500px] w-full p-4 flex flex-col items-center justify-center bg-[#04120c]">
+          <div className="w-full max-w-4xl">
+            <BasinHero3D />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

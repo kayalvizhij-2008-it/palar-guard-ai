@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { AppSidebar } from './components/layout/AppSidebar';
 import { AuthModal } from './components/modules/AuthModal';
+import { PresentationModeModal } from './components/modules/PresentationModeModal';
 
 // Modules
 import { LandingPage } from './components/modules/LandingPage';
@@ -28,6 +29,19 @@ import { AdminAuditModule } from './components/modules/AdminAuditModule';
 export function AppContent() {
   const [currentView, setCurrentView] = useState<string>('landing');
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
+  const [presentationOpen, setPresentationOpen] = useState<boolean>(false);
+
+  // Global 'P' shortcut to toggle Jury Presentation Walkthrough
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.key === 'p' || e.key === 'P') {
+        setPresentationOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleNavigate = (view?: string) => {
     setCurrentView(view || 'dashboard');
@@ -81,12 +95,16 @@ export function AppContent() {
         currentView={currentView}
         onNavigate={handleNavigate}
         onOpenAuth={() => setAuthModalOpen(true)}
+        onOpenPresentation={() => setPresentationOpen(true)}
       />
 
       {isLanding ? (
         // Public 14-Section Landing Page View
         <main className="flex-1">
-          <LandingPage onExplore={handleNavigate} />
+          <LandingPage 
+            onExplore={handleNavigate} 
+            onOpenPresentation={() => setPresentationOpen(true)} 
+          />
           <Footer />
         </main>
       ) : (
@@ -96,6 +114,7 @@ export function AppContent() {
             currentModule={currentView}
             onSelectModule={handleNavigate}
             onBackToLanding={() => handleNavigate('landing')}
+            onOpenPresentation={() => setPresentationOpen(true)}
           />
           <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#04120c]">
             <div className="max-w-7xl mx-auto">
@@ -110,6 +129,16 @@ export function AppContent() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onSuccess={() => handleNavigate('dashboard')}
+      />
+
+      {/* Jury & Hackathon 12-Step Presentation Mode Modal */}
+      <PresentationModeModal
+        isOpen={presentationOpen}
+        onClose={() => setPresentationOpen(false)}
+        onNavigateToModule={(mod) => {
+          handleNavigate(mod);
+          setPresentationOpen(false);
+        }}
       />
     </div>
   );

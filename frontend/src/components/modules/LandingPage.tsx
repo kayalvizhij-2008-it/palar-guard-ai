@@ -11,9 +11,10 @@ import {
 
 interface LandingPageProps {
   onExplore: (module?: string) => void;
+  onOpenPresentation?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onExplore }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPresentation }) => {
   const { t } = useLanguage();
   const [demoStep, setDemoStep] = useState<number>(0);
 
@@ -28,8 +29,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore }) => {
 
   return (
     <div className="bg-[#061811] text-[#f4f7f5] overflow-hidden">
+      {/* JURY PRESENTATION BANNER (TOP) */}
+      <div className="bg-gradient-to-r from-[#0a2f22] via-[#083526] to-[#0a2f22] border-b border-emerald-500/30 px-4 py-2.5 sm:px-6">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span className="text-xs font-mono font-bold text-emerald-300">
+              NATIONAL HACKATHON JURY & EVALUATOR MODE:
+            </span>
+            <span className="text-xs text-stone-300 hidden md:inline">
+              12-stage guided scientific walkthrough with zero fabricated claims.
+            </span>
+          </div>
+
+          <button
+            onClick={() => onOpenPresentation ? onOpenPresentation() : onExplore('dashboard')}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#061811] font-bold text-xs shadow-forest-sm transition-all transform hover:scale-[1.02]"
+          >
+            <span>Launch 5-7 Min Presentation Mode</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
       {/* SECTION 2 — CINEMATIC HERO */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]">
+      <section className="relative pt-12 pb-20 md:pt-16 md:pb-28 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Hero Narrative */}
           <div className="lg:col-span-7 space-y-6">
@@ -45,7 +69,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore }) => {
             </h1>
 
             <p className="text-base sm:text-lg text-stone-300 max-w-xl font-normal leading-relaxed">
-              An AI-powered environmental decision platform combining groundwater insights, water-quality observations, rainfall intelligence, and geospatial risk prediction across the Palar River Basin, Tamil Nadu.
+              Turning environmental observations into predictive, location-based intelligence for a more resilient Palar River Basin.
             </p>
 
             {/* Action Buttons */}
@@ -57,12 +81,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore }) => {
                 <span>Explore the Platform</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-              <a
-                href="#workflow"
-                className="px-6 py-3 rounded-xl bg-[#0d261c] hover:bg-[#123627] text-stone-200 border border-white/[0.08] hover:border-emerald-500/30 text-sm font-medium transition-colors"
+              <button
+                onClick={() => onOpenPresentation ? onOpenPresentation() : onExplore('digital_twin')}
+                className="px-6 py-3 rounded-xl bg-[#0d261c] hover:bg-[#123627] text-stone-200 border border-white/[0.08] hover:border-emerald-500/30 text-sm font-medium transition-colors flex items-center gap-2"
               >
-                Discover How It Works
-              </a>
+                <span>Discover Our Intelligence</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Micro Metrics Strip */}
@@ -451,6 +476,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore }) => {
                 Next Step
               </button>
             </div>
+          </div>
+
+          {/* Launch Full 12-Stage Presentation Walkthrough */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-[#092218] via-[#0b2b1e] to-[#092218] border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div>
+              <div className="text-xs font-mono font-bold text-emerald-400">JURY EVALUATION DEMONSTRATION</div>
+              <p className="text-xs text-stone-300 mt-0.5">
+                Ready for a complete scientific review? Walk through all 12 stages with auto-play and live module linking.
+              </p>
+            </div>
+            <button
+              onClick={() => onOpenPresentation && onOpenPresentation()}
+              className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#061811] text-xs font-bold transition-all shadow-forest-sm flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <span>Launch 12-Stage Walkthrough</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </section>

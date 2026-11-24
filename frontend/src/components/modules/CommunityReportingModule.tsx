@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { COMMUNITY_REPORTS_DATA, PALAR_LOCATIONS } from '../../data/palarData';
 import { CommunityReportItem } from '../../types';
 import { DataBadge } from '../common/DataBadge';
+import { apiService } from '../../services/api';
 import { Users, Send, CheckCircle2, AlertTriangle, Upload, Eye } from 'lucide-react';
 
 export const CommunityReportingModule: React.FC = () => {
@@ -13,7 +14,7 @@ export const CommunityReportingModule: React.FC = () => {
   const [reporterName, setReporterName] = useState('');
   const [submittedMessage, setSubmittedMessage] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !description) return;
 
@@ -38,6 +39,16 @@ export const CommunityReportingModule: React.FC = () => {
     setReporterName('');
     setSubmittedMessage(true);
     setTimeout(() => setSubmittedMessage(false), 4000);
+
+    // Persist to backend database
+    apiService.submitCommunityReport({
+      reporter_name: newReport.reporter_name,
+      location_id: loc.id,
+      incident_type: category,
+      description: `${title}: ${description}`,
+      latitude: loc.latitude,
+      longitude: loc.longitude
+    });
   };
 
   const handleUpdateStatus = (id: number, newStatus: CommunityReportItem['status']) => {

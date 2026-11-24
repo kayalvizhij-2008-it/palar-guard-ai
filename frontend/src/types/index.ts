@@ -23,14 +23,18 @@ export type ProvenanceType =
 
 export interface LocationData {
   id: number;
+  station_code: string;
   name: string;
   district: string;
   state: string;
   latitude: number;
   longitude: number;
   basin_zone: 'Upper Basin' | 'Central Basin' | 'Middle Basin' | 'Lower Basin' | 'Coastal Discharge Zone';
+  aquifer_type: string;
+  cpcb_stretch_priority?: string;
   risk_score: number;
   confidence_level: 'High' | 'Medium' | 'Low';
+  verified_source: string;
 }
 
 export interface GroundwaterPoint {
@@ -51,7 +55,13 @@ export interface WaterQualityPoint {
   bod_mg_l: number;
   do_mg_l: number;
   status: 'Normal' | 'Elevated' | 'Critical';
+  sample_context: 'River Surface Water' | 'Borewell / Aquifer' | 'Industrial Drain Discharge';
+  standards_comparison: {
+    bis_drinking_status: string;
+    cpcb_class_c_status: string;
+  };
   provenance: ProvenanceType;
+  citation: string;
 }
 
 export interface AnomalyAlertItem {
@@ -62,9 +72,11 @@ export interface AnomalyAlertItem {
   observed_value: number;
   expected_baseline: number;
   z_score: number;
+  mad_deviation: number;
   severity: 'Critical' | 'High' | 'Medium' | 'Low';
   status: 'Open' | 'Under Review' | 'Verified' | 'Dismissed';
   trigger_reason: string;
+  detection_method: string;
   created_at: string;
   provenance: ProvenanceType;
 }
@@ -105,4 +117,17 @@ export interface RechargeItem {
   score: number;
   recommended: string;
   status: string;
+  hydrological_context: string;
+}
+
+export interface PresentationStep {
+  stepIndex: number;
+  title: string;
+  subtitle: string;
+  narration: string;
+  targetModule: string;
+  highlightedLocationId?: number;
+  keyMetricLabel: string;
+  keyMetricValue: string;
+  provenance: ProvenanceType;
 }
