@@ -1,12 +1,13 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Float, Html, OrbitControls } from '@react-three/drei';
+import { Float, Html, OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { 
   Play, Pause, RotateCcw, FastForward, ChevronDown, 
   ArrowRight, ShieldAlert, CloudRain, Droplets, MapPin, 
   Compass, Sparkles, Award, Layers
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 import { PALAR_LOCATIONS } from '../../data/palarData';
 
 // --- GEOGRAPHIC & SPHERICAL PROJECTIONS ---
@@ -360,8 +361,8 @@ function CinematicGlobe({
     let targetLookAt = new THREE.Vector3(0, 0, 0);
 
     if (currentScene === 1) {
-      targetPos.set(0, 0.2, 5.0);
-      targetLookAt.set(0, 0, 0);
+      targetPos.set(1.15, 0.15, 4.7);
+      targetLookAt.set(0.55, 0, 0);
     } else if (currentScene === 2) {
       targetPos.set(0.65, 0.65, 3.2);
       targetLookAt.set(0.3, 0.35, 0.5);
@@ -433,6 +434,55 @@ function CinematicGlobe({
           side={THREE.BackSide}
         />
       </mesh>
+
+      {/* 4. 3D Luminous Orbital Trajectory Rings matching reference blueprint */}
+      <group rotation={[Math.PI / 3.2, Math.PI / 5, 0]}>
+        <mesh>
+          <ringGeometry args={[2.55, 2.58, 64]} />
+          <meshBasicMaterial color="#2ad58b" transparent opacity={0.65} side={THREE.DoubleSide} />
+        </mesh>
+        {/* Orbital Beacon Bead */}
+        <mesh position={[2.565, 0, 0]}>
+          <sphereGeometry args={[0.045, 16, 16]} />
+          <meshBasicMaterial color="#ffffff" />
+        </mesh>
+      </group>
+
+      <group rotation={[-Math.PI / 3.8, -Math.PI / 4, 0]}>
+        <mesh>
+          <ringGeometry args={[2.82, 2.85, 64]} />
+          <meshBasicMaterial color="#34d399" transparent opacity={0.4} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+
+      {/* 5. 3D Orbiting Satellite in Upper Right Space */}
+      <group position={[2.4, 2.0, 0.5]} rotation={[0.4, -0.6, 0.3]}>
+        {/* Satellite Chassis */}
+        <mesh>
+          <boxGeometry args={[0.14, 0.14, 0.22]} />
+          <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.2} />
+        </mesh>
+        {/* Gold Foil Thermal Blanket */}
+        <mesh position={[0, 0, 0.115]}>
+          <boxGeometry args={[0.135, 0.135, 0.01]} />
+          <meshStandardMaterial color="#f59e0b" metalness={0.8} roughness={0.3} />
+        </mesh>
+        {/* Solar Panel Wing Left */}
+        <mesh position={[-0.38, 0, 0]}>
+          <boxGeometry args={[0.55, 0.015, 0.18]} />
+          <meshStandardMaterial color="#0284c7" metalness={0.85} roughness={0.2} />
+        </mesh>
+        {/* Solar Panel Wing Right */}
+        <mesh position={[0.38, 0, 0]}>
+          <boxGeometry args={[0.55, 0.015, 0.18]} />
+          <meshStandardMaterial color="#0284c7" metalness={0.85} roughness={0.2} />
+        </mesh>
+        {/* Antenna Dish */}
+        <mesh position={[0, 0.11, 0.06]} rotation={[0.4, 0, 0]}>
+          <coneGeometry args={[0.07, 0.04, 16]} />
+          <meshStandardMaterial color="#fbbf24" metalness={0.9} />
+        </mesh>
+      </group>
 
       {/* 4. Scene 2 & 3: Radar Targeting Circles over Tamil Nadu */}
       {(currentScene === 2 || currentScene === 3) && (
@@ -551,6 +601,7 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
   onExplore, 
   onOpenPresentation 
 }) => {
+  const { lang, setLang } = useLanguage();
   const [currentScene, setCurrentScene] = useState<number>(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [progress, setProgress] = useState<number>(0);
@@ -622,6 +673,9 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
           camera={{ position: [0, 0.3, 5.0], fov: 42 }}
           gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
         >
+          {/* Stars Field from Drei */}
+          <Stars radius={80} depth={45} count={1800} factor={3} fade speed={0.3} />
+
           {/* Cinematic Sunlight Lighting */}
           <ambientLight intensity={0.4} />
           <directionalLight position={[6, 4, 3]} intensity={2.2} color="#ffffff" />
@@ -644,52 +698,149 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
         </Canvas>
       </div>
 
-      {/* 2. Top Cinematic Header HUD Bar */}
-      <header className="relative z-20 px-6 py-5 flex items-center justify-between backdrop-blur-sm bg-gradient-to-b from-[#020905]/80 to-transparent">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2ad58b] to-[#10b981] flex items-center justify-center shadow-emerald-glow border border-white/20">
-            <Droplets className="w-5 h-5 text-[#061811] fill-[#061811]" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-sans font-extrabold text-base tracking-tight text-white">PALAR GUARD AI</span>
-              <span className="px-1.5 py-0.2 bg-emerald-950/90 border border-emerald-400/40 text-[9px] font-mono text-emerald-300 rounded font-bold">
-                CINEMATIC SATELLITE TWIN
-              </span>
+      {/* 2. Top Cinematic Header Navigation Bar matching visual blueprint */}
+      <header className="relative z-20 px-6 py-4 flex items-center justify-between backdrop-blur-md bg-gradient-to-b from-[#020905]/90 via-[#020905]/60 to-transparent border-b border-white/[0.04]">
+        {/* Left: Brand Identity matching blueprint */}
+        <div 
+          onClick={() => onExplore('landing')}
+          className="flex items-center gap-2.5 cursor-pointer group"
+        >
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center p-0.5 shadow-emerald-glow">
+            <div className="w-full h-full bg-[#03110a] rounded-[10px] flex items-center justify-center">
+              <Droplets className="w-4 h-4 text-emerald-400 fill-emerald-400" />
             </div>
-            <p className="text-[10px] text-stone-400 font-mono hidden sm:block">Palar River Basin Environmental Intelligence</p>
+          </div>
+          <div className="flex items-center gap-1 font-sans text-base font-extrabold tracking-tight">
+            <span className="text-white">Palar</span>
+            <span className="text-white">Guard</span>
+            <span className="text-[#2ad58b]">AI</span>
           </div>
         </div>
 
-        {/* Top Right Scene Controls */}
+        {/* Center: Navigation Links matching blueprint */}
+        <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-stone-300">
+          <button onClick={() => onExplore('landing')} className="text-emerald-400 hover:text-emerald-300 transition-colors">Home</button>
+          <button onClick={() => onExplore('dashboard')} className="hover:text-white transition-colors">Dashboard</button>
+          <button onClick={() => onExplore('analytics')} className="hover:text-white transition-colors">Analytics</button>
+          <a href="#challenge" className="hover:text-white transition-colors">About</a>
+          <a href="#services" className="hover:text-white transition-colors">Support</a>
+        </nav>
+
+        {/* Right: Language Pill Switcher & Pitch Mode */}
         <div className="flex items-center gap-3">
+          {/* EN / தமிழ் pill switcher matching blueprint */}
+          <div className="flex items-center bg-[#072116] p-0.5 rounded-full border border-white/[0.12] text-xs">
+            <button
+              onClick={() => setLang('en')}
+              className={`px-2.5 py-0.5 rounded-full font-bold transition-all ${
+                lang === 'en'
+                  ? 'bg-emerald-500 text-[#041a11]'
+                  : 'text-stone-300 hover:text-white'
+              }`}
+            >
+              EN
+            </button>
+            <span className="text-stone-500 px-0.5">|</span>
+            <button
+              onClick={() => setLang('ta')}
+              className={`px-2.5 py-0.5 rounded-full font-bold transition-all ${
+                lang === 'ta'
+                  ? 'bg-emerald-500 text-[#041a11]'
+                  : 'text-stone-300 hover:text-white'
+              }`}
+            >
+              தமிழ்
+            </button>
+          </div>
+
           <button
             onClick={handleSkipIntro}
-            className="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-stone-300 hover:text-white border border-white/10 text-xs font-mono transition-colors flex items-center gap-1.5"
-            title="Skip directly to Brand Presentation"
+            className="hidden sm:flex items-center gap-1 px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-stone-300 text-xs font-mono transition-colors"
           >
-            <span>Skip Intro</span>
-            <FastForward className="w-3.5 h-3.5" />
+            <span>Skip</span>
+            <FastForward className="w-3 h-3" />
           </button>
-
-          {onOpenPresentation && (
-            <button
-              onClick={onOpenPresentation}
-              className="px-3.5 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-400/40 text-emerald-300 text-xs font-mono font-medium flex items-center gap-1.5 shadow-forest-sm transition-all"
-            >
-              <Award className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Jury Pitch Mode</span>
-            </button>
-          )}
 
           <button
             onClick={() => onExplore('dashboard')}
-            className="px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#061811] text-xs font-bold transition-all shadow-forest-sm"
+            className="px-4 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-[#061811] text-xs font-bold transition-all shadow-forest-sm"
           >
-            Console
+            Console →
           </button>
         </div>
       </header>
+
+      {/* 3. SCENE 01 — FULL VISUAL HERO BLUEPRINT (Matching reference image) */}
+      {currentScene === 1 && (
+        <div className="relative z-20 px-6 sm:px-12 max-w-7xl mx-auto w-full my-auto flex flex-col justify-center animate-fade-in pointer-events-none">
+          <div className="max-w-xl space-y-6 pointer-events-auto">
+            {/* 3-Line Majestic Headline matching blueprint */}
+            <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.08] font-sans">
+              {lang === 'ta' ? (
+                <>
+                  ஆபத்தைக் கண்டறி. <br />
+                  மாற்றத்தைக் கணித்து அறி. <br />
+                  <span className="text-[#2ad58b]">ஒவ்வொரு துளியையும் பாதுகாப்போம்.</span>
+                </>
+              ) : (
+                <>
+                  See the Risk. <br />
+                  Predict the Change. <br />
+                  <span className="text-[#2ad58b]">Protect Every Drop.</span>
+                </>
+              )}
+            </h1>
+
+            {/* Subtitle matching blueprint */}
+            <p className="text-base sm:text-lg text-stone-200 font-normal leading-relaxed max-w-lg">
+              {lang === 'ta'
+                ? 'எதிர்காலத்திற்கான AI-ஆற்றல் கொண்ட நதிப்படுகை நீர் நுண்ணறிவு தளம்'
+                : 'An AI-powered water intelligence platform for a sustainable tomorrow'}
+            </p>
+
+            {/* Action Buttons matching blueprint */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                onClick={() => onExplore('dashboard')}
+                className="px-8 py-3.5 rounded-full bg-[#2ad58b] hover:bg-[#25be7c] text-[#061811] font-bold text-sm shadow-emerald-glow transition-all transform hover:scale-105 flex items-center gap-2"
+              >
+                <span>{lang === 'ta' ? 'கண்காணிப்பு தளம் →' : 'Explore Platform →'}</span>
+              </button>
+
+              {onOpenPresentation && (
+                <button
+                  onClick={onOpenPresentation}
+                  className="px-7 py-3.5 rounded-full bg-black/40 hover:bg-black/60 text-white border border-white/20 hover:border-emerald-400 text-sm font-semibold transition-all flex items-center gap-2 backdrop-blur-md"
+                >
+                  <Play className="w-4 h-4 fill-white text-white" />
+                  <span>{lang === 'ta' ? 'டெமோ பார்க்க' : 'Watch Demo'}</span>
+                </button>
+              )}
+            </div>
+
+            {/* Scroll indicator matching blueprint */}
+            <div className="flex items-center gap-2 text-xs text-stone-400 pt-4">
+              <div className="w-5 h-8 rounded-full border-2 border-stone-400 flex items-start justify-center p-1">
+                <div className="w-1 h-2 rounded-full bg-emerald-400 animate-bounce" />
+              </div>
+              <span>{lang === 'ta' ? 'கீழே உருட்டி ஆராய்க' : 'Scroll to Explore'}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Circular AI Voice Assistant Trigger matching blueprint */}
+      <button
+        onClick={() => onExplore('assistant')}
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-600 to-cyan-500 text-white flex items-center justify-center shadow-2xl shadow-emerald-500/40 border-2 border-emerald-300 hover:scale-110 transition-all group"
+        title={lang === 'ta' ? 'PALAR AI - குரல் உதவியாளர்' : 'PALAR AI - Voice Assistant'}
+      >
+        <div className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-ping opacity-30 pointer-events-none" />
+        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current text-white" stroke="none">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+      </button>
 
       {/* 3. Floating HUD Telemetry Panels (SCENE 05 — Environmental Intelligence) */}
       {currentScene === 5 && (
