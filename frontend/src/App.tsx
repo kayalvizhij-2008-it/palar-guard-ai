@@ -6,6 +6,7 @@ import { Footer } from './components/layout/Footer';
 import { AppSidebar } from './components/layout/AppSidebar';
 import { AuthModal } from './components/modules/AuthModal';
 import { PresentationModeModal } from './components/modules/PresentationModeModal';
+import { CustomCursor } from './components/common/CustomCursor';
 
 // Modules
 import { LandingPage } from './components/modules/LandingPage';
@@ -25,9 +26,20 @@ import { AIAssistantModule } from './components/modules/AIAssistantModule';
 import { AnalyticsReportingModule } from './components/modules/AnalyticsReportingModule';
 import { RoleAccessModule } from './components/modules/RoleAccessModule';
 import { AdminAuditModule } from './components/modules/AdminAuditModule';
+import { AnalysisWorkflowsModule } from './components/modules/AnalysisWorkflowsModule';
 
 export function AppContent() {
-  const [currentView, setCurrentView] = useState<string>('dashboard');
+  const getInitialView = () => {
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    if (path.includes('/app') || hash.includes('#app') || hash.includes('#dashboard')) {
+      return 'dashboard';
+    }
+    return 'landing';
+  };
+
+  const [currentView, setCurrentView] = useState<string>(getInitialView);
+  const [selectedLocationId, setSelectedLocationId] = useState<number>(1);
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
   const [presentationOpen, setPresentationOpen] = useState<boolean>(false);
 
@@ -43,7 +55,8 @@ export function AppContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleNavigate = (view?: string) => {
+  const handleNavigate = (view?: string, locationId?: number) => {
+    if (locationId) setSelectedLocationId(locationId);
     setCurrentView(view || 'dashboard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -51,9 +64,9 @@ export function AppContent() {
   const renderConsoleModule = () => {
     switch (currentView) {
       case 'digital_twin':
-        return <DigitalTwinMap onSelectLocation={() => setCurrentView('groundwater')} />;
+        return <DigitalTwinMap onSelectLocation={(locId) => handleNavigate('groundwater', locId)} />;
       case 'groundwater':
-        return <GroundwaterModule />;
+        return <GroundwaterModule initialLocationId={selectedLocationId} />;
       case 'forecasting':
         return <ForecastingModule />;
       case 'rainfall':
@@ -76,13 +89,21 @@ export function AppContent() {
         return <AIAssistantModule />;
       case 'analytics':
         return <AnalyticsReportingModule />;
+      case 'workflows':
+      case 'analyses':
+        return <AnalysisWorkflowsModule />;
       case 'role_access':
         return <RoleAccessModule />;
       case 'admin_audit':
         return <AdminAuditModule />;
       case 'dashboard':
       default:
-        return <DashboardOverview onSelectModule={handleNavigate} />;
+        return (
+          <DashboardOverview 
+            onSelectModule={handleNavigate} 
+            onSelectLocation={(locId) => setSelectedLocationId(locId)} 
+          />
+        );
     }
   };
 
@@ -90,6 +111,9 @@ export function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#061811] text-[#f4f7f5] flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
+      {/* Refined Desktop Custom Cursor */}
+      <CustomCursor />
+
       {/* Top Sticky Navigation */}
       <Navbar
         currentView={currentView}

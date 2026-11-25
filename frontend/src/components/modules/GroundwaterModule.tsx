@@ -4,8 +4,17 @@ import { PALAR_LOCATIONS, GROUNDWATER_TIMESERIES } from '../../data/palarData';
 import { DataBadge } from '../common/DataBadge';
 import { Droplets, Info, TrendingDown, ArrowDownRight, Compass } from 'lucide-react';
 
-export const GroundwaterModule: React.FC = () => {
-  const [selectedStationId, setSelectedStationId] = useState<number>(1);
+interface GroundwaterModuleProps {
+  initialLocationId?: number;
+}
+
+export const GroundwaterModule: React.FC<GroundwaterModuleProps> = ({ initialLocationId = 1 }) => {
+  const [selectedStationId, setSelectedStationId] = useState<number>(initialLocationId);
+
+  // Sync if initialLocationId changes
+  React.useEffect(() => {
+    if (initialLocationId) setSelectedStationId(initialLocationId);
+  }, [initialLocationId]);
 
   const selectedLocation = PALAR_LOCATIONS.find(l => l.id === selectedStationId) || PALAR_LOCATIONS[0];
   const chartData = GROUNDWATER_TIMESERIES[selectedStationId] || GROUNDWATER_TIMESERIES[1];

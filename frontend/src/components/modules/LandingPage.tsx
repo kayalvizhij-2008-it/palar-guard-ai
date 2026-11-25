@@ -4,7 +4,7 @@ import { CinematicHeroSequence } from '../hero/CinematicHeroSequence';
 import { DigitalTwinMap } from './DigitalTwinMap';
 import { DataBadge } from '../common/DataBadge';
 import { 
-  ArrowRight, ShieldCheck, Droplets, AlertTriangle, Layers, 
+  ArrowRight, ShieldCheck, ShieldAlert, Droplets, AlertTriangle, Layers, 
   Search, Eye, Activity, Database, CheckCircle2, FileText, 
   Users, MapPin, Compass, ExternalLink, ChevronRight, Cpu, 
   LineChart, CloudRain, Award, BookOpen, GraduationCap, Building2, Sparkles
@@ -392,60 +392,299 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
       </section>
 
       {/* ============================================================ */}
-      {/* SECTION 5 — ENVIRONMENTAL IMPACT */}
+      {/* SECTION 5 — WHO USES PALAR GUARD AI */}
       {/* ============================================================ */}
-      <section id="impact" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#04120a]">
+      <section id="stakeholders" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#04120a]">
         <div className="max-w-7xl mx-auto space-y-16">
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
-              SECTION 05 · ECOSYSTEM IMPACT
+              SECTION 05 · WHO USES THE PLATFORM
             </div>
             <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              Grounded Value for Every Stakeholder.
+              Built for Every Stakeholder <br />
+              <span className="text-[#2ad58b]">Across the River Basin.</span>
             </h2>
             <p className="text-base text-stone-300">
-              From academic researchers to regulatory bodies and watershed farmers, PALAR GUARD AI delivers actionable transparency.
+              From local farmers facing dry borewells to environmental researchers, field inspectors, and state water authorities.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* 1. Farmers and Residents */}
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
               <div className="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <Users className="w-5 h-5" />
+              </div>
+              <h4 className="text-base font-bold text-white">Farmers & Local Residents</h4>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                Check local water table depths in their village, track seasonal monsoon rainfall, report well depletion or discolored discharge in Tamil, and get plain-language recommendations.
+              </p>
+              <div className="pt-2 text-[11px] font-mono text-emerald-400 border-t border-white/[0.06]">
+                Role: Community / விவசாயி
+              </div>
+            </div>
+
+            {/* 2. Environmental Researchers */}
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
                 <GraduationCap className="w-5 h-5" />
               </div>
               <h4 className="text-base font-bold text-white">Environmental Researchers</h4>
               <p className="text-xs text-stone-300 leading-relaxed">
-                Access harmonized, long-term hydrochemical datasets, aquifer geometry parameters, and open time-series baselines for academic research.
+                Analyze multi-year CGWB groundwater hydrographs, compute depletion rates, run walk-forward seasonal forecasts, inspect geochemical parameters, and export research-ready datasets.
               </p>
+              <div className="pt-2 text-[11px] font-mono text-cyan-400 border-t border-white/[0.06]">
+                Role: Researcher / ஆய்வாளர்
+              </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            {/* 3. Field Officers & Inspectors */}
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-950 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <h4 className="text-base font-bold text-white">Field Officers & Inspectors</h4>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                Receive prioritized inspection tickets, review citizen incident reports, verify anomalies on-site with GPS coordinates, upload water sample evidence, and update investigation logs.
+              </p>
+              <div className="pt-2 text-[11px] font-mono text-amber-400 border-t border-white/[0.06]">
+                Role: Field Investigator / கள அதிகாரி
+              </div>
+            </div>
+
+            {/* 4. Watershed & Basin Authorities */}
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-950 border border-teal-500/30 flex items-center justify-center text-teal-400">
                 <Building2 className="w-5 h-5" />
               </div>
               <h4 className="text-base font-bold text-white">Water Resource Authorities</h4>
               <p className="text-xs text-stone-300 leading-relaxed">
-                Prioritize field inspection teams (TNPCB, CGWB, PWD) based on objective statistical anomaly departures and spatial risk priority scores.
+                Prioritize high-risk reaches (e.g. Ranipet CPCB Priority-V corridor), evaluate recharge suitability scores for check dams and percolation tanks, and download executive policy dossiers.
+              </p>
+              <div className="pt-2 text-[11px] font-mono text-teal-400 border-t border-white/[0.06]">
+                Role: Institutional / நீர்வளத்துறை
+              </div>
+            </div>
+
+            {/* 5. Community Water Groups & NGOs */}
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <Compass className="w-5 h-5" />
+              </div>
+              <h4 className="text-base font-bold text-white">Basin Watch NGOs</h4>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                Monitor community water quality alerts, organize desiltation campaigns for traditional eri irrigation tanks, and hold transparent evidence-backed dialogues with stakeholders.
+              </p>
+              <div className="pt-2 text-[11px] font-mono text-emerald-400 border-t border-white/[0.06]">
+                Role: NGO / சமூகக் குழுக்கள்
+              </div>
+            </div>
+
+            {/* 6. Platform Administrators */}
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-stone-900 border border-stone-700 flex items-center justify-center text-stone-300">
+                <Cpu className="w-5 h-5" />
+              </div>
+              <h4 className="text-base font-bold text-white">System Administrators</h4>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                Manage role-based access control (RBAC), multi-tenant institutional workspaces, verify ingestion pipelines from CGWB/IMD/TNPCB, and inspect immutable system audit logs.
+              </p>
+              <div className="pt-2 text-[11px] font-mono text-stone-400 border-t border-white/[0.06]">
+                Role: Administrator / கணினி நிர்வாகி
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* SECTION 6 — TAMIL ACCESSIBILITY & AI ASSISTANT */}
+      {/* ============================================================ */}
+      <section id="tamil-accessibility" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#020d07]">
+        <div className="max-w-7xl mx-auto space-y-16">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
+              SECTION 06 · முதல்நிலை தமிழ் இடைமுகம்
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+              First-Class Tamil Accessibility. <br />
+              <span className="text-[#2ad58b]">அனைவருக்கும் புரியும் தமிழ் AI.</span>
+            </h2>
+            <p className="text-base text-stone-300">
+              Environmental intelligence shouldn't be gated behind complex English technical jargon. PALAR GUARD AI provides seamless bilingual navigation and conversational Tamil speech support.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            {/* Left: Interactive Tamil Voice Showcase */}
+            <div className="p-8 rounded-2xl bg-[#061e12] border border-emerald-500/30 space-y-6 shadow-forest-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">PALAR AI — உங்கள் நீர் உதவியாளர்</h4>
+                    <p className="text-[11px] text-stone-400">Grounded Bilingual Voice Copilot</p>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-950 text-[10px] font-mono text-emerald-400 border border-emerald-500/30">
+                  தமிழ் / English
+                </span>
+              </div>
+
+              {/* Sample Dialog Bubbles */}
+              <div className="space-y-3">
+                <div className="p-3.5 rounded-xl bg-black/40 border border-white/[0.06] text-xs text-stone-300">
+                  <span className="text-emerald-400 font-bold block mb-1">பயனர் கேள்வி:</span>
+                  "ராணிப்பேட்டை பகுதியில் நிலத்தடி நீர் நிலை எப்படி இருக்கிறது? மழை போதுமானதாக உள்ளதா?"
+                </div>
+
+                <div className="p-4 rounded-xl bg-[#092b1a] border border-emerald-500/40 text-xs text-stone-200 space-y-2">
+                  <span className="text-emerald-300 font-bold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>PALAR AI பதில் [VERIFIED PUBLIC]:</span>
+                  </span>
+                  <p className="leading-relaxed">
+                    "வணக்கம். ராணிப்பேட்டை பகுதியில் தற்போதைய நிலத்தடி நீர்மட்டம் 14.8 mbgl ஆழத்தில் உள்ளது. கடந்த வடகிழக்கு பருவமழையில் 682 மி.மீ (+12%) பதிவாகியுள்ளது. எனினும், முந்தைய அதிகப்படியான உறிஞ்சுதலால் நீர்மட்டம் தொடர்ந்து கண்காணிக்கப்பட வேண்டும்."
+                  </p>
+                  <div className="pt-2 flex items-center justify-between text-[10px] font-mono text-stone-400 border-t border-white/[0.08]">
+                    <span>ஆதாரம்: CGWB & IMD NWIC 2024</span>
+                    <button 
+                      onClick={() => onExplore('assistant')}
+                      className="text-emerald-400 hover:underline font-bold"
+                    >
+                      AI உதவியாளருடன் பேசுக →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Key Tamil Accessibility Pillars */}
+            <div className="space-y-4">
+              <div className="p-5 rounded-xl bg-[#071c12] border border-white/[0.08] flex items-start gap-4">
+                <div className="p-2.5 rounded-lg bg-emerald-950 text-emerald-400 shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">முழுமையான தமிழ் மொழிபெயர்ப்பு</h4>
+                  <p className="text-xs text-stone-300 mt-1 leading-relaxed">
+                    வரைபடக் குறியீடுகள், வரைபடப் புள்ளிகள், எச்சரிக்கைகள், படிவங்கள், மற்றும் பகுப்பாய்வு அறிக்கைகள் அனைத்தும் எளிய மற்றும் அதிகாரப்பூர்வ தமிழில் வழங்கப்படுகின்றன.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-xl bg-[#071c12] border border-white/[0.08] flex items-start gap-4">
+                <div className="p-2.5 rounded-lg bg-cyan-950 text-cyan-400 shrink-0">
+                  <Droplets className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">குரல் வழி உள்ளீடு & ஒலி வெளியீடு (STT & TTS)</h4>
+                  <p className="text-xs text-stone-300 mt-1 leading-relaxed">
+                    விவசாயிகள் மற்றும் பொதுமக்கள் தட்டச்சு செய்ய வேண்டிய அவசியமின்றி, தமிழில் குரல் மூலமாக கேள்விகளை கேட்கலாம் மற்றும் ஒலி வடிவில் பதில்களைப் பெறலாம்.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-xl bg-[#071c12] border border-white/[0.08] flex items-start gap-4">
+                <div className="p-2.5 rounded-lg bg-amber-950 text-amber-400 shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">தமிழ் மக்கள் புகார் பதிவு</h4>
+                  <p className="text-xs text-stone-300 mt-1 leading-relaxed">
+                    ஆற்றங்கரையில் நீர் மாசுபாடு அல்லது கிணற்று நீர் வற்றுதல் குறித்த புகார்களை எளிமையாக தமிழில் பதிவு செய்து கண்காணிப்பு எண் பெறலாம்.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* SECTION 7 — TRUST, DATA PROVENANCE & SCIENTIFIC INTEGRITY */}
+      {/* ============================================================ */}
+      <section id="trust-data" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#04120a]">
+        <div className="max-w-7xl mx-auto space-y-16">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
+              SECTION 07 · SCIENTIFIC PROVENANCE & TRANSPARENCY
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+              Every Metric Has an Audit Trail. <br />
+              <span className="text-[#2ad58b]">Zero Fabricated Data.</span>
+            </h2>
+            <p className="text-base text-stone-300">
+              PALAR GUARD AI strictly enforces scientific data ethics. We explicitly classify every number on the platform into clear provenance tiers.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-emerald-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-bold text-emerald-400">TIER 1</span>
+                <DataBadge provenance="VERIFIED_PUBLIC" />
+              </div>
+              <h4 className="text-base font-bold text-white">Verified Public Observation</h4>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                Directly ingested from official government monitoring networks: Central Ground Water Board (CGWB), India Meteorological Department (IMD), and Tamil Nadu Pollution Control Board (TNPCB).
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-950 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                <Layers className="w-5 h-5" />
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-cyan-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-bold text-cyan-400">TIER 2</span>
+                <DataBadge provenance="HISTORICAL_REPORT" />
               </div>
-              <h4 className="text-base font-bold text-white">Basin Management Teams</h4>
+              <h4 className="text-base font-bold text-white">Historical Published Benchmark</h4>
               <p className="text-xs text-stone-300 leading-relaxed">
-                Screen optimal alluvium zones for check dams, percolation tanks, and traditional eri desiltation before the onset of monsoon storms.
+                Peer-reviewed academic surveys, long-term basin monographs, and CPCB River Restoration reports (e.g. CPCB Priority-V restoration corridor documentation).
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-teal-950 border border-teal-500/30 flex items-center justify-center text-teal-400">
-                <Users className="w-5 h-5" />
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-purple-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-bold text-purple-400">TIER 3</span>
+                <DataBadge provenance="MODEL_PREDICTION" />
               </div>
-              <h4 className="text-base font-bold text-white">Local Watershed Communities</h4>
+              <h4 className="text-base font-bold text-white">Statistical Model Forecast</h4>
               <p className="text-xs text-stone-300 leading-relaxed">
-                Empower citizens and agricultural communities with dual-language (English / தமிழ்) reporting of well depletion and discoloration incidents.
+                Walk-forward seasonal projections with explicit 90% confidence uncertainty bands (e.g. ±1.2m). Clearly separated from observed measurements and never represented as ground truth.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-amber-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-bold text-amber-400">TIER 4</span>
+                <DataBadge provenance="COMMUNITY_REPORT" />
+              </div>
+              <h4 className="text-base font-bold text-white">Community Incident Report</h4>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                Citizen-submitted observations undergoing field investigation triage. Privacy-protected with sensitive personal information redacted from public views.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-teal-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-bold text-teal-400">TIER 5</span>
+                <DataBadge provenance="FIELD_VERIFIED" />
+              </div>
+              <h4 className="text-base font-bold text-white">Field-Verified Ground Truth</h4>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                On-site field inspection records with authenticated GPS coordinates, duplicate laboratory sample analyses, and inspector credentials.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-[#071c12] border border-stone-600/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-bold text-stone-400">TIER 6</span>
+                <DataBadge provenance="SYNTHETIC_DEMO" />
+              </div>
+              <h4 className="text-base font-bold text-white">Synthetic Demo Data</h4>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                Explicitly labeled scenario testing data for unmonitored test stretches. Clearly tagged with: "SYNTHETIC DEMONSTRATION DATA — NOT A REAL ENVIRONMENTAL MEASUREMENT".
               </p>
             </div>
           </div>
@@ -453,7 +692,177 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
       </section>
 
       {/* ============================================================ */}
-      {/* SECTION 6 — FINAL CTA */}
+      {/* SECTION 8 — PLATFORM ACCESS & INSTITUTIONAL SERVICES (BUSINESS MODEL) */}
+      {/* ============================================================ */}
+      <section id="services" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#020d07]">
+        <div className="max-w-7xl mx-auto space-y-16">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
+              SECTION 08 · PLATFORM ACCESS & INSTITUTIONAL SERVICES
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+              Sustainable Institutional <br />
+              <span className="text-[#2ad58b]">Environmental SaaS Model.</span>
+            </h2>
+            <p className="text-base text-stone-300">
+              Proposed service plans designed for public transparency, ethical research support, and long-term platform viability. All citizen reporting remains 100% free and open.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Plan 1: Community & Open Tier */}
+            <div className="p-8 rounded-2xl bg-[#071c12] border border-white/[0.08] space-y-6 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="inline-block px-3 py-1 rounded-full bg-emerald-950 text-xs font-mono text-emerald-400 border border-emerald-500/30">
+                  PUBLIC GOOD TIER
+                </div>
+                <h3 className="text-xl font-bold text-white">Community & Citizen Access</h3>
+                <div className="text-3xl font-extrabold text-emerald-400 font-sans">
+                  Free Forever
+                </div>
+                <p className="text-xs text-stone-300 leading-relaxed">
+                  For residents, farmers, and grassroots citizen groups across the Palar Catchment.
+                </p>
+                <ul className="space-y-2.5 text-xs text-stone-200">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>View village groundwater levels</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Submit bilingual water concern reports</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Interactive Tamil AI Voice Copilot</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Public health & water quality alerts</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                onClick={() => onExplore('dashboard')}
+                className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs border border-white/10 transition-colors"
+              >
+                Access Public Console
+              </button>
+            </div>
+
+            {/* Plan 2: Research & Academic Tier */}
+            <div className="p-8 rounded-2xl bg-[#09271a] border-2 border-[#2ad58b] space-y-6 flex flex-col justify-between shadow-emerald-glow relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#2ad58b] text-[#061811] text-[10px] font-bold font-mono uppercase">
+                Proposed Academic Plan
+              </div>
+              <div className="space-y-4">
+                <div className="inline-block px-3 py-1 rounded-full bg-emerald-950 text-xs font-mono text-emerald-400 border border-emerald-500/30">
+                  RESEARCH INSTITUTIONS
+                </div>
+                <h3 className="text-xl font-bold text-white">Research & Modeling Suite</h3>
+                <div className="text-3xl font-extrabold text-white font-sans">
+                  ₹15,000 <span className="text-xs font-normal text-stone-400">/ lab / month (proposed)</span>
+                </div>
+                <p className="text-xs text-stone-300 leading-relaxed">
+                  For university environmental departments, hydrology researchers, and water policy institutes.
+                </p>
+                <ul className="space-y-2.5 text-xs text-stone-200">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>All Community features included</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Full historical hydrograph series (1980–2024)</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Walk-forward forecast modeling sandbox</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Robust Z-Score Anomaly algorithms</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>CSV / GeoJSON dataset batch export</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                onClick={() => onExplore('groundwater')}
+                className="w-full py-3 rounded-xl bg-[#2ad58b] hover:bg-[#25be7c] text-[#061811] font-bold text-xs shadow-emerald-glow transition-all"
+              >
+                Explore Research Capabilities
+              </button>
+            </div>
+
+            {/* Plan 3: Institutional & Regulatory Tier */}
+            <div className="p-8 rounded-2xl bg-[#071c12] border border-white/[0.08] space-y-6 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="inline-block px-3 py-1 rounded-full bg-cyan-950 text-xs font-mono text-cyan-400 border border-cyan-500/30">
+                  STATE & BASIN AUTHORITIES
+                </div>
+                <h3 className="text-xl font-bold text-white">Institutional Enterprise</h3>
+                <div className="text-3xl font-extrabold text-white font-sans">
+                  Custom Contract <span className="text-xs font-normal text-stone-400">(proposed)</span>
+                </div>
+                <p className="text-xs text-stone-300 leading-relaxed">
+                  For state water resources departments, pollution control boards, and district collectors.
+                </p>
+                <ul className="space-y-2.5 text-xs text-stone-200">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>Multi-tenant organizational workspaces</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>Field investigation dispatch & triage queue</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>Automated executive PDF dossier generator</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>Dedicated SLA & on-premise data connectors</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>Role-based access & immutable audit trails</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                onClick={() => onExplore('admin_audit')}
+                className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs border border-white/10 transition-colors"
+              >
+                Inspect Administration Console
+              </button>
+            </div>
+          </div>
+
+          {/* Ethical Safeguards Banner */}
+          <div className="p-5 rounded-2xl bg-[#04160e] border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0" />
+              <div className="text-xs text-stone-300">
+                <span className="font-bold text-white block">ETHICAL BUSINESS SAFEGUARDS:</span>
+                We never charge vulnerable citizens for reporting water risks, never sell private user telemetry, and keep open public hydrological records strictly transparent.
+              </div>
+            </div>
+            <div className="text-xs font-mono text-emerald-400 font-bold shrink-0">
+              100% ETHICAL CLIMATE-TECH
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* SECTION 9 — FINAL CTA */}
       {/* ============================================================ */}
       <section className="py-28 px-4 sm:px-6 lg:px-8 bg-gradient-to-t from-[#010603] to-[#04120a] border-t border-white/[0.08]">
         <div className="max-w-4xl mx-auto text-center space-y-8">

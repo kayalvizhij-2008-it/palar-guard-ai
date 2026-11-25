@@ -33,6 +33,15 @@ export const VoiceAssistantMini: React.FC<VoiceAssistantMiniProps> = ({
         { label: 'How to report issue?', reply: 'Click the "Your Voice" card or the "Community Reports" sidebar menu to submit a geotagged observation.' }
       ];
 
+  // Sync default greeting when language changes
+  useEffect(() => {
+    setResponseText(
+      lang === 'ta'
+        ? 'வணக்கம்! பாலாறு பற்றிய தகவல்களை கேட்க என்ன உதவ வேண்டும்?'
+        : 'Hello! How can I assist you with Palar Basin data?'
+    );
+  }, [lang]);
+
   // Initialize Web Speech API for voice recognition
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -133,7 +142,7 @@ export const VoiceAssistantMini: React.FC<VoiceAssistantMiniProps> = ({
           onClick={onOpenFullAssistant}
           className="text-[10.5px] text-stone-300 hover:text-emerald-300 transition-colors font-medium flex items-center gap-1"
         >
-          <span>விரிவாக்கு →</span>
+          <span>{lang === 'ta' ? 'விரிவாக்கு →' : 'Expand →'}</span>
         </button>
       </div>
 

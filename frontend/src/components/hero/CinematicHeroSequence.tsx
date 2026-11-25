@@ -169,7 +169,7 @@ function createEarthCanvasTexture(): THREE.CanvasTexture {
   return texture;
 }
 
-// Procedural Clouds Texture
+// Procedural Clouds Fallback Canvas Texture
 function createCloudsCanvasTexture(): THREE.CanvasTexture {
   const width = 1024;
   const height = 512;
@@ -179,7 +179,7 @@ function createCloudsCanvasTexture(): THREE.CanvasTexture {
   const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, width, height);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
   for (let i = 0; i < 40; i++) {
     const cx = Math.random() * width;
     const cy = Math.random() * height;
@@ -193,6 +193,57 @@ function createCloudsCanvasTexture(): THREE.CanvasTexture {
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   return texture;
+}
+
+// Texture loader helper with satellite textures and procedural fallback
+function usePlanetTextures() {
+  const [textures, setTextures] = useState<{
+    map: THREE.Texture;
+    clouds: THREE.Texture;
+    normal: THREE.Texture | null;
+    specular: THREE.Texture | null;
+  } | null>(null);
+
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    const fallbackMap = createEarthCanvasTexture();
+    const fallbackClouds = createCloudsCanvasTexture();
+
+    Promise.all([
+      new Promise<THREE.Texture>((resolve) => {
+        loader.load('/textures/planets/earth_atmos_2048.jpg', 
+          (t) => { t.colorSpace = THREE.SRGBColorSpace; resolve(t); }, 
+          undefined, 
+          () => resolve(fallbackMap)
+        );
+      }),
+      new Promise<THREE.Texture>((resolve) => {
+        loader.load('/textures/planets/earth_clouds_1024.png', 
+          (t) => { t.colorSpace = THREE.SRGBColorSpace; resolve(t); }, 
+          undefined, 
+          () => resolve(fallbackClouds)
+        );
+      }),
+      new Promise<THREE.Texture | null>((resolve) => {
+        loader.load('/textures/planets/earth_normal_2048.jpg', 
+          resolve, 
+          undefined, 
+          () => resolve(null)
+        );
+      }),
+      new Promise<THREE.Texture | null>((resolve) => {
+        loader.load('/textures/planets/earth_specular_2048.jpg', 
+          resolve, 
+          undefined, 
+          () => resolve(null)
+        );
+      }),
+    ]).then(([map, clouds, normal, specular]) => {
+      setTextures({ map, clouds, normal, specular });
+    });
+  }, []);
+
+  return textures;
 }
 
 // Detailed Palar Basin Boundary Coordinates (17,810 km² Catchment Perimeter)
@@ -250,6 +301,7 @@ function CinematicGlobe({
   const radarPulseRef = useRef<THREE.Mesh>(null);
 
   // Textures
+  const planetTextures = usePlanetTextures();
   const earthTexture = useMemo(() => createEarthCanvasTexture(), []);
   const cloudsTexture = useMemo(() => createCloudsCanvasTexture(), []);
 
@@ -348,34 +400,36 @@ function CinematicGlobe({
 
   return (
     <group ref={globeGroupRef}>
-      {/* 1. Primary Earth Sphere */}
+      {/* 1. Primary Earth Sphere with NASA Satellite Texture */}
       <mesh>
         <sphereGeometry args={[2.0, 64, 64]} />
         <meshStandardMaterial
-          map={earthTexture}
-          roughness={0.7}
-          metalness={0.15}
+          map={planetTextures?.map || earthTexture}
+          normalMap={planetTextures?.normal || undefined}
+          roughness={0.65}
+          metalness={0.12}
         />
       </mesh>
 
       {/* 2. Atmospheric Clouds Layer */}
       <mesh ref={cloudsRef}>
-        <sphereGeometry args={[2.015, 48, 48]} />
+        <sphereGeometry args={[2.018, 64, 64]} />
         <meshStandardMaterial
-          map={cloudsTexture}
+          map={planetTextures?.clouds || cloudsTexture}
           transparent={true}
-          opacity={0.35}
+          opacity={0.42}
+          blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
       </mesh>
 
       {/* 3. Outer Emerald / Cyan Atmospheric Limb Glow */}
       <mesh>
-        <sphereGeometry args={[2.14, 32, 32]} />
+        <sphereGeometry args={[2.08, 48, 48]} />
         <meshBasicMaterial
           color="#10b981"
           transparent={true}
-          opacity={currentScene >= 6 ? 0.08 : 0.04}
+          opacity={currentScene >= 6 ? 0.09 : 0.05}
           side={THREE.BackSide}
         />
       </mesh>
@@ -699,19 +753,35 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
           </div>
 
           {/* Action CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-3">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
             <button
               onClick={() => onExplore('dashboard')}
               className="px-8 py-3.5 rounded-full bg-[#2ad58b] hover:bg-[#25be7c] text-[#061811] font-bold text-sm shadow-emerald-glow transition-all transform hover:scale-105 flex items-center gap-2"
             >
-              <span>Explore Platform</span>
+              <span>Explore the Platform</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+            <button
+              onClick={() => onExplore('dashboard')}
+              className="px-7 py-3.5 rounded-full bg-emerald-950/90 hover:bg-emerald-900 text-emerald-200 border border-emerald-400/40 text-sm font-semibold transition-all flex items-center gap-2 shadow-forest-sm"
+            >
+              <Compass className="w-4 h-4 text-emerald-400" />
+              <span>Open Intelligence Dashboard</span>
+            </button>
+            {onOpenPresentation && (
+              <button
+                onClick={onOpenPresentation}
+                className="px-6 py-3.5 rounded-full bg-white/5 hover:bg-white/10 text-stone-200 border border-white/10 hover:border-emerald-500/40 text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <Award className="w-4 h-4 text-emerald-400" />
+                <span>Watch Guided Demo</span>
+              </button>
+            )}
             <a
               href="#challenge"
-              className="px-7 py-3.5 rounded-full bg-white/5 hover:bg-white/10 text-stone-200 border border-white/10 hover:border-emerald-500/40 text-sm font-medium transition-colors"
+              className="px-5 py-3.5 rounded-full bg-transparent hover:bg-white/5 text-stone-300 text-sm font-medium transition-colors"
             >
-              Discover Our Technology
+              Learn More ↓
             </a>
           </div>
 

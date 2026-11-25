@@ -19,7 +19,8 @@ export type ProvenanceType =
   | 'HISTORICAL_REPORT'
   | 'COMMUNITY_REPORT'
   | 'MODEL_PREDICTION'
-  | 'SYNTHETIC_DEMO';
+  | 'SYNTHETIC_DEMO'
+  | 'FIELD_VERIFIED';
 
 export interface LocationData {
   id: number;

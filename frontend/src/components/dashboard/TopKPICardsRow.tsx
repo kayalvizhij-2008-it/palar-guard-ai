@@ -83,10 +83,10 @@ export const TopKPICardsRow: React.FC<TopKPICardsRowProps> = ({
           <span className="text-xs text-stone-300 font-medium block truncate">
             {t('kpi_risk_title')}
           </span>
-          <div className="text-xl font-black text-amber-300 tracking-tight my-0.5 truncate">
+          <div className="text-lg sm:text-xl font-black text-amber-300 tracking-tight my-0.5 whitespace-nowrap">
             {t('kpi_risk_val')}
           </div>
-          <span className="text-[11px] text-amber-400/90 font-medium block truncate">
+          <span className="text-[11px] text-amber-400/90 font-medium block whitespace-nowrap">
             {t('kpi_risk_sub')}
           </span>
         </div>

@@ -39,6 +39,13 @@ export const DataBadge: React.FC<DataBadgeProps> = ({ provenance, sourceText, sh
           icon: <Cpu className="w-3 h-3 text-cyan-300 inline mr-1" />,
           desc: 'Time-series projection or statistical anomaly score with confidence bounds'
         };
+      case 'FIELD_VERIFIED':
+        return {
+          label: 'FIELD VERIFIED',
+          color: 'bg-emerald-950/90 text-emerald-300 border-emerald-400/50',
+          icon: <ShieldCheck className="w-3 h-3 text-emerald-400 inline mr-1" />,
+          desc: 'Authenticated by on-site field investigation team with GPS & sample metadata'
+        };
       case 'SYNTHETIC_DEMO':
       default:
         return {

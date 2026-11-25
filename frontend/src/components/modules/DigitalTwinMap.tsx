@@ -46,8 +46,8 @@ export const DigitalTwinMap: React.FC<DigitalTwinMapProps> = ({ onSelectLocation
     });
     mapInstanceRef.current = map;
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; CARTO &copy; OpenStreetMap',
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri &copy; Maxar, Earthstar Geographics',
       maxZoom: 18,
     }).addTo(map);
 

@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Home, Compass, Droplets, CloudRain, FlaskConical, 
   AlertTriangle, Target, ShieldCheck, Users, ClipboardList, 
-  Layers, Bot, FileText, Settings, ArrowLeft, Landmark
+  Layers, Bot, FileText, Settings, ArrowLeft, Landmark, Sliders
 } from 'lucide-react';
 
 interface AppSidebarProps {
@@ -34,6 +34,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
     { id: 'investigations', label: t('investigations'), icon: <ClipboardList className="w-4 h-4 shrink-0" /> },
     { id: 'recharge', label: t('recharge'), icon: <Layers className="w-4 h-4 shrink-0" /> },
     { id: 'assistant', label: t('assistant'), icon: <Bot className="w-4 h-4 shrink-0" /> },
+    { id: 'workflows', label: lang === 'ta' ? 'பகுப்பாய்வு பணிப்பாய்வு' : 'Analysis Workflows', icon: <Sliders className="w-4 h-4 shrink-0" /> },
     { id: 'analytics', label: t('analytics'), icon: <FileText className="w-4 h-4 shrink-0" /> },
     { id: 'admin_audit', label: t('admin_audit'), icon: <Settings className="w-4 h-4 shrink-0" /> },
   ];

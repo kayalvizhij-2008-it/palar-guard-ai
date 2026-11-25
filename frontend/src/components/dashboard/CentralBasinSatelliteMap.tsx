@@ -66,10 +66,10 @@ export const CentralBasinSatelliteMap: React.FC<CentralBasinSatelliteMapProps> =
   const [selectedStation, setSelectedStation] = useState<typeof PALAR_LOCATIONS[0] | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
 
-  // Focus stations from the reference image
+  // Focus stations from the reference image with exact database IDs
   const targetStations = [
-    { name: 'Ranipet', nameTa: 'ராணிப்பேட்டை', lat: 12.9274, lng: 79.3330, status: 'warning', color: '#f59e0b', id: 4 },
-    { name: 'Vellore', nameTa: 'வேலூர்', lat: 12.9165, lng: 79.1325, status: 'normal', color: '#10b981', id: 3 },
+    { name: 'Ranipet', nameTa: 'ராணிப்பேட்டை', lat: 12.9274, lng: 79.3330, status: 'warning', color: '#f59e0b', id: 1 },
+    { name: 'Vellore', nameTa: 'வேலூர்', lat: 12.9165, lng: 79.1325, status: 'normal', color: '#10b981', id: 4 },
     { name: 'Kanchipuram', nameTa: 'காஞ்சிபுரம்', lat: 12.8342, lng: 79.7036, status: 'alert', color: '#f59e0b', id: 6 },
     { name: 'Chengalpattu', nameTa: 'செங்கல்பட்டு', lat: 12.6841, lng: 79.9836, status: 'normal', color: '#10b981', id: 7 },
   ];
@@ -172,7 +172,6 @@ export const CentralBasinSatelliteMap: React.FC<CentralBasinSatelliteMapProps> =
       marker.on('click', () => {
         const fullData = PALAR_LOCATIONS.find(loc => loc.id === st.id) || PALAR_LOCATIONS[0];
         setSelectedStation(fullData);
-        onSelectStation?.(st.id);
       });
     });
 
@@ -332,7 +331,7 @@ export const CentralBasinSatelliteMap: React.FC<CentralBasinSatelliteMapProps> =
             }}
             className="w-full mt-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-forest-sm transition-colors text-center"
           >
-            Open Full Hydrograph & Analysis →
+            {lang === 'ta' ? 'முழு வரைபடம் & ஆய்வைத் திறக்க →' : 'Open Full Hydrograph & Analysis →'}
           </button>
         </div>
       )}
