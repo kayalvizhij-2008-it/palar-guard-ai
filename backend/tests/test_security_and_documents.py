@@ -287,3 +287,66 @@ def test_production_config_requires_strong_secret_and_valid_cors():
             s.get_cors_origins()
     finally:
         os.environ.pop("CORS_ORIGINS", None)
+
+
+def test_sample_pdf_listing_extraction_and_nitrate_qa():
+    from pathlib import Path
+
+    samples_res = client.get("/api/v1/documents/samples")
+    assert samples_res.status_code == 200
+    payload = samples_res.json()
+    assert "DEMONSTRATION DATA ONLY" in payload["warning"]
+    assert len(payload["samples"]) == 3
+
+    sample_pdf = (
+        Path(__file__).resolve().parents[2]
+        / "frontend"
+        / "public"
+        / "samples"
+        / "palar_water_quality_lab_sample.pdf"
+    )
+    assert sample_pdf.exists()
+
+    admin_token = _login("secadmin@palarguard.test", "StrongAdminPass#2026")
+    headers = {"Authorization": f"Bearer {admin_token}"}
+
+    with open(sample_pdf, "rb") as fh:
+        up = client.post(
+            "/api/v1/documents/upload",
+            files={"file": (sample_pdf.name, fh, "application/pdf")},
+            headers=headers,
+        )
+    assert up.status_code == 201
+    doc = up.json()
+    assert doc["extraction_status"] == "extracted"
+    assert doc["page_count"] == 2
+    assert "[Page 1]" in doc["extracted_text"]
+
+    # Grounded QA against real uploaded PDF content
+    qa = client.post(
+        f"/api/v1/documents/{doc['id']}/analyze",
+        json={
+            "task_type": "answer_question",
+            "instruction": "Which sample has the highest nitrate result?",
+            "language": "en",
+        },
+        headers=headers,
+    )
+    assert qa.status_code == 200
+    qa_data = qa.json()
+    assert "71.8" in qa_data["result_markdown"]
+    assert "Page" in qa_data["result_markdown"]
+
+    # Honest refusal / absent handling for unmentioned analyte
+    absent = client.post(
+        f"/api/v1/documents/{doc['id']}/analyze",
+        json={
+            "task_type": "answer_question",
+            "instruction": "What is the dissolved mercury concentration?",
+            "language": "en",
+        },
+        headers=headers,
+    )
+    assert absent.status_code == 200
+    assert "absent" in absent.json()["result_markdown"].lower()
+

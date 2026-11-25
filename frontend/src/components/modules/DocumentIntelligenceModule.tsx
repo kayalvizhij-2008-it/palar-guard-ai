@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   FileText,
   Upload,
@@ -12,10 +12,13 @@ import {
   GitCompare,
   Loader2,
   Lock,
+  Eye,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { apiService, DocumentAnalysisItem, DocumentItem } from '../../services/api';
+import { PdfPreviewModal } from './PdfPreviewModal';
 
 interface DocumentIntelligenceModuleProps {
   onOpenAuth?: () => void;
@@ -36,15 +39,59 @@ const ANALYSIS_TASKS = [
   { id: 'translate_tamil', en: 'Translate Explanation to Tamil', ta: 'தமிழில் விளக்கம் மொழிபெயர்' },
 ];
 
+const SAMPLE_REPORTS = [
+  {
+    id: 'gw-sample',
+    title: 'Groundwater Monitoring Sample Report',
+    taTitle: 'நிலத்தடி நீர் கண்காணிப்பு மாதிரி அறிக்கை',
+    filename: 'palar_groundwater_monitoring_sample.pdf',
+    url: '/samples/palar_groundwater_monitoring_sample.pdf',
+    desc: 'Synthetic quarterly water levels (mbgl) across 5 demo wells with missing metadata example.',
+    questions: [
+      'What does this document say about groundwater levels?',
+      'What changes are visible across the reporting period?',
+      'What information is missing from this report?',
+    ],
+  },
+  {
+    id: 'rain-sample',
+    title: 'Rainfall and Groundwater Recharge Assessment',
+    taTitle: 'மழைப்பொழிவு & நிலத்தடி நீர் செறிவூட்டல் மாதிரி அறிக்கை',
+    filename: 'palar_rainfall_recharge_sample.pdf',
+    url: '/samples/palar_rainfall_recharge_sample.pdf',
+    desc: 'Synthetic catchment monthly precipitation (mm) and percolation suitability metrics.',
+    questions: [
+      'Summarise the rainfall data.',
+      'Which months contribute most Northeast Monsoon rainfall?',
+    ],
+  },
+  {
+    id: 'wq-sample',
+    title: 'Water Quality Laboratory Sample Report',
+    taTitle: 'நீர் தர ஆய்வக மாதிரி அறிக்கை',
+    filename: 'palar_water_quality_lab_sample.pdf',
+    url: '/samples/palar_water_quality_lab_sample.pdf',
+    desc: 'Demonstration pH, TDS, Nitrate (NO3- mg/L), and Total Chromium assay results.',
+    questions: [
+      'Which sample has the highest nitrate result?',
+      'What information is missing from this report?',
+    ],
+  },
+];
+
 export const DocumentIntelligenceModule: React.FC<DocumentIntelligenceModuleProps> = ({ onOpenAuth }) => {
   const { isAuthenticated } = useAuth();
   const { lang } = useLanguage();
   const L = (en: string, ta: string) => (lang === 'ta' ? ta : en);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [docs, setDocs] = useState<DocumentItem[]>([]);
   const [selectedDoc, setSelectedDoc] = useState<DocumentItem | null>(null);
   const [analyses, setAnalyses] = useState<DocumentAnalysisItem[]>([]);
   const [activeAnalysis, setActiveAnalysis] = useState<DocumentAnalysisItem | null>(null);
+
+  const [stagedFile, setStagedFile] = useState<File | null>(null);
+  const [previewSample, setPreviewSample] = useState<{ url: string; title: string } | null>(null);
 
   const [taskType, setTaskType] = useState<string>('summarise');
   const [instruction, setInstruction] = useState<string>('Summarise key environmental measurements and cite page or row numbers.');
@@ -92,7 +139,7 @@ export const DocumentIntelligenceModule: React.FC<DocumentIntelligenceModuleProp
     loadDocuments();
   }, [isAuthenticated]);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
@@ -102,19 +149,40 @@ export const DocumentIntelligenceModule: React.FC<DocumentIntelligenceModuleProp
       return;
     }
 
+    setErrorMsg(null);
+    setStagedFile(file);
+  };
+
+  const handleConfirmUpload = async () => {
+    if (!stagedFile) return;
+
     setUploading(true);
     setErrorMsg(null);
     try {
-      const uploaded = await apiService.uploadDocument(file);
+      const uploaded = await apiService.uploadDocument(stagedFile);
       setDocs((prev) => [uploaded, ...prev]);
       setSelectedDoc(uploaded);
       setAnalyses([]);
       setActiveAnalysis(null);
       setContentTab(uploaded.tables.length > 0 ? 'tables' : 'text');
+      setStagedFile(null);
     } catch (err: any) {
       setErrorMsg(err?.message || L('Upload failed.', 'பதிவேற்றம் தோல்வியடைந்தது.'));
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleStageSampleForUpload = async (sampleUrl: string, filename: string) => {
+    try {
+      const res = await fetch(sampleUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const file = new File([blob], filename, { type: 'application/pdf' });
+      setPreviewSample(null);
+      setStagedFile(file);
+    } catch (err: any) {
+      setErrorMsg(err?.message || L('Could not load sample PDF.', 'மாதிரி PDF-ஐ ஏற்ற முடியவில்லை.'));
     }
   };
 
@@ -177,28 +245,129 @@ export const DocumentIntelligenceModule: React.FC<DocumentIntelligenceModuleProp
     }
   };
 
+  const sampleShelf = (
+    <section className="rounded-2xl border border-amber-500/25 bg-[#121614]/85 p-5 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
+        <div>
+          <div className="text-[11px] font-mono uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>
+              {L(
+                'SAMPLE DEMONSTRATION PDFS — SYNTHETIC DATA ONLY',
+                'மாதிரி PDF ஆவணங்கள் — சோதனைத் தரவு மட்டுமே'
+              )}
+            </span>
+          </div>
+          <p className="text-xs text-[#a4b2a9] mt-0.5">
+            {L(
+              'Optional test documents for previewing, downloading, or staging into Document Intelligence. Not official government records.',
+              'முன்னோட்டம் பார்க்க, பதிவிறக்க அல்லது சோதனைக்குப் பயன்படுத்தக்கூடிய மாதிரி PDF அறிக்கைகள்.'
+            )}
+          </p>
+        </div>
+        <span className="px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/35 text-[10px] font-mono text-amber-200">
+          DEMONSTRATION DATA ONLY
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {SAMPLE_REPORTS.map((smp) => (
+          <div
+            key={smp.id}
+            className="rounded-xl border border-white/10 bg-[#07130e]/90 p-4 flex flex-col justify-between space-y-3"
+          >
+            <div className="space-y-1.5">
+              <div className="text-xs font-bold text-[#fcfbf7]">
+                {lang === 'ta' ? smp.taTitle : smp.title}
+              </div>
+              <p className="text-[11px] text-[#a4b2a9] leading-relaxed">{smp.desc}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
+              <button
+                type="button"
+                onClick={() =>
+                  setPreviewSample({
+                    url: smp.url,
+                    title: lang === 'ta' ? smp.taTitle : smp.title,
+                  })
+                }
+                className="px-2.5 py-1.5 rounded-lg bg-violet-950/80 hover:bg-violet-900 border border-violet-500/35 text-[11px] text-violet-200 inline-flex items-center gap-1"
+              >
+                <Eye className="w-3 h-3" />
+                <span>{L('Preview PDF', 'முன்னோட்டம்')}</span>
+              </button>
+              <a
+                href={smp.url}
+                download
+                className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-[#fcfbf7] inline-flex items-center gap-1"
+              >
+                <Download className="w-3 h-3 text-emerald-400" />
+                <span>{L('Download', 'பதிவிறக்கு')}</span>
+              </a>
+              {isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={() => handleStageSampleForUpload(smp.url, smp.filename)}
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600/90 hover:bg-emerald-500 text-[11px] font-semibold text-[#041a11] inline-flex items-center gap-1"
+                >
+                  <Upload className="w-3 h-3" />
+                  <span>{L('Test Upload', 'சோதனைப் பதிவேற்றம்')}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+
+  const previewModalEl = (
+    <PdfPreviewModal
+      file={stagedFile}
+      sampleUrl={previewSample?.url || null}
+      sampleTitle={previewSample?.title || null}
+      sampleWarning={
+        previewSample
+          ? 'DEMONSTRATION DATA ONLY — NOT VERIFIED REAL-WORLD MONITORING DATA.'
+          : null
+      }
+      uploading={uploading}
+      onClose={() => {
+        setStagedFile(null);
+        setPreviewSample(null);
+      }}
+      onConfirmUpload={stagedFile ? handleConfirmUpload : undefined}
+      onReplaceFile={stagedFile ? () => fileInputRef.current?.click() : undefined}
+      onUseSampleForUpload={isAuthenticated ? handleStageSampleForUpload : undefined}
+    />
+  );
+
   if (!isAuthenticated) {
     return (
-      <div className="rounded-2xl border border-amber-500/30 bg-[#0b1f17] p-8 text-center space-y-4 max-w-xl mx-auto my-8">
-        <Lock className="w-8 h-8 text-[#d9c27a] mx-auto" />
-        <h2 className="text-xl font-semibold text-[#fcfbf7]">
-          {L('Authentication Required for Document Intelligence', 'ஆவண நுண்ணறிவுக்கு உள்நுழைவு தேவை')}
-        </h2>
-        <p className="text-xs text-[#a4b2a9] leading-relaxed">
-          {L(
-            'Uploaded environmental reports and extraction histories are private per account. Sign in to upload PDF, DOCX, CSV, XLSX, or TXT files and run source-grounded analyses.',
-            'பதிவேற்றப்பட்ட சுற்றுச்சூழல் அறிக்கைகள் உங்கள் கணக்கிற்கு மட்டுமே சொந்தமானவை. PDF, DOCX, CSV, XLSX அல்லது TXT கோப்புகளைப் பதிவேற்ற உள்நுழையவும்.'
+      <div className="space-y-6 my-4">
+        <div className="rounded-2xl border border-amber-500/30 bg-[#0b1f17]/90 p-8 text-center space-y-4 max-w-xl mx-auto">
+          <Lock className="w-8 h-8 text-[#d9c27a] mx-auto" />
+          <h2 className="text-xl font-semibold text-[#fcfbf7]">
+            {L('Authentication Required for Document Intelligence', 'ஆவண நுண்ணறிவுக்கு உள்நுழைவு தேவை')}
+          </h2>
+          <p className="text-xs text-[#a4b2a9] leading-relaxed">
+            {L(
+              'Uploaded environmental reports and extraction histories are private per account. Sign in to preview, upload, and analyze PDF, DOCX, CSV, XLSX, or TXT files.',
+              'பதிவேற்றப்பட்ட சுற்றுச்சூழல் அறிக்கைகள் உங்கள் கணக்கிற்கு மட்டுமே சொந்தமானவை. PDF, DOCX, CSV, XLSX அல்லது TXT கோப்புகளைப் பதிவேற்ற உள்நுழையவும்.'
+            )}
+          </p>
+          {onOpenAuth && (
+            <button
+              type="button"
+              onClick={onOpenAuth}
+              className="px-6 py-2.5 rounded-xl bg-[#10b981] hover:bg-[#059669] text-[#041a11] text-xs font-semibold transition-colors"
+            >
+              {L('Sign In / Register', 'உள்நுழைக / பதிவு செய்க')}
+            </button>
           )}
-        </p>
-        {onOpenAuth && (
-          <button
-            type="button"
-            onClick={onOpenAuth}
-            className="px-6 py-2.5 rounded-xl bg-[#10b981] hover:bg-[#059669] text-[#041a11] text-xs font-semibold transition-colors"
-          >
-            {L('Sign In / Register', 'உள்நுழைக / பதிவு செய்க')}
-          </button>
-        )}
+        </div>
+        {sampleShelf}
+        {previewModalEl}
       </div>
     );
   }
@@ -206,7 +375,7 @@ export const DocumentIntelligenceModule: React.FC<DocumentIntelligenceModuleProp
   return (
     <div className="space-y-6">
       {/* Studio Header: Violet & Emerald Accent */}
-      <header className="rounded-2xl border border-violet-500/25 bg-gradient-to-r from-[#141024] via-[#17132a] to-[#0b211a] p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <header className="rounded-2xl border border-violet-500/25 bg-gradient-to-r from-[#141024]/95 via-[#17132a]/95 to-[#0b211a]/95 p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="text-[11px] font-mono uppercase tracking-widest text-violet-300">
             {L('DOCUMENT ANALYSIS STUDIO · VIOLET/EMERALD GROUNDED', 'ஆவண பகுப்பாய்வு மையம் · ஆதார அடிப்படை')}
@@ -216,23 +385,30 @@ export const DocumentIntelligenceModule: React.FC<DocumentIntelligenceModuleProp
           </h2>
           <p className="text-xs text-[#a4b2a9]">
             {L(
-              'Upload PDF, DOCX, CSV, XLSX, TXT (or inspect image metadata). Deterministic extraction cites pages and rows without inventing values.',
-              'PDF, DOCX, CSV, XLSX, TXT கோப்புகளைப் பதிவேற்றி பக்க எண்கள் மற்றும் அட்டவணை ஆதாரங்களுடன் பகுப்பாய்வு செய்யுங்கள்.'
+              'Select a PDF, DOCX, CSV, XLSX, or TXT file to preview pages before uploading, extract tables, and ask source-cited questions.',
+              'PDF, DOCX, CSV, XLSX அல்லது TXT கோப்பைத் தேர்ந்தெடுத்து பதிவேற்றுவதற்கு முன் பக்கங்களைப் பார்த்து ஆதாரங்களுடன் கேள்விகள் கேட்கவும்.'
             )}
           </p>
         </div>
 
         <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#10b981] hover:bg-[#059669] text-[#041a11] text-xs font-semibold transition-colors shrink-0">
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-          <span>{uploading ? L('Extracting...', 'பிரித்தெடுக்கிறது...') : L('Upload Document (Max 10 MB)', 'ஆவணம் பதிவேற்று (10 MB)')}</span>
+          <span>
+            {uploading
+              ? L('Extracting...', 'பிரித்தெடுக்கிறது...')
+              : L('Select File to Preview & Upload', 'முன்னோட்டம் பார்க்க கோப்பைத் தேர்ந்தெடு')}
+          </span>
           <input
+            ref={fileInputRef}
             type="file"
             accept=".pdf,.docx,.csv,.xlsx,.txt,.png,.jpg,.jpeg"
-            onChange={handleFileUpload}
+            onChange={handleFileSelected}
             className="hidden"
           />
         </label>
       </header>
+
+      {sampleShelf}
 
       {errorMsg && (
         <div className="rounded-xl border border-rose-500/40 bg-rose-950/60 p-4 text-xs text-rose-200 flex items-center justify-between gap-3">
@@ -384,6 +560,25 @@ export const DocumentIntelligenceModule: React.FC<DocumentIntelligenceModuleProp
                   className="w-full px-3 py-2 rounded-lg bg-[#05140d] border border-white/10 text-xs text-[#fcfbf7] focus:outline-none focus:border-emerald-500"
                   required
                 />
+                <div className="flex flex-wrap gap-1.5 pt-2">
+                  {[
+                    'What does this document say about groundwater levels?',
+                    'Which sample has the highest nitrate result?',
+                    'What information is missing from this report?',
+                  ].map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => {
+                        setTaskType('answer_question');
+                        setInstruction(q);
+                      }}
+                      className="px-2 py-1 rounded bg-white/5 hover:bg-violet-950/60 border border-white/10 text-[10px] text-stone-300 text-left"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <button
@@ -626,6 +821,7 @@ export const DocumentIntelligenceModule: React.FC<DocumentIntelligenceModuleProp
           )}
         </div>
       </div>
+      {previewModalEl}
     </div>
   );
 };

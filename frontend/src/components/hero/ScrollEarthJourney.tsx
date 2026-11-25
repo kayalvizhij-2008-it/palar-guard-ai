@@ -189,6 +189,7 @@ interface SceneProps {
   river: ParsedGeoJson | null;
   onStage: (i: number) => void;
   onTextureStatus: (s: EarthTextures['status']) => void;
+  introRef: React.RefObject<HTMLDivElement>;
   titleRef: React.RefObject<HTMLDivElement>;
   railFillRef: React.RefObject<HTMLDivElement>;
 }
@@ -200,6 +201,7 @@ function JourneyScene({
   river,
   onStage,
   onTextureStatus,
+  introRef,
   titleRef,
   railFillRef,
 }: SceneProps) {
@@ -286,6 +288,14 @@ function JourneyScene({
     if (s.stage !== lastStage.current) {
       lastStage.current = s.stage;
       onStage(s.stage);
+    }
+
+    const introFade = 1 - smoothstep(0.02, 0.16, p);
+    const intro = introRef.current;
+    if (intro) {
+      intro.style.opacity = String(introFade);
+      intro.style.transform = reduced ? 'none' : `translateY(${(1 - introFade) * -28}px)`;
+      intro.style.pointerEvents = introFade > 0.35 ? 'auto' : 'none';
     }
 
     const title = titleRef.current;
@@ -388,6 +398,7 @@ export const ScrollEarthJourney: React.FC<Props> = ({ onExplore }) => {
   const [contextLost, setContextLost] = useState(false);
   const [texStatus, setTexStatus] = useState<EarthTextures['status']>('loading');
 
+  const introRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const railFillRef = useRef<HTMLDivElement>(null);
   const basin = useGeoJson(BASIN_URL);
@@ -457,9 +468,9 @@ export const ScrollEarthJourney: React.FC<Props> = ({ onExplore }) => {
       <div className="inline-block rounded-full border border-[#d9c27a]/35 bg-[#061811]/85 px-3.5 py-1 text-[11px] font-mono tracking-[0.24em] uppercase text-[#d9c27a] mb-4">
         {L('12.9°N, 79.3°E · PALAR RIVER BASIN', '12.9°N, 79.3°E · பாலாறு வடிநிலம்')}
       </div>
-      <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-[0.06em] text-[#fcfbf7] drop-shadow-sm">
+      <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-[0.06em] text-[#fcfbf7] drop-shadow-sm">
         {t('app_title')}
-      </h1>
+      </h2>
       <p className="mt-4 text-sm sm:text-lg text-[#d9c27a] tracking-wide max-w-2xl mx-auto">
         {t('tagline')}
       </p>
@@ -488,7 +499,7 @@ export const ScrollEarthJourney: React.FC<Props> = ({ onExplore }) => {
         'Scroll journey from space to the Palar River Basin',
         'விண்வெளியிலிருந்து பாலாறு வடிநிலம் வரை உருட்டும் பயணம்'
       )}
-      className="relative w-full bg-[#020905]"
+      className="relative w-full bg-transparent"
       style={{ height: `${heightSvh}svh` }}
     >
       <div className="sticky top-16 h-[calc(100svh-4rem)] w-full overflow-hidden">
@@ -513,10 +524,46 @@ export const ScrollEarthJourney: React.FC<Props> = ({ onExplore }) => {
               river={river.data}
               onStage={setStage}
               onTextureStatus={setTexStatus}
+              introRef={introRef}
               titleRef={titleRef}
               railFillRef={railFillRef}
             />
           </Canvas>
+        )}
+
+        {/* Exact Initial Viewport Centered Brand (fades gently when visitor scrolls down, reverses smoothly back to top) */}
+        {webgl !== 'unavailable' && (
+          <div
+            ref={introRef}
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center px-8 sm:px-24 text-center pointer-events-auto"
+          >
+            <div className="rounded-3xl bg-[radial-gradient(ellipse_at_center,rgba(3,11,8,0.68)_0%,rgba(3,11,8,0.28)_62%,transparent_100%)] px-6 py-6 sm:px-10 sm:py-8 max-w-3xl">
+              <div className="inline-block rounded-full border border-[#d9c27a]/40 bg-[#061811]/85 px-3.5 py-1 text-[11px] font-mono tracking-[0.22em] uppercase text-[#d9c27a] mb-4">
+                {L('PALAR RIVER BASIN · TAMIL NADU', 'பாலாறு நதிப்படுகை · தமிழ்நாடு')}
+              </div>
+              <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-[0.06em] text-[#fcfbf7] drop-shadow-[0_6px_28px_rgba(0,0,0,0.85)]">
+                {t('app_title')}
+              </h1>
+              <p className="mt-3 sm:mt-4 text-sm sm:text-lg lg:text-xl text-[#d9c27a] tracking-wide max-w-2xl mx-auto">
+                {t('tagline')}
+              </p>
+              <div className="mt-6 sm:mt-8 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onExplore?.('dashboard')}
+                  className="rounded-full bg-[#10b981] hover:bg-[#059669] px-7 py-3 text-xs sm:text-sm font-semibold tracking-widest uppercase text-[#041a11] transition-colors shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                >
+                  {t('explore_platform')}
+                </button>
+                <a
+                  href="#editorial"
+                  className="rounded-full border border-[#d9c27a]/55 bg-[#061811]/85 px-6 py-3 text-xs sm:text-sm tracking-widest uppercase text-[#fcfbf7] hover:bg-[#d9c27a]/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                >
+                  {L('Read the Journey', 'பயணத்தைப் படிக்க')}
+                </a>
+              </div>
+            </div>
+          </div>
         )}
 
         {webgl === 'unavailable' && (
@@ -592,8 +639,8 @@ export const ScrollEarthJourney: React.FC<Props> = ({ onExplore }) => {
         )}
 
         {webgl !== 'unavailable' && stage === 0 && (
-          <div className="absolute inset-x-0 bottom-20 sm:bottom-8 z-20 text-center text-[11px] sm:text-xs tracking-[0.24em] sm:tracking-[0.28em] uppercase text-[#a4b2a9] pointer-events-none">
-            {L('Scroll to descend', 'கீழே உருட்டவும்')}
+          <div className="absolute inset-x-0 bottom-16 sm:bottom-8 z-20 text-center text-[11px] sm:text-xs tracking-[0.26em] uppercase text-[#d9c27a] pointer-events-none">
+            {L('SCROLL TO EXPLORE ↓', 'கீழே உருட்டி ஆராயுங்கள் ↓')}
           </div>
         )}
         {webgl !== 'unavailable' && (

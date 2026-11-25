@@ -117,6 +117,8 @@ export const ParticleField: React.FC = () => {
 
     const draw = (t: number) => {
       ctx.clearRect(0, 0, W, H);
+      // Subtle occasional constellation lines between bright star motes (max 44 nodes)
+      const nodes: Flake[] = [];
       for (let i = 0; i < flakes.length; i++) {
         const f = flakes[i];
         const shimmer = 0.78 + 0.22 * Math.sin(t * 0.0018 + f.phase);
@@ -129,6 +131,29 @@ export const ParticleField: React.FC = () => {
           ctx.beginPath();
           ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
           ctx.fill();
+          if (!lowPower && nodes.length < 42 && i % 6 === 0) {
+            nodes.push(f);
+          }
+        }
+      }
+      if (nodes.length > 1) {
+        const maxDistSq = 92 * 92;
+        ctx.lineWidth = 0.65;
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const dx = nodes[i].x - nodes[j].x;
+            const dy = nodes[i].y - nodes[j].y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < maxDistSq) {
+              const strength = (1 - Math.sqrt(d2) / 92) * 0.14;
+              ctx.globalAlpha = strength;
+              ctx.strokeStyle = 'rgb(110, 231, 183)';
+              ctx.beginPath();
+              ctx.moveTo(nodes[i].x, nodes[i].y);
+              ctx.lineTo(nodes[j].x, nodes[j].y);
+              ctx.stroke();
+            }
+          }
         }
       }
       ctx.globalAlpha = 1;

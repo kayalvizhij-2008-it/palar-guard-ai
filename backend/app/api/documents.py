@@ -153,6 +153,7 @@ def _extract_measurements(text: str, tables: List[Dict[str, Any]]) -> Dict[str, 
         "depth_mbgl": [],
         "tds": [],
         "chromium": [],
+        "nitrate": [],
         "ph": [],
         "ec": [],
         "rainfall_mm": [],
@@ -165,6 +166,7 @@ def _extract_measurements(text: str, tables: List[Dict[str, Any]]) -> Dict[str, 
         ),
         "tds": re.compile(r"(?:tds|total\s+dissolved\s+solids)[^\d\n]{0,20}(\d+(?:\.\d+)?)\s*(?:mg/l|ppm)?", re.I),
         "chromium": re.compile(r"(?:chromium|cr6?\+?)[^\d\n]{0,20}(\d+(?:\.\d+)?)\s*(?:mg/l|ppm)?", re.I),
+        "nitrate": re.compile(r"(?:nitrate|no3-?)[^\d\n]{0,20}(\d+(?:\.\d+)?)\s*(?:mg/l|ppm)?", re.I),
         "ph": re.compile(r"\bpH\b[^\d\n]{0,12}(\d+(?:\.\d+)?)", re.I),
         "ec": re.compile(r"(?:\bEC\b|electrical\s+conductivity)[^\d\n]{0,20}(\d+(?:\.\d+)?)\s*(?:µs/cm|us/cm)?", re.I),
         "rainfall_mm": re.compile(r"(?:rainfall|precipitation)[^\d\n]{0,20}(\d+(?:\.\d+)?)\s*mm", re.I),
@@ -280,6 +282,27 @@ def _run_deterministic_analysis(
     else:
         missing_info.append("No Total Chromium / heavy metal concentrations found.")
 
+    if extracted["nitrate"]:
+        sample = extracted["nitrate"][:6]
+        observations.append(
+            "Nitrate (NO3-) measurements extracted: "
+            + "; ".join(f"{x['value']} mg/L ({x['ref']})" for x in sample)
+        )
+        numeric_nitrates = []
+        for x in sample:
+            try:
+                numeric_nitrates.append((float(x["value"]), x))
+            except ValueError:
+                pass
+        if numeric_nitrates:
+            peak_val, peak_item = max(numeric_nitrates, key=lambda pair: pair[0])
+            if peak_val > 45.0:
+                interpretations.append(
+                    f"Highest extracted Nitrate ({peak_val} mg/L at {peak_item['ref']}) exceeds BIS 10500 acceptable limit of 45 mg/L."
+                )
+    else:
+        missing_info.append("No Nitrate (NO3-) concentrations found in extracted content.")
+
     if extracted["ph"]:
         sample = extracted["ph"][:4]
         observations.append("pH values extracted: " + "; ".join(f"{x['value']} ({x['ref']})" for x in sample))
@@ -357,23 +380,103 @@ def _run_deterministic_analysis(
             md_parts.append(f"{idx}. [ ] {item}")
 
     elif task == "answer_question":
-        q_words = [w for w in re.findall(r"[a-zA-Z0-9\u0B80-\u0BFF]{3,}", req.instruction.lower()) if w not in {"what", "where", "when", "which", "does", "this", "that", "from", "with", "about"}]
-        scored_lines: List[Tuple[int, str]] = []
+        q_lower = req.instruction.lower()
+        stop_words = {
+            "the", "and", "for", "are", "was", "were", "has", "have", "had", "can", "how",
+            "who", "why", "not", "any", "all", "its", "into", "does", "did", "been", "being",
+            "will", "would", "could", "should", "there", "their", "these", "those", "than",
+            "then", "also", "more", "most", "each", "only", "other", "between", "under", "over",
+            "what", "where", "when", "which", "this", "that", "from", "with", "about",
+            "document", "report", "result", "results", "value", "values", "level", "levels",
+            "concentration", "sample", "samples", "data", "information", "missing", "dissolved",
+            "highest", "lowest", "tell", "show", "explain", "across", "period",
+        }
+        q_words = [
+            w
+            for w in re.findall(r"[a-zA-Z0-9\u0B80-\u0BFF]{3,}", q_lower)
+            if w not in stop_words
+        ]
+        # Build chunked passages preserving [Page N] / [Row N] metadata
+        chunks: List[Dict[str, Any]] = []
+        cur_ref = "Document"
+        buffer: List[str] = []
         for ln in lines:
-            low = ln.lower()
-            score = sum(1 for w in q_words if w in low)
-            if score > 0:
-                scored_lines.append((score, ln))
-        scored_lines.sort(key=lambda x: x[0], reverse=True)
-        md_parts.append(f"### Source-Grounded Answer for: \"{req.instruction}\"\n")
-        if scored_lines:
-            md_parts.append("**Matching Source Excerpts:**\n")
-            for _, ln in scored_lines[:6]:
-                md_parts.append(f"- {ln[:240]}")
-            interpretations.append(f"Found {len(scored_lines)} matching line(s) containing query keywords.")
+            m_ref = re.match(r"^\[(Page \d+|Line \d+|Row \d+[^\]]*|Sheet:[^\]]+)\]", ln)
+            if m_ref:
+                if buffer:
+                    chunks.append({"ref": cur_ref, "text": " ".join(buffer)})
+                    buffer = []
+                cur_ref = m_ref.group(1)
+            buffer.append(ln)
+            if sum(len(x) for x in buffer) >= 420:
+                chunks.append({"ref": cur_ref, "text": " ".join(buffer)})
+                buffer = []
+        if buffer:
+            chunks.append({"ref": cur_ref, "text": " ".join(buffer)})
+
+        analyte_terms = {
+            "nitrate", "groundwater", "rainfall", "chromium", "tds", "fluoride", "arsenic",
+            "mercury", "lead", "cadmium", "uranium", "cyanide", "phosphate", "ammonia",
+            "turbidity", "coliform", "chloride", "sulfate", "sulphate", "bod", "cod",
+            "hardness", "iron", "manganese", "zinc", "copper", "nickel", "selenium", "boron",
+        }
+        asked_analytes = [w for w in q_words if w in analyte_terms]
+        doc_lower = text.lower()
+        absent_analytes = [
+            w for w in asked_analytes if not re.search(rf"\b{re.escape(w)}\b", doc_lower)
+        ]
+
+        scored_chunks: List[Tuple[int, Dict[str, Any]]] = []
+        if q_words:
+            for ch in chunks:
+                low = ch["text"].lower()
+                score = sum(
+                    2 if w in analyte_terms else 1
+                    for w in q_words
+                    if re.search(rf"\b{re.escape(w)}\b", low)
+                )
+                if score > 0:
+                    scored_chunks.append((score, ch))
+            scored_chunks.sort(key=lambda x: x[0], reverse=True)
+
+        md_parts.append(f"### Source-Grounded Answer for: \"{req.instruction}\" — `{doc.filename}`\n")
+        if ("highest" in q_lower or "max" in q_lower) and "nitrate" in q_lower:
+            if extracted["nitrate"]:
+                parsed_n = []
+                for x in extracted["nitrate"]:
+                    try:
+                        parsed_n.append((float(x["value"]), x))
+                    except ValueError:
+                        pass
+                if parsed_n:
+                    best_v, best_item = max(parsed_n, key=lambda p: p[0])
+                    md_parts.append(
+                        f"**Highest Nitrate Detected in `{doc.filename}` ({best_item['ref']}):** **{best_v} mg/L**\n"
+                        f"- Supporting excerpt: `{best_item['excerpt']}`"
+                    )
+        if absent_analytes and len(absent_analytes) == len(asked_analytes):
+            missing_list = ", ".join(absent_analytes)
+            md_parts.append(
+                f"No passages or measurements for `{missing_list}` were found in `{doc.filename}`. "
+                "The requested parameter appears absent from all extracted pages."
+            )
+            missing_info.append(f"Absent from '{doc.filename}': '{req.instruction}'.")
+        elif scored_chunks:
+            if absent_analytes:
+                md_parts.append(
+                    f"> Note: Requested parameter(s) `{', '.join(absent_analytes)}` appear absent from `{doc.filename}`."
+                )
+            md_parts.append("\n**Retrieved Source Chunks:**\n")
+            for _, ch in scored_chunks[:5]:
+                md_parts.append(f"- **[{ch['ref']}]** {ch['text'][:280]}")
+            interpretations.append(f"Retrieved {len(scored_chunks)} matching chunk(s) citing pages/sections in '{doc.filename}'.")
         else:
-            md_parts.append("No direct keyword matches were found in the extracted text for this question. Review the extracted text or missing-information section.")
-            missing_info.append(f"No passages matched terms from query: '{req.instruction}'.")
+            missing_terms = ", ".join(q_words) if q_words else req.instruction
+            md_parts.append(
+                f"No passages matching `{missing_terms}` were found in `{doc.filename}`. "
+                "The requested parameter or information appears absent from the extracted pages."
+            )
+            missing_info.append(f"Absent from '{doc.filename}': '{req.instruction}'.")
 
     elif is_ta:
         md_parts.append(f"### ஆவணச் சுருக்கம் & தமிழ் விளக்கம் — `{doc.filename}`\n")
@@ -548,6 +651,53 @@ def list_documents(
         )
         for d in docs
     ]
+
+
+@router.get("/samples")
+def list_sample_documents():
+    """Return metadata and disclaimer for bundled synthetic demonstration PDFs."""
+    warning = "DEMONSTRATION DATA ONLY — NOT VERIFIED REAL-WORLD MONITORING DATA."
+    return {
+        "warning": warning,
+        "samples": [
+            {
+                "id": "gw-sample",
+                "title": "Groundwater Monitoring Sample Report",
+                "filename": "palar_groundwater_monitoring_sample.pdf",
+                "url": "/samples/palar_groundwater_monitoring_sample.pdf",
+                "description": "Quarterly demonstration depth-to-water (mbgl) across five Palar demonstration wells.",
+                "sample_questions": [
+                    "What does this document say about groundwater levels?",
+                    "What changes are visible across the reporting period?",
+                    "What information is missing from this report?",
+                ],
+            },
+            {
+                "id": "rain-sample",
+                "title": "Rainfall and Groundwater Recharge Assessment",
+                "filename": "palar_rainfall_recharge_sample.pdf",
+                "url": "/samples/palar_rainfall_recharge_sample.pdf",
+                "description": "Synthetic monthly rainfall (mm), NE/SW monsoon balance, and check-dam screening.",
+                "sample_questions": [
+                    "Summarise the rainfall data.",
+                    "Which months contribute most Northeast Monsoon rainfall?",
+                    "Create a field checklist from this recharge report.",
+                ],
+            },
+            {
+                "id": "wq-sample",
+                "title": "Water Quality Laboratory Sample Report",
+                "filename": "palar_water_quality_lab_sample.pdf",
+                "url": "/samples/palar_water_quality_lab_sample.pdf",
+                "description": "Demonstration pH, TDS, Nitrate (NO3-), and Total Chromium chemical assay matrix.",
+                "sample_questions": [
+                    "Which sample has the highest nitrate result?",
+                    "Explain the water-quality threshold exceedances in this document.",
+                    "What information is missing from this report?",
+                ],
+            },
+        ],
+    }
 
 
 @router.get("/{doc_id}", response_model=DocumentOut)
