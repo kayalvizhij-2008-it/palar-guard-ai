@@ -11,7 +11,7 @@ import {
   FileSpreadsheet, HelpCircle, Sliders, MapPin
 } from 'lucide-react';
 
-export type WorkflowType = 'groundwater' | 'rainfall' | 'water_quality' | 'concern_report' | 'risk_analysis' | 'generate_report';
+export type WorkflowType = 'groundwater' | 'water_quality' | 'recharge_opt' | 'drinking_water' | 'risk_analysis' | 'historical_baseline' | 'concern_report';
 
 export interface AnalysisRecord {
   id: string;
@@ -207,36 +207,90 @@ export const AnalysisWorkflowsModule: React.FC = () => {
               confidenceScore: 89
             }
           };
-        } else if (activeWorkflow === 'concern_report') {
+        } else if (activeWorkflow === 'recharge_opt') {
           newRecord = {
-            id: `PLR-REP-${Date.now().toString().slice(-4)}`,
-            type: 'concern_report',
-            title: `Citizen Water Concern: ${concernCategory} at ${loc.name}`,
+            id: recordId,
+            type: 'recharge_opt',
+            title: `${loc.name} Managed Aquifer Recharge (MAR) Suitability`,
             locationName: loc.name,
-            status: 'Submitted',
+            status: 'Completed',
             timestamp: new Date().toLocaleString(),
-            provenance: 'COMMUNITY_REPORT',
+            provenance: 'MODEL_PREDICTION',
             inputSummary: {
-              category: concernCategory,
-              description: concernDesc || 'Water table depletion observed in neighborhood wells.',
-              location: loc.name
+              location: loc.name,
+              catchmentRainfall: '682 mm Annual Mean',
+              soilPermeability: 'Alluvial Sand & Coarse Gravel',
+              targetStructure: 'Check Dam with Infiltration Shaft'
             },
             outputSummary: {
-              primaryMetric: 'Assigned Tracking ID: ' + recordId,
-              secondaryMetric: 'Status: Queued for Regional Triage',
-              explanation: 'Your incident has been securely recorded and queued for verification by the local basin field inspection unit.',
+              primaryMetric: 'Recharge Potential: 88.4 / 100 (Optimal)',
+              secondaryMetric: 'Estimated Subsurface Storage: 1.4 MCM / Year',
+              explanation: `Topographic slope (< 2%) and high alluvial permeability at ${loc.name} make this sector highly favorable for cascading check dams to capture monsoon runoff before ocean discharge.`,
               recommendedActions: [
-                'Keep this tracking ID for checking resolution progress.',
-                'Avoid consuming unboiled shallow well water until field clearance.'
+                'Propose dual percolation tank network on tributary confluence.',
+                'Coordinate with Village Panchayat for desiltation of traditional eris.'
               ],
-              confidenceScore: 75
+              confidenceScore: 91
+            }
+          };
+        } else if (activeWorkflow === 'drinking_water') {
+          const isPotable = tds <= 1000 && chromium <= 0.05;
+          newRecord = {
+            id: recordId,
+            type: 'drinking_water',
+            title: `${loc.name} Potable Water Safety & Heavy Metal Clearance`,
+            locationName: loc.name,
+            status: isPotable ? 'Completed' : 'Requires attention',
+            timestamp: new Date().toLocaleString(),
+            provenance: 'VERIFIED_PUBLIC',
+            inputSummary: {
+              location: loc.name,
+              standard: 'BIS 10500:2012 Drinking Water Specification',
+              parameters: ['TDS', 'Total Chromium', 'pH', 'Electrical Conductivity']
+            },
+            outputSummary: {
+              primaryMetric: isPotable ? 'POTABLE / SAFE FOR USE' : 'CAUTION: TREATMENT REQUIRED',
+              secondaryMetric: `TDS: ${tds} mg/L | Cr: ${chromium} mg/L`,
+              explanation: isPotable
+                ? `All measured chemical parameters at ${loc.name} satisfy acceptable limits for drinking and domestic supply.`
+                : `Elevated dissolved solids and trace chromium detected. Raw borewell water requires reverse osmosis or multi-stage adsorption before ingestion.`,
+              recommendedActions: [
+                isPotable ? 'Maintain routine monthly water testing.' : 'Distribute community advisory on boiling and filtration.',
+                'Conduct localized source-tracking up-gradient.'
+              ],
+              confidenceScore: 95
+            }
+          };
+        } else if (activeWorkflow === 'historical_baseline') {
+          newRecord = {
+            id: recordId,
+            type: 'historical_baseline',
+            title: `${loc.name} Multi-Decadal Baseline Anomaly Audit`,
+            locationName: loc.name,
+            status: 'Completed',
+            timestamp: new Date().toLocaleString(),
+            provenance: 'HISTORICAL_REPORT',
+            inputSummary: {
+              location: loc.name,
+              timeSeriesRange: '1980 - 2026 (46 Years)',
+              dataRepositories: 'CGWB Hydrograph Archive & IMD Rainfall Series'
+            },
+            outputSummary: {
+              primaryMetric: 'Mean Water Table Shift: -4.8m (1990 vs 2026)',
+              secondaryMetric: 'Depletion Velocity: 0.12 m/year secular trend',
+              explanation: `Historical survey records establish that the shallow unconfined alluvium has experienced chronic summer depletion driven by intensive groundwater withdrawal across industrial corridors.`,
+              recommendedActions: [
+                'Enforce strict regulatory groundwater conservation zone.',
+                'Establish real-time digital telemetric piezometer network.'
+              ],
+              confidenceScore: 93
             }
           };
         } else {
           newRecord = {
             id: recordId,
             type: 'risk_analysis',
-            title: `${loc.name} Multi-Criteria Basin Risk Profile`,
+            title: `${loc.name} Multi-Hazard Basin Risk Profile`,
             locationName: loc.name,
             status: 'Completed',
             timestamp: new Date().toLocaleString(),
@@ -338,13 +392,15 @@ export const AnalysisWorkflowsModule: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column (5 Cols): Workflow Selector & Input Parameters Form */}
           <div className="lg:col-span-5 space-y-4">
-            {/* 1. Workflow Mode Tabs */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {/* 1. Workflow Mode Tabs — 6 Dedicated Pipelines */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
-                { id: 'groundwater', label: 'Groundwater', icon: <Droplets className="w-4 h-4" /> },
-                { id: 'water_quality', label: 'Water Quality', icon: <FlaskConical className="w-4 h-4" /> },
-                { id: 'concern_report', label: 'Report Concern', icon: <AlertTriangle className="w-4 h-4" /> },
-                { id: 'risk_analysis', label: 'Risk Profile', icon: <Layers className="w-4 h-4" /> },
+                { id: 'groundwater', label: 'Groundwater Depletion', icon: <Droplets className="w-4 h-4" /> },
+                { id: 'water_quality', label: 'Industrial Contamination', icon: <FlaskConical className="w-4 h-4" /> },
+                { id: 'recharge_opt', label: 'Recharge Optimization', icon: <CloudRain className="w-4 h-4" /> },
+                { id: 'drinking_water', label: 'Drinking Water Safety', icon: <ShieldCheck className="w-4 h-4" /> },
+                { id: 'risk_analysis', label: 'Multi-Hazard Index', icon: <Layers className="w-4 h-4" /> },
+                { id: 'historical_baseline', label: 'Historical Baseline', icon: <FileText className="w-4 h-4" /> },
               ].map(wf => (
                 <button
                   key={wf.id}
@@ -352,14 +408,14 @@ export const AnalysisWorkflowsModule: React.FC = () => {
                     setActiveWorkflow(wf.id as WorkflowType);
                     setLatestResult(null);
                   }}
-                  className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-2 transition-all ${
+                  className={`p-2.5 rounded-xl border text-[11px] font-semibold flex flex-col items-center gap-1.5 transition-all ${
                     activeWorkflow === wf.id
                       ? 'bg-emerald-600 text-white border-emerald-400 shadow-forest-sm'
                       : 'bg-[#071c12] text-stone-300 border-white/[0.08] hover:border-emerald-500/30'
                   }`}
                 >
                   {wf.icon}
-                  <span className="text-center">{wf.label}</span>
+                  <span className="text-center leading-tight">{wf.label}</span>
                 </button>
               ))}
             </div>
@@ -640,27 +696,27 @@ export const AnalysisWorkflowsModule: React.FC = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto scrollbar-thin">
+            <table className="w-full min-w-[950px] text-left text-xs">
               <thead className="bg-[#03110a] text-stone-400 uppercase font-mono text-[10px] border-b border-white/[0.06]">
                 <tr>
-                  <th className="py-2.5 px-3">Reference ID</th>
-                  <th className="py-2.5 px-3">Analysis Title</th>
-                  <th className="py-2.5 px-3">Location</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3">Provenance</th>
-                  <th className="py-2.5 px-3">Key Output Finding</th>
-                  <th className="py-2.5 px-3 text-right">Actions</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Reference ID</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Analysis Title</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Location</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Status</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Provenance</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Key Output Finding</th>
+                  <th className="py-2.5 px-3 text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04]">
                 {records.map(rec => (
                   <tr key={rec.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="py-3 px-3 font-mono font-bold text-emerald-400">{rec.id}</td>
-                    <td className="py-3 px-3 font-medium text-white max-w-[220px] truncate">{rec.title}</td>
-                    <td className="py-3 px-3 text-stone-300">{rec.locationName}</td>
-                    <td className="py-3 px-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                    <td className="py-3 px-3 font-mono font-bold text-emerald-400 whitespace-nowrap">{rec.id}</td>
+                    <td className="py-3 px-3 font-medium text-white max-w-[240px] truncate">{rec.title}</td>
+                    <td className="py-3 px-3 text-stone-300 whitespace-nowrap">{rec.locationName}</td>
+                    <td className="py-3 px-3 whitespace-nowrap">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap inline-flex items-center ${
                         rec.status === 'Completed'
                           ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/30'
                           : rec.status === 'Requires attention'
@@ -670,11 +726,11 @@ export const AnalysisWorkflowsModule: React.FC = () => {
                         {rec.status}
                       </span>
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <DataBadge provenance={rec.provenance} />
                     </td>
-                    <td className="py-3 px-3 text-stone-200 font-medium">{rec.outputSummary.primaryMetric}</td>
-                    <td className="py-3 px-3 text-right">
+                    <td className="py-3 px-3 text-stone-200 font-medium whitespace-nowrap">{rec.outputSummary.primaryMetric}</td>
+                    <td className="py-3 px-3 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => {

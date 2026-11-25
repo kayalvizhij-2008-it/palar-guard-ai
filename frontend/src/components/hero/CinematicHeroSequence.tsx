@@ -719,11 +719,21 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
 
         {/* Center: Navigation Links matching blueprint */}
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-stone-300">
-          <button onClick={() => onExplore('landing')} className="text-emerald-400 hover:text-emerald-300 transition-colors">Home</button>
-          <button onClick={() => onExplore('dashboard')} className="hover:text-white transition-colors">Dashboard</button>
-          <button onClick={() => onExplore('analytics')} className="hover:text-white transition-colors">Analytics</button>
-          <a href="#challenge" className="hover:text-white transition-colors">About</a>
-          <a href="#services" className="hover:text-white transition-colors">Support</a>
+          <button onClick={() => onExplore('landing')} className="text-emerald-400 hover:text-emerald-300 transition-colors">
+            {lang === 'ta' ? 'முகப்பு' : 'Home'}
+          </button>
+          <button onClick={() => onExplore('dashboard')} className="hover:text-white transition-colors">
+            {lang === 'ta' ? 'கண்காணிப்பு' : 'Dashboard'}
+          </button>
+          <button onClick={() => onExplore('analytics')} className="hover:text-white transition-colors">
+            {lang === 'ta' ? 'பகுப்பாய்வு' : 'Analytics'}
+          </button>
+          <a href="#challenge" className="hover:text-white transition-colors">
+            {lang === 'ta' ? 'திட்டம் பற்றி' : 'About'}
+          </a>
+          <a href="#services" className="hover:text-white transition-colors">
+            {lang === 'ta' ? 'ஆதரவு' : 'Support'}
+          </a>
         </nav>
 
         {/* Right: Language Pill Switcher & Pitch Mode */}
@@ -757,7 +767,7 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
             onClick={handleSkipIntro}
             className="hidden sm:flex items-center gap-1 px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-stone-300 text-xs font-mono transition-colors"
           >
-            <span>Skip</span>
+            <span>{lang === 'ta' ? 'தவிர்' : 'Skip'}</span>
             <FastForward className="w-3 h-3" />
           </button>
 
@@ -765,7 +775,7 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
             onClick={() => onExplore('dashboard')}
             className="px-4 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-[#061811] text-xs font-bold transition-all shadow-forest-sm"
           >
-            Console →
+            {lang === 'ta' ? 'கட்டுப்பாட்டு மையம் →' : 'Console →'}
           </button>
         </div>
       </header>
@@ -773,9 +783,9 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
       {/* 3. SCENE 01 — FULL VISUAL HERO BLUEPRINT (Matching reference image) */}
       {currentScene === 1 && (
         <div className="relative z-20 px-6 sm:px-12 max-w-7xl mx-auto w-full my-auto flex flex-col justify-center animate-fade-in pointer-events-none">
-          <div className="max-w-xl space-y-6 pointer-events-auto">
+          <div className="max-w-xl space-y-4 sm:space-y-5 pointer-events-auto">
             {/* 3-Line Majestic Headline matching blueprint */}
-            <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.08] font-sans">
+            <h1 className="text-3xl sm:text-5xl lg:text-5.5xl font-black text-white tracking-tight leading-[1.12] font-sans">
               {lang === 'ta' ? (
                 <>
                   ஆபத்தைக் கண்டறி. <br />
@@ -792,17 +802,17 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
             </h1>
 
             {/* Subtitle matching blueprint */}
-            <p className="text-base sm:text-lg text-stone-200 font-normal leading-relaxed max-w-lg">
+            <p className="text-sm sm:text-base text-stone-200 font-normal leading-relaxed max-w-lg">
               {lang === 'ta'
                 ? 'எதிர்காலத்திற்கான AI-ஆற்றல் கொண்ட நதிப்படுகை நீர் நுண்ணறிவு தளம்'
                 : 'An AI-powered water intelligence platform for a sustainable tomorrow'}
             </p>
 
             {/* Action Buttons matching blueprint */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               <button
                 onClick={() => onExplore('dashboard')}
-                className="px-8 py-3.5 rounded-full bg-[#2ad58b] hover:bg-[#25be7c] text-[#061811] font-bold text-sm shadow-emerald-glow transition-all transform hover:scale-105 flex items-center gap-2"
+                className="px-7 py-3 rounded-full bg-[#2ad58b] hover:bg-[#25be7c] text-[#061811] font-bold text-sm shadow-emerald-glow transition-all transform hover:scale-105 flex items-center gap-2"
               >
                 <span>{lang === 'ta' ? 'கண்காணிப்பு தளம் →' : 'Explore Platform →'}</span>
               </button>
@@ -810,7 +820,7 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
               {onOpenPresentation && (
                 <button
                   onClick={onOpenPresentation}
-                  className="px-7 py-3.5 rounded-full bg-black/40 hover:bg-black/60 text-white border border-white/20 hover:border-emerald-400 text-sm font-semibold transition-all flex items-center gap-2 backdrop-blur-md"
+                  className="px-6 py-3 rounded-full bg-black/40 hover:bg-black/60 text-white border border-white/20 hover:border-emerald-400 text-sm font-semibold transition-all flex items-center gap-2 backdrop-blur-md"
                 >
                   <Play className="w-4 h-4 fill-white text-white" />
                   <span>{lang === 'ta' ? 'டெமோ பார்க்க' : 'Watch Demo'}</span>
@@ -819,7 +829,7 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
             </div>
 
             {/* Scroll indicator matching blueprint */}
-            <div className="flex items-center gap-2 text-xs text-stone-400 pt-4">
+            <div className="flex items-center gap-2 text-xs text-stone-400 pt-2">
               <div className="w-5 h-8 rounded-full border-2 border-stone-400 flex items-start justify-center p-1">
                 <div className="w-1 h-2 rounded-full bg-emerald-400 animate-bounce" />
               </div>

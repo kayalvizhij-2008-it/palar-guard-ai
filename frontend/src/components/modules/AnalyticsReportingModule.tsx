@@ -73,14 +73,14 @@ export const AnalyticsReportingModule: React.FC = () => {
       {/* Printable Executive Dossier Preview */}
       <div className="p-8 bg-[#092218] border border-white/[0.08] rounded-2xl space-y-6 print:bg-white print:text-black">
         {/* Document Header */}
-        <div className="border-b border-white/10 pb-5 flex items-start justify-between">
+        <div className="border-b border-white/10 pb-5 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
             <div className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest font-bold">EXECUTIVE ENVIRONMENTAL INTELLIGENCE DOSSIER</div>
-            <h1 className="text-2xl font-extrabold text-white mt-1">Palar River Basin Hydrological Audit</h1>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white mt-1">Palar River Basin Hydrological Audit</h1>
             <p className="text-xs text-stone-400 mt-1">Tamil Nadu, India • Generated: {new Date().toLocaleDateString()} • System ID: PG-2026-AUDIT</p>
           </div>
-          <div className="text-right">
-            <span className="px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/30 font-mono text-xs font-bold">
+          <div className="shrink-0">
+            <span className="px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/30 font-mono text-xs font-bold whitespace-nowrap inline-block">
               OFFICIAL BENCHMARK
             </span>
           </div>

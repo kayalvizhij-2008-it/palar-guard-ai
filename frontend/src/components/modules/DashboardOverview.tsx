@@ -43,6 +43,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   const [yearRange, setYearRange] = useState<number>(2024);
   const [gradeA, setGradeA] = useState<boolean>(true);
   const [gradeB, setGradeB] = useState<boolean>(true);
+  const [gradeC, setGradeC] = useState<boolean>(false);
+  const [gradeD, setGradeD] = useState<boolean>(false);
 
   // Field Officer Investigation Queue
   const [investigationsList, setInvestigationsList] = useState([
@@ -88,7 +90,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       {/* ============================================================ */}
       {/* 0. ROLE-SPECIFIC PERSONA SWITCHER BAR */}
       {/* ============================================================ */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-[#061e12] border border-white/[0.08]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3 rounded-2xl bg-[#061e12] border border-white/[0.08]">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">
@@ -104,7 +106,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         </div>
 
         {/* 5 Distinct Persona Role Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto bg-[#03110a] p-1 rounded-xl border border-white/10 shrink-0">
+        <div className="flex items-center gap-1 overflow-x-auto max-w-full scrollbar-none bg-[#03110a] p-1 rounded-xl border border-white/10 shrink-0">
           {[
             { id: 'command', label: lang === 'ta' ? 'முழு பலகம்' : 'Command View', icon: <Compass className="w-3.5 h-3.5" /> },
             { id: 'farmer', label: lang === 'ta' ? 'விவசாயி' : 'Farmer / Community', icon: <Users className="w-3.5 h-3.5" /> },
@@ -115,7 +117,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <button
               key={r.id}
               onClick={() => setActiveRole(r.id as DashboardRole)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
                 activeRole === r.id
                   ? 'bg-emerald-600 text-white shadow-forest-sm'
                   : 'text-stone-300 hover:text-white hover:bg-white/5'
@@ -420,27 +422,47 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 </div>
               </div>
 
-              {/* Completeness Grade Checkboxes */}
+              {/* Completeness Grade Checkboxes matching CDCPC blueprint */}
               <div className="space-y-2 pt-2 border-t border-white/[0.06]">
                 <label className="text-[11px] text-stone-300 font-medium">Completeness Grade</label>
-                <label className="flex items-center gap-2 text-xs text-emerald-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={gradeA}
-                    onChange={(e) => setGradeA(e.target.checked)}
-                    className="accent-emerald-500"
-                  />
-                  <span>Grade A High (≥ 90%)</span>
-                </label>
-                <label className="flex items-center gap-2 text-xs text-cyan-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={gradeB}
-                    onChange={(e) => setGradeB(e.target.checked)}
-                    className="accent-cyan-500"
-                  />
-                  <span>Grade B Good (70% - 89%)</span>
-                </label>
+                <div className="space-y-1.5">
+                  <label className="flex items-center gap-2 text-xs text-emerald-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={gradeA}
+                      onChange={(e) => setGradeA(e.target.checked)}
+                      className="accent-emerald-500"
+                    />
+                    <span>Grade A High (≥ 90%)</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-cyan-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={gradeB}
+                      onChange={(e) => setGradeB(e.target.checked)}
+                      className="accent-cyan-500"
+                    />
+                    <span>Grade B Good (70% - 89%)</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-amber-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={gradeC}
+                      onChange={(e) => setGradeC(e.target.checked)}
+                      className="accent-amber-500"
+                    />
+                    <span>Grade C Moderate (40% - 69%)</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-rose-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={gradeD}
+                      onChange={(e) => setGradeD(e.target.checked)}
+                      className="accent-rose-500"
+                    />
+                    <span>Grade D Low (&lt; 40%)</span>
+                  </label>
+                </div>
               </div>
 
               {/* Bottom Mini Metrics */}

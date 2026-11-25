@@ -16,56 +16,56 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPresentation }) => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [activeStage, setActiveStage] = useState<number>(0);
 
   const workflowStages = [
     {
       step: "01",
-      name: "OBSERVE",
-      title: "Comprehensive Basin Data Harvesting",
-      desc: "Aggregate quarterly groundwater hydrographs from CGWB observation wells, IMD NWIC precipitation series, and TNPCB water-quality surveillance records.",
-      metric: "7 Baseline Stations",
+      name: lang === 'ta' ? "கண்காணி" : "OBSERVE",
+      title: lang === 'ta' ? "படுகை அளவிலான விரிவான தரவு சேகரிப்பு" : "Comprehensive Basin Data Harvesting",
+      desc: lang === 'ta' ? "மத்திய நிலத்தடி நீர் வாரியம் (CGWB) கிணறுகள், இந்திய வானிலை ஆய்வு மையம் (IMD) மழைப் பதிவுகள் மற்றும் TNPCB நீர் தரக் கண்காணிப்பு தரவுகளை ஒருங்கிணைத்தல்." : "Aggregate quarterly groundwater hydrographs from CGWB observation wells, IMD NWIC precipitation series, and TNPCB water-quality surveillance records.",
+      metric: lang === 'ta' ? "7 அடிப்படைக் கண்காணிப்பு நிலையங்கள்" : "7 Baseline Stations",
       provenance: "VERIFIED_PUBLIC" as const
     },
     {
       step: "02",
-      name: "ANALYSE",
-      title: "Seasonal Drawdown & Ionic Stress Profiling",
-      desc: "Compute multi-year moving averages, rate of water-table depletion (m/year), and cross-index Total Chromium and TDS against BIS 10500 and CPCB Class C standards.",
-      metric: "14.9 mbgl Mean Depth",
+      name: lang === 'ta' ? "பகுப்பாய்" : "ANALYSE",
+      title: lang === 'ta' ? "பருவகால நீர்மட்ட குறைவு & இரசாயன அழுத்த பகுப்பாய்வு" : "Seasonal Drawdown & Ionic Stress Profiling",
+      desc: lang === 'ta' ? "ஆண்டுதோறும் குறையும் நீர் மட்டம் (மீட்டர்/ஆண்டு) மற்றும் BIS 10500 / CPCB வழிகாட்டுதல்களின்படி குரோமியம் மற்றும் TDS அளவுகளை மதிப்பிடுதல்." : "Compute multi-year moving averages, rate of water-table depletion (m/year), and cross-index Total Chromium and TDS against BIS 10500 and CPCB Class C standards.",
+      metric: lang === 'ta' ? "14.9 mbgl சராசரி ஆழம்" : "14.9 mbgl Mean Depth",
       provenance: "HISTORICAL_REPORT" as const
     },
     {
       step: "03",
-      name: "PREDICT",
-      title: "Walk-Forward Water Table Projections",
-      desc: "Seasonal baseline models project pre-monsoon drawdown across 4 upcoming quarters with empirical 90% confidence uncertainty intervals.",
-      metric: "17.0 mbgl Projected (±1.2m)",
+      name: lang === 'ta' ? "கணித்தறி" : "PREDICT",
+      title: lang === 'ta' ? "முன்னோக்கு நிலத்தடி நீர்மட்ட கணிப்பு மாதிரிகள்" : "Walk-Forward Water Table Projections",
+      desc: lang === 'ta' ? "அடுத்த 4 காலாண்டுகளுக்கான கோடைகால நீர்மட்ட குறைவை 90% அறிவியல் துல்லியத்துடன் முன்கூட்டியே கணித்தல்." : "Seasonal baseline models project pre-monsoon drawdown across 4 upcoming quarters with empirical 90% confidence uncertainty intervals.",
+      metric: lang === 'ta' ? "17.0 mbgl கணிக்கப்பட்ட ஆழம்" : "17.0 mbgl Projected (±1.2m)",
       provenance: "MODEL_PREDICTION" as const
     },
     {
       step: "04",
-      name: "PRIORITISE",
-      title: "Explainable Multi-Criteria Risk Ranking",
-      desc: "Synthesize groundwater stress (30%), water quality (35%), rainfall deficit (15%), observation recency (10%), and data confidence (10%) into an objective 0–100 index.",
-      metric: "Ranipet #1 (78.5/100)",
+      name: lang === 'ta' ? "முன்னுரிமைபடுத்து" : "PRIORITISE",
+      title: lang === 'ta' ? "விளக்கக்கூடிய பல-அளவுகோல் இடர் தரவரிசை" : "Explainable Multi-Criteria Risk Ranking",
+      desc: lang === 'ta' ? "நிலத்தடி நீர் அழுத்தம் (30%), நீர் தரம் (35%), மழைப்பொழிவு பற்றாக்குறை (15%) மற்றும் நம்பகத்தன்மை (10%) ஆகியவற்றை இணைத்து 0–100 குறியீடாக கணக்கிடுதல்." : "Synthesize groundwater stress (30%), water quality (35%), rainfall deficit (15%), observation recency (10%), and data confidence (10%) into an objective 0–100 index.",
+      metric: lang === 'ta' ? "ராணிப்பேட்டை முதலிடம் (78.5/100)" : "Ranipet #1 (78.5/100)",
       provenance: "MODEL_PREDICTION" as const
     },
     {
       step: "05",
-      name: "VERIFY",
-      title: "Rigorous Provenance & Anomaly Triage",
-      desc: "Screen parameters using Median Absolute Deviation (MAD) Robust Z-scores to flag chemical surges for field verification rather than unverified legal accusations.",
+      name: lang === 'ta' ? "சரிபார்" : "VERIFY",
+      title: lang === 'ta' ? "கள ஆய்வு & புள்ளிவிவர இடர் சரிபார்ப்பு" : "Rigorous Provenance & Anomaly Triage",
+      desc: lang === 'ta' ? "Median Absolute Deviation (MAD) வலுவான Z-மதிப்புகளைக் கொண்டு கள ஆய்வுக்கு முன்னுரிமை அளித்து ஆய்வு செய்தல்." : "Screen parameters using Median Absolute Deviation (MAD) Robust Z-scores to flag chemical surges for field verification rather than unverified legal accusations.",
       metric: "Robust Z = 3.84",
       provenance: "MODEL_PREDICTION" as const
     },
     {
       step: "06",
-      name: "ACT",
-      title: "Field Investigation & Managed Aquifer Recharge",
-      desc: "Dispatch field inspection teams with duplicate sample checklists while identifying optimal alluvium zones for check dams, percolation tanks, and traditional eri desiltation.",
-      metric: "Team Alpha Dispatched",
+      name: lang === 'ta' ? "செயல்படுத்து" : "ACT",
+      title: lang === 'ta' ? "கள ஆய்வு & நிலத்தடி நீர் மறுசுழற்சி தீர்வுகள்" : "Field Investigation & Managed Aquifer Recharge",
+      desc: lang === 'ta' ? "கள ஆய்வுக் குழுக்களை அனுப்புதல், தடுப்பணைகள், ஊடுருவல் கிணறுகள் மற்றும் பாரம்பரிய ஏரிகளை தூர்வாரும் இடங்களை அடையாளம் காணுதல்." : "Dispatch field inspection teams with duplicate sample checklists while identifying optimal alluvium zones for check dams, percolation tanks, and traditional eri desiltation.",
+      metric: lang === 'ta' ? "ஆய்வுக் குழு அனுப்பப்பட்டது" : "Team Alpha Dispatched",
       provenance: "VERIFIED_PUBLIC" as const
     }
   ];
@@ -88,14 +88,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              SECTION 01 · HYDROLOGICAL VULNERABILITY
+              {lang === 'ta' ? 'பிரிவு 01 · நீர்வள பாதிப்புகள்' : 'SECTION 01 · HYDROLOGICAL VULNERABILITY'}
             </div>
             <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
-              Water risks are changing. <br />
-              <span className="text-[#2ad58b]">Intelligence must evolve.</span>
+              {lang === 'ta' ? (
+                <>
+                  நீர் இடர்கள் மாறுகின்றன. <br />
+                  <span className="text-[#2ad58b]">நுண்ணறிவு மேம்பட வேண்டும்.</span>
+                </>
+              ) : (
+                <>
+                  Water risks are changing. <br />
+                  <span className="text-[#2ad58b]">Intelligence must evolve.</span>
+                </>
+              )}
             </h2>
             <p className="text-base text-stone-300 leading-relaxed font-normal">
-              The Palar River Basin (17,810 km²) sustains critical agriculture, municipal water supplies, and industrial hubs across Tamil Nadu. Unprecedented pressure from seasonal drought, heavy alluvium extraction, and effluent discharge demands predictive, location-specific intelligence.
+              {lang === 'ta'
+                ? 'பாலாறு நதிப்படுகை (17,810 ச.கி.மீ) தமிழ்நாட்டின் முக்கிய விவசாயம், குடிநீர் மற்றும் தொழிற்துறை தேவைகளை பூர்த்தி செய்கிறது. கோடை வறட்சி, தீவிர நிலத்தடி நீர் உறிஞ்சுதல் மற்றும் தொழிற்சாலை கழிவுகளால் ஏற்படும் அழுத்தங்களை எதிர்கொள்ள முன்கூட்டிய துல்லிய நுண்ணறிவு அவசியமாகிறது.'
+                : 'The Palar River Basin (17,810 km²) sustains critical agriculture, municipal water supplies, and industrial hubs across Tamil Nadu. Unprecedented pressure from seasonal drought, heavy alluvium extraction, and effluent discharge demands predictive, location-specific intelligence.'}
             </p>
           </div>
 
