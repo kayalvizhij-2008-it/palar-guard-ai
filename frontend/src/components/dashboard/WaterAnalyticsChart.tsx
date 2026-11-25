@@ -1,45 +1,51 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { TrendingUp, Activity } from 'lucide-react';
+import { RAINFALL_SERIES, GROUNDWATER_TIMESERIES } from '../../data/palarData';
+import { Activity } from 'lucide-react';
 
 interface DataPoint {
   label: string;
   rain: number;
   gw: number;
   wq: number;
+  gwMbgl: number;
 }
 
 export const WaterAnalyticsChart: React.FC = () => {
   const { t, lang } = useLanguage();
-  const [activeRange, setActiveRange] = useState<'7d' | '30d' | '1y'>('30d');
+  const [activeRange, setActiveRange] = useState<'7d' | '30d' | '1y'>('1y');
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // Time series matching the reference chart
+  const gwStation1 = GROUNDWATER_TIMESERIES[1] || [];
+  const latestGw = gwStation1.slice(-6);
+
   const datasets: Record<'7d' | '30d' | '1y', DataPoint[]> = {
     '7d': [
-      { label: lang === 'ta' ? 'திங்கள்' : 'Mon', rain: 420, gw: 310, wq: 180 },
-      { label: lang === 'ta' ? 'செவ்வாய்' : 'Tue', rain: 460, gw: 330, wq: 190 },
-      { label: lang === 'ta' ? 'புதன்' : 'Wed', rain: 610, gw: 390, wq: 240 },
-      { label: lang === 'ta' ? 'வியாழன்' : 'Thu', rain: 580, gw: 410, wq: 280 },
-      { label: lang === 'ta' ? 'வெள்ளி' : 'Fri', rain: 520, gw: 430, wq: 320 },
-      { label: lang === 'ta' ? 'சனி' : 'Sat', rain: 490, gw: 420, wq: 340 },
-      { label: lang === 'ta' ? 'ஞாயிறு' : 'Sun', rain: 510, gw: 440, wq: 350 },
+      { label: lang === 'ta' ? 'திங்கள்' : 'Mon', rain: 42, gw: 295, wq: 190, gwMbgl: 14.9 },
+      { label: lang === 'ta' ? 'செவ்வாய்' : 'Tue', rain: 48, gw: 298, wq: 194, gwMbgl: 14.8 },
+      { label: lang === 'ta' ? 'புதன்' : 'Wed', rain: 86, gw: 312, wq: 210, gwMbgl: 14.5 },
+      { label: lang === 'ta' ? 'வியாழன்' : 'Thu', rain: 74, gw: 318, wq: 206, gwMbgl: 14.4 },
+      { label: lang === 'ta' ? 'வெள்ளி' : 'Fri', rain: 52, gw: 320, wq: 198, gwMbgl: 14.3 },
+      { label: lang === 'ta' ? 'சனி' : 'Sat', rain: 36, gw: 316, wq: 192, gwMbgl: 14.5 },
+      { label: lang === 'ta' ? 'ஞாயிறு' : 'Sun', rain: 28, gw: 310, wq: 188, gwMbgl: 14.7 },
     ],
-    '30d': [
-      { label: lang === 'ta' ? 'மே 01' : 'May 01', rain: 430, gw: 290, wq: 190 },
-      { label: lang === 'ta' ? 'மே 08' : 'May 08', rain: 460, gw: 320, wq: 210 },
-      { label: lang === 'ta' ? 'மே 15' : 'May 15', rain: 682, gw: 480, wq: 290 },
-      { label: lang === 'ta' ? 'மே 22' : 'May 22', rain: 530, gw: 420, wq: 380 },
-      { label: lang === 'ta' ? 'மே 30' : 'May 30', rain: 640, gw: 450, wq: 360 },
-    ],
-    '1y': [
-      { label: lang === 'ta' ? 'ஜன' : 'Jan', rain: 120, gw: 210, wq: 150 },
-      { label: lang === 'ta' ? 'மார்' : 'Mar', rain: 180, gw: 240, wq: 170 },
-      { label: lang === 'ta' ? 'மே' : 'May', rain: 310, gw: 320, wq: 210 },
-      { label: lang === 'ta' ? 'ஜூலை' : 'Jul', rain: 490, gw: 380, wq: 260 },
-      { label: lang === 'ta' ? 'செப்' : 'Sep', rain: 580, gw: 460, wq: 320 },
-      { label: lang === 'ta' ? 'நவ' : 'Nov', rain: 740, gw: 520, wq: 410 },
-    ]
+    '30d': latestGw.map((pt, i) => ({
+      label: pt.period,
+      rain: [78, 125, 210, 285, 95, 48][i % 6],
+      gw: Math.round(pt.depth_mbgl * 22),
+      wq: [185, 204, 178, 152, 168, 185][i % 6],
+      gwMbgl: pt.depth_mbgl,
+    })),
+    '1y': RAINFALL_SERIES.slice(0, 7).map((rf, i) => {
+      const depth = [14.3, 18.1, 15.7, 12.3, 11.6, 13.0, 14.9][i] || 13.5;
+      return {
+        label: rf.month,
+        rain: Math.round(rf.rainfall_mm),
+        gw: Math.round(depth * 20),
+        wq: [175, 210, 198, 145, 138, 162, 185][i] || 170,
+        gwMbgl: depth,
+      };
+    }),
   };
 
   const data = datasets[activeRange];
@@ -270,7 +276,7 @@ export const WaterAnalyticsChart: React.FC = () => {
           >
             <span className="text-white font-bold">{data[hoveredIndex].label}</span>
             <span className="text-cyan-400">Rain: {data[hoveredIndex].rain}mm</span>
-            <span className="text-emerald-400">GW: {data[hoveredIndex].gw}%</span>
+            <span className="text-emerald-400">GW: {data[hoveredIndex].gwMbgl} mbgl</span>
             <span className="text-amber-400">WQ: {data[hoveredIndex].wq}</span>
           </div>
         )}

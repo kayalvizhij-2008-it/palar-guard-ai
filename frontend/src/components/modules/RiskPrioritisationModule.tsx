@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { DataBadge } from '../common/DataBadge';
 import { apiService } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { LocationData, WaterQualityPoint } from '../../types';
@@ -72,7 +71,6 @@ export const RiskPrioritisationModule: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Decision Intelligence Header: Amber, Violet & Charcoal */}
       <div className="rounded-2xl bg-gradient-to-r from-[#171224] via-[#1c1528] to-[#1a1319] border border-violet-500/25 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -80,7 +78,6 @@ export const RiskPrioritisationModule: React.FC = () => {
               <Target className="w-3.5 h-3.5" />
               {L('DECISION INTELLIGENCE · MCDA RANKING', 'முடிவெடுப்பு நுண்ணறிவு · தரவரிசை')}
             </span>
-            <DataBadge provenance="MODEL_PREDICTION" />
           </div>
           <h2 className="text-xl font-bold text-[#fcfbf7] tracking-tight">
             {L('Geospatial Risk Prioritisation Engine', 'புவிசார் இடர் முன்னுரிமை இயந்திரம்')}

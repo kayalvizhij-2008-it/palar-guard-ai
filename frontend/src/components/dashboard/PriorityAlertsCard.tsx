@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { AlertTriangle, ChevronRight, Clock } from 'lucide-react';
+import { apiService } from '../../services/api';
+import { ANOMALIES_DATA } from '../../data/palarData';
+import { AnomalyAlertItem } from '../../types';
+import { AlertTriangle, Clock } from 'lucide-react';
 
 interface PriorityAlertsCardProps {
   onSelectAlert?: (alertId: string) => void;
@@ -9,49 +12,52 @@ interface PriorityAlertsCardProps {
 
 export const PriorityAlertsCard: React.FC<PriorityAlertsCardProps> = ({
   onSelectAlert,
-  onViewAll
+  onViewAll,
 }) => {
   const { t } = useLanguage();
+  const [alerts, setAlerts] = useState<AnomalyAlertItem[]>(ANOMALIES_DATA);
 
-  const alerts = [
-    {
-      id: 'alert-1',
-      title: t('alert_1_title'),
-      time: t('alert_1_time'),
-      severity: 'critical',
-      iconColor: 'text-red-500',
-      bgColor: 'hover:bg-red-950/30 border-red-500/20'
-    },
-    {
-      id: 'alert-2',
-      title: t('alert_2_title'),
-      time: t('alert_2_time'),
-      severity: 'high',
-      iconColor: 'text-amber-500',
-      bgColor: 'hover:bg-amber-950/30 border-amber-500/20'
-    },
-    {
-      id: 'alert-3',
-      title: t('alert_3_title'),
-      time: t('alert_3_time'),
-      severity: 'moderate',
-      iconColor: 'text-amber-500',
-      bgColor: 'hover:bg-amber-950/20 border-white/[0.06]'
-    }
-  ];
+  useEffect(() => {
+    let active = true;
+    apiService
+      .getAnomalies()
+      .then((list) => {
+        if (active && list.length > 0) setAlerts(list);
+      })
+      .catch(() => {
+        // Fallback already populated from ANOMALIES_DATA
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const topAlerts = alerts.slice(0, 3).map((a) => {
+    const sev = (a.severity || 'Medium').toLowerCase();
+    const isCritical = sev === 'critical';
+    return {
+      id: `alert-${a.id}`,
+      title: `${a.location_name}: ${a.parameter}`,
+      time: `Z = ${a.z_score} · ${a.status}`,
+      iconColor: isCritical ? 'text-rose-400' : 'text-amber-400',
+      bgColor: isCritical
+        ? 'hover:bg-rose-950/30 border-rose-500/20'
+        : 'hover:bg-amber-950/30 border-amber-500/20',
+    };
+  });
 
   return (
     <div className="rounded-2xl bg-[#061e15] border border-white/[0.08] p-4.5 shadow-xl flex flex-col justify-between">
-      {/* Header matching reference blueprint */}
       <div className="flex items-center justify-between pb-3 border-b border-white/[0.06] mb-3">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-red-500 fill-red-500/20" />
+          <AlertTriangle className="w-4 h-4 text-rose-400 fill-rose-500/20" />
           <h3 className="text-sm font-bold text-white tracking-wide">
             {t('priority_alerts_title')}
           </h3>
         </div>
 
         <button
+          type="button"
           onClick={onViewAll}
           className="text-xs text-stone-300 hover:text-emerald-300 transition-colors flex items-center gap-1 font-medium group"
         >
@@ -59,9 +65,8 @@ export const PriorityAlertsCard: React.FC<PriorityAlertsCardProps> = ({
         </button>
       </div>
 
-      {/* Alerts List */}
       <div className="space-y-2.5">
-        {alerts.map((al) => (
+        {topAlerts.map((al) => (
           <div
             key={al.id}
             onClick={() => onSelectAlert?.(al.id)}
@@ -74,7 +79,7 @@ export const PriorityAlertsCard: React.FC<PriorityAlertsCardProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-1.5 shrink-0 text-[11px] text-stone-400 font-mono">
+            <div className="flex items-center gap-1.5 shrink-0 text-[11px] text-stone-400 font-mono tabular-nums">
               <Clock className="w-3 h-3 text-stone-500" />
               <span>{al.time}</span>
             </div>

@@ -64,6 +64,38 @@ def provision_initial_admin(db) -> None:
     )
 
 
+def ensure_demo_account(db) -> None:
+    """Reuse existing restricted demo account or create a read-only Viewer demo account."""
+    demo_email = os.getenv("DEMO_ACCOUNT_EMAIL", "demo@palarguard.ai").strip().lower()
+    demo_password = os.getenv("DEMO_ACCOUNT_PASSWORD", "PalarDemo@2026")
+    if not demo_email or not demo_password:
+        return
+
+    existing = db.query(User).filter(User.email == demo_email).first()
+    if existing:
+        # Reuse existing demo account cleanly; never elevate privileges.
+        if existing.role == "Administrator":
+            existing.role = "Viewer"
+        return
+
+    demo_user = User(
+        email=demo_email,
+        hashed_password=get_password_hash(demo_password),
+        full_name="Palar Guard Demo User",
+        role="Viewer",
+        is_active=True,
+    )
+    db.add(demo_user)
+    db.add(
+        AuditLog(
+            user_email="system",
+            action="DEMO_ACCOUNT_READY",
+            entity="USER",
+            details=f"Provisioned restricted Viewer demo account ({demo_email}).",
+        )
+    )
+
+
 def init_db():
     Base.metadata.create_all(bind=engine)
     _ensure_column_migrations()
@@ -72,6 +104,8 @@ def init_db():
     try:
         # Provision explicit env-based administrator if configured
         provision_initial_admin(db)
+        # Ensure restricted read-only demo account exists in both dev and production
+        ensure_demo_account(db)
 
         # Optionally seed non-admin demo accounts ONLY in non-production when DEV_DEMO_PASSWORD is explicitly supplied
         if settings.ENVIRONMENT.lower() != "production":

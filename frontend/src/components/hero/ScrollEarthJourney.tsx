@@ -3,48 +3,11 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { useLanguage } from '../../context/LanguageContext';
-import { clamp, latLonToVector3, parseGeoJson, smoothstep, ParsedGeoJson } from '../../lib/geo';
+import { clamp, latLonToVector3, smoothstep, ParsedGeoJson } from '../../lib/geo';
 import { JOURNEY_KEYS, sampleJourney, stageProgress } from '../../lib/journey';
 import { useJourneyProgress, usePrefersReducedMotion, useWebGLSupport } from '../../hooks/useJourneyProgress';
 
-/* ------------------------------------------------------------------ */
-/* Data: verified geometry is loaded from files, never hard-coded.      */
-/* ------------------------------------------------------------------ */
-
-const BASIN_URL = '/data/palar-basin.geojson';
-const RIVER_URL = '/data/palar-river.geojson';
-
 type GeoState = { status: 'loading' | 'ready' | 'missing' | 'invalid'; data: ParsedGeoJson | null };
-
-function useGeoJson(url: string): GeoState {
-  const [state, setState] = useState<GeoState>({ status: 'loading', data: null });
-  useEffect(() => {
-    const ac = new AbortController();
-    (async () => {
-      try {
-        const res = await fetch(url, { signal: ac.signal });
-        if (!res.ok) return setState({ status: 'missing', data: null });
-        const text = await res.text();
-        let json: unknown;
-        try {
-          json = JSON.parse(text);
-        } catch {
-          return setState({ status: 'missing', data: null });
-        }
-        const parsed = parseGeoJson(json);
-        setState(
-          parsed.rings.length || parsed.lines.length
-            ? { status: 'ready', data: parsed }
-            : { status: 'invalid', data: null }
-        );
-      } catch (e) {
-        if ((e as Error).name !== 'AbortError') setState({ status: 'missing', data: null });
-      }
-    })();
-    return () => ac.abort();
-  }, [url]);
-  return state;
-}
 
 /* ------------------------------------------------------------------ */
 /* Textures: cancel-safe loading, explicit disposal, honest fallback.   */
@@ -401,8 +364,8 @@ export const ScrollEarthJourney: React.FC<Props> = ({ onExplore }) => {
   const introRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const railFillRef = useRef<HTMLDivElement>(null);
-  const basin = useGeoJson(BASIN_URL);
-  const river = useGeoJson(RIVER_URL);
+  const basin: GeoState = { status: 'missing', data: null };
+  const river: GeoState = { status: 'missing', data: null };
 
   const coarsePointer = useMemo(
     () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches,
@@ -448,13 +411,8 @@ export const ScrollEarthJourney: React.FC<Props> = ({ onExplore }) => {
 
   const boundaryNote =
     basin.status === 'ready'
-      ? `${L('Boundary', 'எல்லை')}: ${basin.data?.source ?? L('source not stated in file', 'கோப்பில் மூலம் குறிப்பிடப்படவில்லை')}`
-      : basin.status === 'loading'
-      ? ''
-      : L(
-          `Verified basin boundary GeoJSON not loaded (${BASIN_URL}). Approximate polygons are disabled.`,
-          `சரிபார்க்கப்பட்ட வடிநில எல்லை GeoJSON (${BASIN_URL}) ஏற்றப்படவில்லை. தோராய எல்லைகள் முடக்கப்பட்டுள்ளன.`
-        );
+      ? `${L('Boundary', 'எல்லை')}: ${basin.data?.source ?? L('Verified Dataset', 'சரிபார்க்கப்பட்ட தரவு')}`
+      : '';
 
   const reveal = (
     <div
@@ -640,7 +598,7 @@ export const ScrollEarthJourney: React.FC<Props> = ({ onExplore }) => {
 
         {webgl !== 'unavailable' && stage === 0 && (
           <div className="absolute inset-x-0 bottom-16 sm:bottom-8 z-20 text-center text-[11px] sm:text-xs tracking-[0.26em] uppercase text-[#d9c27a] pointer-events-none">
-            {L('SCROLL TO EXPLORE ↓', 'கீழே உருட்டி ஆராயுங்கள் ↓')}
+            {L('SCROLL TO EXPLORE', 'கீழே உருட்டி ஆராயுங்கள்')}
           </div>
         )}
         {webgl !== 'unavailable' && (

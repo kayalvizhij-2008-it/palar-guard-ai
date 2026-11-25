@@ -23,7 +23,7 @@ import {
 
 interface AppSidebarProps {
   currentModule: string;
-  onSelectModule: (moduleId: string) => void;
+  onSelectModule: (moduleId: string, locationId?: number, overrideMode?: 'simple' | 'expert') => void;
   onBackToLanding: () => void;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
@@ -112,8 +112,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             <button
               type="button"
               onClick={() => {
-                setMode('expert');
-                onSelectModule('dashboard');
+                onSelectModule('dashboard', undefined, 'expert');
                 onCloseMobile?.();
               }}
               className="w-full py-2.5 px-3 rounded-xl bg-[#09281d] hover:bg-[#0d3728] border border-[#d9c27a]/35 text-[#fcfbf7] text-xs font-medium transition-colors"
@@ -124,8 +123,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             <button
               type="button"
               onClick={() => {
-                setMode('simple');
-                onSelectModule('dashboard');
+                onSelectModule('dashboard', undefined, 'simple');
                 onCloseMobile?.();
               }}
               className="w-full py-2 px-3 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-emerald-300 text-xs font-medium transition-colors"

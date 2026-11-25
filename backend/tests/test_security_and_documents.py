@@ -350,3 +350,37 @@ def test_sample_pdf_listing_extraction_and_nitrate_qa():
     assert absent.status_code == 200
     assert "absent" in absent.json()["result_markdown"].lower()
 
+
+def test_demo_account_seed_login_and_restricted_permissions():
+    from app.seed_data import ensure_demo_account
+
+    db = SessionLocal()
+    try:
+        ensure_demo_account(db)
+        db.commit()
+    finally:
+        db.close()
+
+    res = client.post(
+        "/api/v1/auth/login",
+        json={"email": "demo@palarguard.ai", "password": "PalarDemo@2026"},
+    )
+    assert res.status_code == 200
+    payload = res.json()
+    assert payload["user"]["email"] == "demo@palarguard.ai"
+    assert payload["user"]["role"] == "Viewer"
+
+    headers = {"Authorization": f"Bearer {payload['access_token']}"}
+    assert client.get("/api/v1/auth/me", headers=headers).status_code == 200
+    assert client.get("/api/v1/analytics/summary", headers=headers).status_code == 200
+    # Strictly blocked from privileged admin, investigation, and moderation endpoints
+    assert client.get("/api/v1/admin/users", headers=headers).status_code == 403
+    assert client.get("/api/v1/investigations/", headers=headers).status_code == 403
+    assert (
+        client.patch(
+            "/api/v1/anomalies/1/status?new_status=Dismissed",
+            headers=headers,
+        ).status_code
+        == 403
+    )
+

@@ -89,7 +89,6 @@ export const BasinMap: React.FC<BasinMapProps> = ({
     try {
       const data = await apiService.getMapStationDetail(stationId);
       setSelectedStation(data);
-      onSelectStation?.(stationId);
     } catch (err: any) {
       setMapError(err?.message || Ltxt('Unable to load station details.', 'நிலைய விவரங்களை ஏற்ற முடியவில்லை.'));
     }
@@ -240,16 +239,6 @@ export const BasinMap: React.FC<BasinMapProps> = ({
             </button>
           )}
         </div>
-
-        {/* Honest Boundary Dataset Status */}
-        {!boundaryAvailable && !mapError && (
-          <div className="pointer-events-auto max-w-md rounded-lg border border-amber-500/30 bg-[#061811]/90 px-3 py-1.5 text-[11px] text-amber-200">
-            {Ltxt(
-              boundaryNotice || 'Verified basin boundary GeoJSON unavailable. Approximate polygons disabled.',
-              'சரிபார்க்கப்பட்ட வடிநில எல்லை GeoJSON இல்லை. தோராய எல்லை முடக்கப்பட்டுள்ளது.'
-            )}
-          </div>
-        )}
       </div>
 
       {mapError && (

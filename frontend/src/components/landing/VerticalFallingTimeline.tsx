@@ -13,7 +13,6 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { DataBadge } from '../common/DataBadge';
 
 interface VerticalFallingTimelineProps {
   onExplore: (module?: string) => void;
@@ -217,7 +216,6 @@ export const VerticalFallingTimeline: React.FC<VerticalFallingTimelineProps> = (
                       <MapPin className="w-4 h-4 text-[#10b981] shrink-0" />
                       {L('Basin Reach Selector (West → Coast)', 'வடிநிலப் பகுதி (மேற்கு → கடலோரம்)')}
                     </span>
-                    <DataBadge provenance="VERIFIED_PUBLIC" />
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {BASIN_CORRIDOR.map((st, idx) => (
@@ -288,7 +286,6 @@ export const VerticalFallingTimeline: React.FC<VerticalFallingTimelineProps> = (
                       <BookOpen className="w-4 h-4" />
                       {L('REFERENCE STANDARDS BENCHMARK', 'அதிகாரப்பூர்வ தரநிலை அளவுகோல்')}
                     </span>
-                    <DataBadge provenance="HISTORICAL_REPORT" />
                   </div>
                   <dl className="grid grid-cols-2 gap-3 text-xs">
                     <div className="p-3 rounded-lg bg-[#061811] border border-white/[0.06]">
@@ -441,7 +438,6 @@ export const VerticalFallingTimeline: React.FC<VerticalFallingTimelineProps> = (
                       <LineChart className="w-4 h-4 text-[#10b981]" />
                       {L('Walk-Forward Confidence Envelope', 'நம்பிக்கை இடைவெளி வரைபடம்')}
                     </span>
-                    <DataBadge provenance="MODEL_PREDICTION" />
                   </div>
                   <div className="rounded-xl bg-[#061811] p-3 border border-white/[0.06]">
                     <svg viewBox="0 0 320 96" className="w-full h-24" aria-label="Illustrative seasonal forecast uncertainty cone">

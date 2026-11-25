@@ -75,11 +75,11 @@ export const Footer: React.FC = () => {
           </ul>
         </div>
 
-        {/* Scientific Integrity */}
+        {/* Data Methodology */}
         <div className="space-y-2">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono">Scientific Integrity</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono">Data Methodology</h4>
           <p className="text-[11px] text-stone-400 leading-relaxed">
-            All records maintain explicit provenance labeling: Verified Public, Historical Surveys, Community Submissions, and Statistical Forecasts. No fabricated sensor feeds.
+            Basin benchmarks follow CGWB, IMD, CPCB, and BIS 10500 frameworks. Where live agency telemetry is unavailable, interactive views use an illustrative, internally consistent demonstration dataset rather than real-time sensor measurements.
           </p>
           <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-[#092015] border border-emerald-500/20 text-[10px] text-emerald-300 font-mono">
             <ShieldCheck className="w-3.5 h-3.5" />

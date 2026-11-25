@@ -167,9 +167,8 @@ export const AIAssistantModule: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-violet-300">
               <Sparkles className="w-3.5 h-3.5" />
-              {L('CONVERSATIONAL INTELLIGENCE · VIOLET/EMERALD', 'உரையாடல் நுண்ணறிவு')}
+              {L('CONVERSATIONAL ENVIRONMENTAL INTELLIGENCE', 'உரையாடல் நுண்ணறிவு')}
             </span>
-            <DataBadge provenance="VERIFIED_PUBLIC" />
           </div>
           <h2 className="text-xl font-bold text-[#fcfbf7]">
             {L('PALAR AI Environmental Assistant', 'PALAR AI சுற்றுச்சூழல் உதவியாளர்')}

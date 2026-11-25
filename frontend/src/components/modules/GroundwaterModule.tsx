@@ -8,7 +8,6 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import { DataBadge } from '../common/DataBadge';
 import { BasinMap } from '../maps/BasinMap';
 import { FlipCard, Reveal } from '../motion/motion';
 import { apiService } from '../../services/api';
@@ -82,9 +81,8 @@ export const GroundwaterModule: React.FC<GroundwaterModuleProps> = ({ initialLoc
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-teal-300">
               <Waves className="w-3.5 h-3.5" />
-              {L('HYDROGEOLOGICAL LAB · TEAL TELEMETRY', 'நீர்நிலையியல் ஆய்வகம்')}
+              {L('HYDROGEOLOGICAL INTELLIGENCE', 'நீர்நிலையியல் ஆய்வகம்')}
             </span>
-            <DataBadge provenance="VERIFIED_PUBLIC" />
           </div>
           <h2 className="text-xl font-bold text-[#fcfbf7] tracking-tight">
             {L('Groundwater Quantity & Trend Laboratory', 'நிலத்தடி நீர் அளவு & போக்கு ஆய்வகம்')}

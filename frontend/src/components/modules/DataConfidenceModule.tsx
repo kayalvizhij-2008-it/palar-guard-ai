@@ -86,12 +86,11 @@ export const DataConfidenceModule: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-stone-300">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              {L('PROVENANCE GOVERNANCE · SLATE AUDIT', 'ஆதார நம்பகத்தன்மை தணிக்கை')}
+              {L('DATA METHODOLOGY & PROVENANCE GOVERNANCE', 'தரவு வழிமுறை & ஆதார நம்பகத்தன்மை')}
             </span>
-            <DataBadge provenance="VERIFIED_PUBLIC" />
           </div>
           <h2 className="text-xl font-bold text-[#fcfbf7]">
-            {L('Data Confidence & Reliability Engine', 'தரவு நம்பகத்தன்மை & தணிக்கை இயந்திரம்')}
+            {L('Data Confidence & Methodology', 'தரவு நம்பகத்தன்மை & வழிமுறை')}
           </h2>
           <p className="text-xs text-stone-300">
             {L(
@@ -122,6 +121,18 @@ export const DataConfidenceModule: React.FC = () => {
           </button>
         </div>
       )}
+
+      <div className="rounded-2xl bg-[#091c15]/95 border border-emerald-500/25 p-5 space-y-2 text-xs text-[#c3d0c8] leading-relaxed">
+        <div className="text-[11px] font-mono uppercase tracking-widest text-emerald-300">
+          {L('ABOUT & DATA METHODOLOGY DISCLOSURE', 'தரவு வழிமுறை & வெளிப்படைத்தன்மை அறிவிப்பு')}
+        </div>
+        <p>
+          {L(
+            'PALAR GUARD AI structures all monitoring modules around Central Ground Water Board (CGWB) depth conventions, India Meteorological Department (IMD) catchment rainfall normals, and BIS 10500 / CPCB Class C water-quality limits. Where live agency telemetry or a remote API host is not connected, interactive charts and station tables display an illustrative, internally consistent demonstration dataset derived strictly from our central baseline — not real-time monitoring sensor measurements.',
+            'PALAR GUARD AI தளத்தின் அனைத்துப் பிரிவுகளும் CGWB நிலத்தடி நீர் அளவீடுகள், IMD மழைப்பொழிவு இயல்புகள் மற்றும் BIS 10500 / CPCB தரநிலைகளை அடிப்படையாகக் கொண்டவை. நேரடி சேவையகத் தரவு இணைக்கப்படாத சூழலில் காட்டப்படும் மதிப்புகள் விளக்கக் காட்சிக்கான சீரான மாதிரித் தரவுத்தொகுப்பாகும்; அவை நேரடி கள அளவீடுகள் அல்ல.'
+          )}
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {provenanceCategories.map((cat, idx) => (

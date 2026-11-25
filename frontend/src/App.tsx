@@ -151,12 +151,15 @@ export function AppContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleNavigate = (view?: string, locationId?: number) => {
+  const handleNavigate = (view?: string, locationId?: number, overrideMode?: 'simple' | 'expert') => {
     const target = view || 'dashboard';
     if (locationId) setSelectedLocationId(locationId);
 
-    // Handle special shortcut from landing page
-    let nextMode = mode;
+    // Handle special shortcut from landing page or navbar mode switch
+    let nextMode = overrideMode || mode;
+    if (overrideMode && overrideMode !== mode) {
+      setMode(overrideMode);
+    }
     let resolvedView = target;
     if (target === 'community_portal') {
       nextMode = 'simple';
@@ -201,8 +204,7 @@ export function AppContent() {
         <CommunityDashboard
           initialTab={tab}
           onSwitchToProfessional={() => {
-            setMode('expert');
-            handleNavigate('dashboard');
+            handleNavigate('dashboard', undefined, 'expert');
           }}
           onSelectLocation={(locId) => setSelectedLocationId(locId)}
         />
@@ -320,7 +322,7 @@ export function AppContent() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onSuccess={() => {
-          if (currentView === 'landing') handleNavigate('dashboard');
+          if (currentView === 'landing') handleNavigate('dashboard', undefined, 'expert');
         }}
       />
 

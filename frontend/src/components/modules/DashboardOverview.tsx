@@ -10,7 +10,6 @@ import { Reveal } from '../motion/motion';
 import { VoiceAssistantMini } from '../dashboard/VoiceAssistantMini';
 import { CommunityFeedbackCard } from '../dashboard/CommunityFeedbackCard';
 import { apiService } from '../../services/api';
-import { DataBadge } from '../common/DataBadge';
 import { LocationData, WaterQualityPoint } from '../../types';
 import { ChevronDown, ChevronUp, FileSearch, Bell, ArrowRight, RefreshCw } from 'lucide-react';
 
@@ -144,9 +143,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         >
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-white">
-              {L('Baseline Monitoring Station Matrix (Live API)', 'அடிப்படைக் கண்காணிப்பு நிலையப் பட்டியல்')}
+              {L('Baseline Monitoring Station Matrix', 'அடிப்படைக் கண்காணிப்பு நிலையப் பட்டியல்')}
             </span>
-            <DataBadge provenance="VERIFIED_PUBLIC" />
           </div>
           <span className="flex items-center gap-1 text-xs text-stone-400">
             <span>{showTechnicalTable ? L('Collapse', 'சுருக்கு') : L('Expand', 'விரி')}</span>

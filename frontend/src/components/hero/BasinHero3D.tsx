@@ -3,7 +3,6 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Sphere, Float, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { PALAR_LOCATIONS, WATER_QUALITY_STATIONS, ANOMALIES_DATA } from '../../data/palarData';
-import { DataBadge } from '../common/DataBadge';
 import { Droplets, Activity, CloudRain, RotateCw, Layers, ShieldCheck, Compass, Info } from 'lucide-react';
 
 type VisualMode = 'groundwater' | 'water_quality' | 'rainfall';
@@ -271,10 +270,9 @@ function FallbackBasinVisual({ onSelectStation }: { onSelectStation: (id: number
 
       <div className="relative z-10 w-full flex items-center justify-between text-xs font-mono">
         <div className="flex items-center gap-1.5 text-emerald-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          DIGITAL TWIN (ACCELERATED 2D FALLBACK)
+          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          PALAR BASIN · 2D TOPOGRAPHIC RELIEF
         </div>
-        <DataBadge provenance="VERIFIED_PUBLIC" />
       </div>
 
       <div className="relative z-10 text-center my-6">

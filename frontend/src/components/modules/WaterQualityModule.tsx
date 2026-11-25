@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { DataBadge } from '../common/DataBadge';
 import { apiService } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { LocationData, WaterQualityPoint } from '../../types';
@@ -114,7 +113,6 @@ export const WaterQualityModule: React.FC = () => {
               <FlaskConical className="w-3.5 h-3.5" />
               {L('WATER QUALITY LABORATORY BENCHMARK', 'நீர் தர ஆய்வகப் பகுப்பாய்வு')}
             </span>
-            <DataBadge provenance="HISTORICAL_REPORT" />
           </div>
           <h2 className="text-xl font-bold text-[#0f1c17] tracking-tight">
             {L('Hydrochemical Parameter Explorer', 'நீர் வேதியியல் அளவுரு ஆய்வகம்')}
@@ -216,7 +214,6 @@ export const WaterQualityModule: React.FC = () => {
               {L('Reference: CPCB Polluted Stretches & TNPCB Observations', 'ஆதாரம்: CPCB & தமிழ்நாடு மாசுக் கட்டுப்பாட்டு வாரியம்')}
             </p>
           </div>
-          <DataBadge provenance="HISTORICAL_REPORT" />
         </div>
 
         <div className="overflow-x-auto">

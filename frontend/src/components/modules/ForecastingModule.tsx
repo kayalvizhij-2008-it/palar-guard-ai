@@ -8,7 +8,6 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import { DataBadge } from '../common/DataBadge';
 import { apiService } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { GroundwaterPoint, LocationData } from '../../types';
@@ -90,7 +89,6 @@ export const ForecastingModule: React.FC = () => {
               <TrendingUp className="w-3.5 h-3.5" />
               {L('STATISTICAL WALK-FORWARD PROJECTION', 'புள்ளிவிவர முன்னறிவிப்பு')}
             </span>
-            <DataBadge provenance="MODEL_PREDICTION" />
           </div>
           <h2 className="text-xl font-bold text-[#fcfbf7] tracking-tight">
             {L('Groundwater Trend Forecasting', 'நிலத்தடி நீர் போக்கு முன்னறிவிப்பு')}

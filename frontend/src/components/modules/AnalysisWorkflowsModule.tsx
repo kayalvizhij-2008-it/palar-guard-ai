@@ -655,11 +655,12 @@ export const AnalysisWorkflowsModule: React.FC = () => {
                       <span>Download CSV</span>
                     </button>
                     <button
-                      onClick={() => alert(`Dossier ${latestResult.id} recorded in persistent session repository.`)}
+                      type="button"
+                      onClick={() => handleDownloadCSV(latestResult)}
                       className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Saved to My Analyses</span>
+                      <span>Export Analysis CSV</span>
                     </button>
                   </div>
                 </div>

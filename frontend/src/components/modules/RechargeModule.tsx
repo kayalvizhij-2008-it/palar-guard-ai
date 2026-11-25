@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { DataBadge } from '../common/DataBadge';
 import { apiService } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { RechargeItem } from '../../types';
@@ -40,7 +39,6 @@ export const RechargeModule: React.FC = () => {
               <Layers className="w-3.5 h-3.5" />
               {L('MANAGED AQUIFER RECHARGE SCREENING', 'நிலத்தடி நீர் செறிவூட்டல் ஆய்வு')}
             </span>
-            <DataBadge provenance="VERIFIED_PUBLIC" />
           </div>
           <h2 className="text-xl font-bold text-[#fcfbf7] tracking-tight">
             {L('Recharge Intervention Intelligence', 'நீர் செறிவூட்டல் திட்டமிடல் நுண்ணறிவு')}

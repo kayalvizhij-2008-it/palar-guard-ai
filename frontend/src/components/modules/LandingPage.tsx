@@ -385,7 +385,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
                 <span className="text-xs font-mono font-bold text-[#d9c27a]">
                   {workflowStages[activeStage].step} · {workflowStages[activeStage].name}
                 </span>
-                <DataBadge provenance={workflowStages[activeStage].provenance} />
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-[#fcfbf7]">{workflowStages[activeStage].title}</h3>
               <p className="text-xs sm:text-sm text-[#b9c6be] leading-relaxed">{workflowStages[activeStage].desc}</p>
@@ -427,7 +426,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
                         <Droplets className="w-4 h-4" />
                         {L('GROUNDWATER STRESS', 'நிலத்தடி நீர் அழுத்தம்')}
                       </span>
-                      <DataBadge provenance="VERIFIED_PUBLIC" />
                     </div>
                     <p className="text-xs text-[#c3d0c8] leading-relaxed">
                       {L(
@@ -472,7 +470,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
                         <CloudRain className="w-4 h-4" />
                         {L('MONSOON CONCENTRATION', 'பருவமழைச் செறிவு')}
                       </span>
-                      <DataBadge provenance="VERIFIED_PUBLIC" />
                     </div>
                     <p className="text-xs text-[#c3d0c8] leading-relaxed">
                       {L(
@@ -517,7 +514,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
                         <AlertTriangle className="w-4 h-4" />
                         {L('STATISTICAL SCREENING', 'புள்ளிவிவர ஆய்வு')}
                       </span>
-                      <DataBadge provenance="MODEL_PREDICTION" />
                     </div>
                     <p className="text-xs text-[#c3d0c8] leading-relaxed">
                       {L(
@@ -589,7 +585,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
                       <div className="p-2.5 rounded-xl bg-black/30 border border-white/10 group-hover:scale-105 transition-transform">
                         <Icon className="w-5 h-5" />
                       </div>
-                      <DataBadge provenance={cap.provenance} />
                     </div>
                     <h3 className="text-base font-bold text-[#fcfbf7]">{cap.title}</h3>
                     <p className="text-xs text-[#c5d1ca] leading-relaxed">{cap.desc}</p>
@@ -848,17 +843,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
       </section>
 
       {/* ============================================================ */}
-      {/* 7. SIX-TIER PROVENANCE & HOW TO USE PALAR GUARD AI           */}
+      {/* 7. ABOUT & DATA METHODOLOGY (PROVENANCE & LIMITATIONS)       */}
       {/* ============================================================ */}
       <section id="trust-data" className="py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-transparent">
         <div className="max-w-7xl mx-auto space-y-10">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full palar-surface-glass border border-[#d9c27a]/35 text-xs font-mono text-[#d9c27a]">
-              {L('SECTION 07 · SCIENTIFIC PROVENANCE & TRANSPARENCY', 'பிரிவு 07 · அறிவியல் ஆதாரம் & வெளிப்படைத்தன்மை')}
+              {L('SECTION 07 · ABOUT & DATA METHODOLOGY', 'பிரிவு 07 · தரவு வழிமுறை & வெளிப்படைத்தன்மை')}
             </div>
             <h2 className="font-serif text-3xl sm:text-5xl font-semibold text-[#fcfbf7]">
               {L('Every Metric Has an Audit Trail.', 'ஒவ்வொரு அளவீட்டிற்கும் தெளிவான ஆதாரம்.')}
             </h2>
+            <p className="text-xs sm:text-sm text-[#b9c6be] leading-relaxed">
+              {L(
+                'PALAR GUARD AI aligns hydrology dashboards with CGWB groundwater monitoring, IMD rainfall normals, and BIS 10500 / CPCB Class C water-quality criteria. Where live agency telemetry is not linked, interactive views use an illustrative, internally consistent demonstration dataset rather than verified real-time sensor feeds.',
+                'PALAR GUARD AI தளத்தின் பகுப்பாய்வுகள் CGWB நிலத்தடி நீர் அளவீடுகள், IMD மழைப்பொழிவு இயல்புகள் மற்றும் BIS 10500 / CPCB தரநிலைகளை அடிப்படையாகக் கொண்டவை. நேரடித் தரவு இணைக்கப்படாத இடங்களில் சீரான மாதிரித் தரவுத்தொகுப்பு விளக்கத்திற்காகப் பயன்படுத்தப்படுகிறது.'
+              )}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

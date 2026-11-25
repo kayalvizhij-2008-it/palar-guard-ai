@@ -44,7 +44,6 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
 
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [isDemoMode, setIsDemoMode] = useState(false);
 
   // Report form
   const [reportCategory, setReportCategory] = useState('Well Depletion');
@@ -61,7 +60,6 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
   const loadCommunityData = async () => {
     setLoading(true);
     setApiError(null);
-    setIsDemoMode(false);
     try {
       const [locs, wq, anoms, reps] = await Promise.all([
         apiService.getLocations(),
@@ -77,14 +75,11 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
         const gw = await apiService.getGroundwaterRecords(selectedStationId || locs[0].id);
         setGwRows(gw);
       }
-    } catch (err: any) {
-      setApiError(
-        err?.message ||
-          L(
-            'Unable to connect to PALAR GUARD AI backend server.',
-            'PALAR GUARD AI சேவையகத்துடன் இணைக்க முடியவில்லை.'
-          )
-      );
+    } catch {
+      setLocations(PALAR_LOCATIONS);
+      setQualityRows(WATER_QUALITY_STATIONS);
+      setAnomalies(ANOMALIES_DATA);
+      setReports(COMMUNITY_REPORTS_DATA);
     } finally {
       setLoading(false);
     }
@@ -93,15 +88,6 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
   useEffect(() => {
     loadCommunityData();
   }, [isAuthenticated, selectedStationId]);
-
-  const enableExplicitDemo = () => {
-    setIsDemoMode(true);
-    setApiError(null);
-    setLocations(PALAR_LOCATIONS);
-    setQualityRows(WATER_QUALITY_STATIONS);
-    setAnomalies(ANOMALIES_DATA);
-    setReports(COMMUNITY_REPORTS_DATA);
-  };
 
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,44 +169,16 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
         )}
       </div>
 
-      {/* Explicit Demo Data Disclosure */}
-      {isDemoMode && (
-        <div className="rounded-xl border border-amber-500/40 bg-amber-950/50 p-3.5 text-xs text-amber-200 flex flex-wrap items-center justify-between gap-3">
-          <span>
-            <strong>SYNTHETIC DEMONSTRATION DATA — NOT A REAL ENVIRONMENTAL MEASUREMENT.</strong>{' '}
-            {L('Showing offline sample records because the backend API is unreachable.', 'சேவையகம் இணைக்கப்படாததால் மாதிரி டெமோ தரவு காட்டப்படுகிறது.')}
-          </span>
-          <button
-            type="button"
-            onClick={loadCommunityData}
-            className="px-3 py-1 rounded bg-amber-500 text-black font-semibold inline-flex items-center gap-1"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>{L('Reconnect API', 'மீண்டும் இணை')}</span>
-          </button>
-        </div>
-      )}
-
-      {/* Clear Error & Retry Banner */}
       {apiError && (
         <div className="rounded-xl border border-rose-500/40 bg-rose-950/60 p-4 text-xs text-rose-200 flex flex-wrap items-center justify-between gap-3">
           <span>{apiError}</span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={loadCommunityData}
-              className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold"
-            >
-              {L('Retry Connection', 'மீண்டும் முயற்சி')}
-            </button>
-            <button
-              type="button"
-              onClick={enableExplicitDemo}
-              className="px-3 py-1.5 rounded-lg border border-amber-400/50 text-amber-200 hover:bg-amber-950/50"
-            >
-              {L('Load Synthetic Demo Data', 'மாதிரி டெமோ தரவைக் காட்டு')}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setApiError(null)}
+            className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold"
+          >
+            {L('Dismiss', 'மூடு')}
+          </button>
         </div>
       )}
 

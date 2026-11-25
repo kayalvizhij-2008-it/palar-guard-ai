@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { PALAR_LOCATIONS } from '../../data/palarData';
 import { CommunityReportItem, LocationData } from '../../types';
-import { DataBadge } from '../common/DataBadge';
 import { apiService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -87,10 +86,7 @@ export const CommunityReportingModule: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-[#092218] border border-white/[0.08] rounded-2xl">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-xl font-semibold text-[#fcfbf7]">{L('Community Water Reporting', 'மக்கள் நீர் புகார்கள்')}</h2>
-            <DataBadge provenance="COMMUNITY_REPORT" />
-          </div>
+          <h2 className="text-xl font-semibold text-[#fcfbf7] mb-1">{L('Community Water Reporting', 'மக்கள் நீர் புகார்கள்')}</h2>
           <p className="text-xs text-[#a4b2a9]">
             {L(
               'Citizen observation intake and role-protected moderation queue.',

@@ -9,7 +9,6 @@ import {
   CartesianGrid,
   Legend,
 } from 'recharts';
-import { DataBadge } from '../common/DataBadge';
 import { apiService } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { Reveal } from '../motion/motion';
@@ -59,9 +58,8 @@ export const RainfallModule: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-cyan-300">
               <CloudRain className="w-3.5 h-3.5" />
-              {L('HYDROLOGICAL INTELLIGENCE · CYAN CATCHMENT', 'நீரியல் நுண்ணறிவு · மழைப்பொழிவு')}
+              {L('HYDROLOGICAL CATCHMENT PRECIPITATION', 'நீரியல் நுண்ணறிவு · மழைப்பொழிவு')}
             </span>
-            <DataBadge provenance="VERIFIED_PUBLIC" />
           </div>
           <h2 className="text-xl font-bold text-[#fcfbf7] tracking-tight">
             {L('Rainfall & Monsoon Recharge Analysis', 'மழைப்பொழிவு & நீர் செறிவூட்டல் பகுப்பாய்வு')}

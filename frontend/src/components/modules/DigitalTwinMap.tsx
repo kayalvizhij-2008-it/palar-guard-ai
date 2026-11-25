@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { DataBadge } from '../common/DataBadge';
 import { BasinHero3D } from '../hero/BasinHero3D';
 import { BasinMap } from '../maps/BasinMap';
 import { useLanguage } from '../../context/LanguageContext';
@@ -23,12 +22,9 @@ export const DigitalTwinMap: React.FC<DigitalTwinMapProps> = ({ onSelectLocation
             <Compass className="w-5 h-5 text-teal-300" />
           </div>
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-sm font-bold text-[#fcfbf7]">
-                {L('Basin Explorer — Geospatial Intelligence', 'வடிநில ஆய்வு — புவிசார் நுண்ணறிவு')}
-              </h2>
-              <DataBadge provenance="VERIFIED_PUBLIC" />
-            </div>
+            <h2 className="text-sm font-bold text-[#fcfbf7]">
+              {L('Basin Explorer — Geospatial Intelligence', 'வடிநில ஆய்வு — புவிசார் நுண்ணறிவு')}
+            </h2>
             <p className="text-[11px] text-slate-300">
               {L(
                 'Palar Catchment (17,810 km²) · Verified station coordinates, layer visibility & regional search',

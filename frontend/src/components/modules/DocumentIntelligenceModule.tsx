@@ -13,7 +13,6 @@ import {
   Loader2,
   Lock,
   Eye,
-  AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -249,25 +248,22 @@ export const DocumentIntelligenceModule: React.FC<DocumentIntelligenceModuleProp
     <section className="rounded-2xl border border-amber-500/25 bg-[#121614]/85 p-5 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
         <div>
-          <div className="text-[11px] font-mono uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-            <AlertTriangle className="w-3.5 h-3.5" />
+          <div className="text-[11px] font-mono uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+            <FileText className="w-3.5 h-3.5" />
             <span>
               {L(
-                'SAMPLE DEMONSTRATION PDFS — SYNTHETIC DATA ONLY',
-                'மாதிரி PDF ஆவணங்கள் — சோதனைத் தரவு மட்டுமே'
+                'REFERENCE TEST DOCUMENTS (ILLUSTRATIVE PDFS)',
+                'சோதனை மாதிரி PDF ஆவணங்கள்'
               )}
             </span>
           </div>
           <p className="text-xs text-[#a4b2a9] mt-0.5">
             {L(
-              'Optional test documents for previewing, downloading, or staging into Document Intelligence. Not official government records.',
+              'Optional test reports for previewing, downloading, or running Document Intelligence Q&A.',
               'முன்னோட்டம் பார்க்க, பதிவிறக்க அல்லது சோதனைக்குப் பயன்படுத்தக்கூடிய மாதிரி PDF அறிக்கைகள்.'
             )}
           </p>
         </div>
-        <span className="px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/35 text-[10px] font-mono text-amber-200">
-          DEMONSTRATION DATA ONLY
-        </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -374,11 +370,10 @@ export const DocumentIntelligenceModule: React.FC<DocumentIntelligenceModuleProp
 
   return (
     <div className="space-y-6">
-      {/* Studio Header: Violet & Emerald Accent */}
       <header className="rounded-2xl border border-violet-500/25 bg-gradient-to-r from-[#141024]/95 via-[#17132a]/95 to-[#0b211a]/95 p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="text-[11px] font-mono uppercase tracking-widest text-violet-300">
-            {L('DOCUMENT ANALYSIS STUDIO · VIOLET/EMERALD GROUNDED', 'ஆவண பகுப்பாய்வு மையம் · ஆதார அடிப்படை')}
+            {L('DOCUMENT ANALYSIS STUDIO · SOURCE-GROUNDED EXTRACTION', 'ஆவண பகுப்பாய்வு மையம் · ஆதார அடிப்படை')}
           </div>
           <h2 className="text-xl font-semibold text-[#fcfbf7]">
             {L('Document Intelligence', 'ஆவண நுண்ணறிவு')}

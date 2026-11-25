@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { DataBadge } from '../common/DataBadge';
 import { AnomalyAlertItem } from '../../types';
 import { apiService } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
@@ -55,15 +54,12 @@ export const AnomalyModule: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-[#1a0f13] to-[#17120e] border border-rose-500/25 rounded-2xl">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-xl font-semibold text-[#fcfbf7]">
-              {L('Pollution Risk & Statistical Outliers', 'மாசு அபாயம் & புள்ளிவிவர மாறுபாடுகள்')}
-            </h2>
-            <DataBadge provenance="MODEL_PREDICTION" />
-          </div>
+          <h2 className="text-xl font-semibold text-[#fcfbf7] mb-1">
+            {L('Pollution Risk & Statistical Outliers', 'மாசு அபாயம் & புள்ளிவிவர மாறுபாடுகள்')}
+          </h2>
           <p className="text-xs text-stone-300">
             {L(
-              'Coral/Amber evidence board using robust Z-scores and seasonal IQR bounds to queue field verification.',
+              'Statistical outlier evidence board using robust Z-scores and seasonal IQR bounds to prioritise field verification.',
               'கள ஆய்வுக்கு முன்னுரிமை அளிக்க வலுவான Z-மதிப்புகளைப் பயன்படுத்தும் சான்றுப் பலகை.'
             )}
           </p>

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { DataBadge } from '../common/DataBadge';
 import { apiService } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { LocationData, WaterQualityPoint } from '../../types';
@@ -59,7 +58,6 @@ export const AnalyticsReportingModule: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Reports & Dossiers Workspace: Ivory, Charcoal & Muted Champagne Gold */}
       <div className="rounded-2xl bg-[#151817]/95 border border-[#d9c27a]/30 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -67,14 +65,13 @@ export const AnalyticsReportingModule: React.FC = () => {
               <FileText className="w-3.5 h-3.5" />
               {L('EDITORIAL DOSSIER WORKSPACE', 'ஆவண & அறிக்கை நூலகம்')}
             </span>
-            <DataBadge provenance="VERIFIED_PUBLIC" />
           </div>
           <h2 className="text-xl font-serif font-semibold text-[#fcfbf7] tracking-wide">
             {L('Reports & Environmental Dossiers', 'சுற்றுச்சூழல் அறிக்கைகள் & தொகுப்புகள்')}
           </h2>
           <p className="text-xs text-stone-300">
             {L(
-              'Search station audits, export live CSV tables, and print institutional hydrological briefs.',
+              'Search station audits, export CSV tables, and print institutional hydrological briefs.',
               'நிலையத் தணிக்கைகளைத் தேடி CSV கோப்புகளாகவும் அச்சு அறிக்கைகளாகவும் பதிவிறக்கவும்.'
             )}
           </p>
@@ -87,7 +84,7 @@ export const AnalyticsReportingModule: React.FC = () => {
             className="px-4 py-2 bg-[#1e2320] hover:bg-[#272d29] text-[#d9c27a] border border-[#d9c27a]/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>{L('Export Live CSV', 'CSV பதிவிறக்கு')}</span>
+            <span>{L('Export CSV', 'CSV பதிவிறக்கு')}</span>
           </button>
           <button
             type="button"

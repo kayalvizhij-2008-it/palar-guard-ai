@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { X, Droplet, ArrowRight, ShieldAlert, Loader2 } from 'lucide-react';
+import { X, Droplet, ArrowRight, ShieldAlert, Loader2, Copy, Check, KeyRound } from 'lucide-react';
+
+const DEMO_ACCOUNT_EMAIL = 'demo@palarguard.ai';
+const DEMO_ACCOUNT_PASSWORD = 'PalarDemo@2026';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,8 +24,44 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [publicRole, setPublicRole] = useState<'Community Reporter' | 'Viewer'>('Community Reporter');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [demoSubmitting, setDemoSubmitting] = useState(false);
+  const [copiedField, setCopiedField] = useState<'email' | 'password' | null>(null);
 
   if (!isOpen) return null;
+
+  const handleCopy = async (value: string, field: 'email' | 'password') => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 1800);
+    } catch {
+      // Fallback copy if clipboard permission blocked
+      if (field === 'email') setEmail(value);
+      else setPassword(value);
+    }
+  };
+
+  const handleDemoSignIn = async () => {
+    setErrorMsg(null);
+    setEmail(DEMO_ACCOUNT_EMAIL);
+    setPassword(DEMO_ACCOUNT_PASSWORD);
+    setDemoSubmitting(true);
+    try {
+      await loginWithCredentials(DEMO_ACCOUNT_EMAIL, DEMO_ACCOUNT_PASSWORD);
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      setErrorMsg(
+        err?.message ||
+          L(
+            'Demo account authentication failed. Check backend service availability.',
+            'டெமோ கணக்கு உள்நுழைவு தோல்வியடைந்தது. சேவையக இணைப்பைச் சரிபார்க்கவும்.'
+          )
+      );
+    } finally {
+      setDemoSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +95,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       aria-labelledby="auth-modal-title"
       className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
     >
-      <div className="w-full max-w-md bg-[#092218] border border-emerald-500/30 rounded-2xl p-6 shadow-2xl space-y-5 relative">
+      <div className="w-full max-w-md max-h-[92vh] overflow-y-auto bg-[#092218] border border-emerald-500/30 rounded-2xl p-6 shadow-2xl space-y-5 relative">
         <button
           type="button"
           onClick={onClose}
@@ -161,7 +200,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || demoSubmitting}
             className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 mt-2"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
@@ -169,6 +208,76 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             {!submitting && <ArrowRight className="w-4 h-4" />}
           </button>
         </form>
+
+        {!isRegister && (
+          <>
+            <div className="relative flex items-center py-0.5">
+              <div className="flex-grow border-t border-white/10" />
+              <span className="mx-3 shrink-0 text-[10px] font-mono uppercase tracking-[0.22em] text-[#d9c27a]">
+                {L('OR', 'அல்லது')}
+              </span>
+              <div className="flex-grow border-t border-white/10" />
+            </div>
+
+            <div className="rounded-xl border border-[#d9c27a]/35 bg-[#061811]/90 p-3.5 space-y-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#d9c27a]">
+                  <KeyRound className="w-3.5 h-3.5 text-[#10b981]" />
+                  <span>{L('Try Demo Account', 'டெமோ கணக்கை முயற்சிக்கவும்')}</span>
+                </div>
+                <p className="text-[11px] text-[#a4b2a9] leading-relaxed">
+                  {L(
+                    'Want to explore PALAR GUARD AI without entering your personal credentials? Use our demo account for instant access.',
+                    'உங்கள் தனிப்பட்ட விவரங்களை உள்ளிடாமல் PALAR GUARD AI தளத்தை உடனடியாகப் பார்க்க எங்கள் டெமோ கணக்கைப் பயன்படுத்தவும்.'
+                  )}
+                </p>
+              </div>
+
+              <div className="space-y-1.5 text-[11px] font-mono">
+                <div className="flex items-center justify-between gap-2 rounded-lg bg-[#04100b] border border-white/10 px-2.5 py-1.5">
+                  <div className="min-w-0 truncate text-[#fcfbf7]">
+                    <span className="text-[#85928a] mr-1.5">{L('Email:', 'மின்னஞ்சல்:')}</span>
+                    <span>{DEMO_ACCOUNT_EMAIL}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(DEMO_ACCOUNT_EMAIL, 'email')}
+                    className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-[10px] text-emerald-300 border border-emerald-500/25 transition-colors"
+                  >
+                    {copiedField === 'email' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedField === 'email' ? L('Copied', 'நகலெடுக்கப்பட்டது') : L('Copy Email', 'மின்னஞ்சலை நகலெடு')}</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 rounded-lg bg-[#04100b] border border-white/10 px-2.5 py-1.5">
+                  <div className="min-w-0 truncate text-[#fcfbf7]">
+                    <span className="text-[#85928a] mr-1.5">{L('Password:', 'கடவுச்சொல்:')}</span>
+                    <span>{DEMO_ACCOUNT_PASSWORD}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(DEMO_ACCOUNT_PASSWORD, 'password')}
+                    className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-[10px] text-[#d9c27a] border border-[#d9c27a]/30 transition-colors"
+                  >
+                    {copiedField === 'password' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedField === 'password' ? L('Copied', 'நகலெடுக்கப்பட்டது') : L('Copy Password', 'கடவுச்சொல்லை நகலெடு')}</span>
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={submitting || demoSubmitting}
+                onClick={handleDemoSignIn}
+                className="w-full py-2 px-3 rounded-lg bg-[#d9c27a] hover:bg-[#e5d292] disabled:opacity-50 text-[#061811] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                {demoSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                <span>{L('Sign In with Demo Account', 'டெமோ கணக்கில் உள்நுழையவும்')}</span>
+                {!demoSubmitting && <ArrowRight className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </>
+        )}
 
         <div className="text-center pt-2 border-t border-white/10 text-[11px] text-stone-400">
           <span>{isRegister ? L('Already registered?', 'ஏற்கனவே கணக்கு உள்ளதா?') : L('New to Palar Guard?', 'புதிய பயனரா?')} </span>

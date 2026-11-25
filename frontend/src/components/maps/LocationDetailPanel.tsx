@@ -1,9 +1,8 @@
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { DataBadge } from '../common/DataBadge';
 import { 
-  X, Droplets, CloudRain, FlaskConical, AlertTriangle, 
-  MapPin, ShieldCheck, ArrowRight, ExternalLink 
+  X, Droplets, FlaskConical, AlertTriangle, 
+  MapPin, ArrowRight 
 } from 'lucide-react';
 
 export interface StationDetailData {
@@ -119,7 +118,6 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({
               <Droplets className="w-4 h-4 text-emerald-400" />
               <span>Groundwater Hydrograph</span>
             </div>
-            <DataBadge provenance={station.groundwater.provenance || 'VERIFIED_PUBLIC'} />
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-xs">

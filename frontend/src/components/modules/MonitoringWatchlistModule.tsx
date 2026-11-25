@@ -101,7 +101,7 @@ export const MonitoringWatchlistModule: React.FC<MonitoringWatchlistModuleProps>
       <header className="rounded-2xl border border-teal-500/25 bg-gradient-to-r from-[#071a1f] to-[#19150d] p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="text-[11px] font-mono uppercase tracking-widest text-amber-300">
-            {L('SAVED LOCATION WATCHLIST · TEAL & AMBER', 'சேமிக்கப்பட்ட கண்காணிப்பு நிலையங்கள்')}
+            {L('SAVED LOCATION WATCHLIST', 'சேமிக்கப்பட்ட கண்காணிப்பு நிலையங்கள்')}
           </div>
           <h2 className="text-xl font-semibold text-[#fcfbf7]">
             {L('Station Monitoring & Thresholds', 'நிலைய கண்காணிப்பு & வரம்புகள்')}

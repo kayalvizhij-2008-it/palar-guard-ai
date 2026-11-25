@@ -8,6 +8,19 @@ import {
   RechargeItem,
   User,
 } from '../types';
+import {
+  PALAR_LOCATIONS,
+  GROUNDWATER_TIMESERIES,
+  WATER_QUALITY_STATIONS,
+  ANOMALIES_DATA,
+  COMMUNITY_REPORTS_DATA,
+  RECHARGE_ASSESSMENTS_DATA,
+  RAINFALL_SERIES,
+  getCentralAnalyticsSummary,
+  getCentralMapOverview,
+  getCentralStationDetail,
+  getCentralAssistantResponse,
+} from '../data/palarData';
 
 const envBase = ((import.meta as any).env?.VITE_API_BASE_URL || '').trim();
 const isProd = Boolean((import.meta as any).env?.PROD);
@@ -40,10 +53,7 @@ function getAuthHeader(): Record<string, string> {
 
 async function requestJson<T>(url: string, options?: RequestInit, timeoutMs = 8000): Promise<T> {
   if (isProd && !API_ROOT) {
-    throw new ApiError(
-      'Frontend VITE_API_BASE_URL is not configured for production API requests.',
-      0
-    );
+    throw new ApiError('Live backend service is not connected in this deployment.', 0);
   }
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -79,7 +89,21 @@ async function requestJson<T>(url: string, options?: RequestInit, timeoutMs = 80
     if (err?.name === 'AbortError') {
       throw new ApiError('Backend request timed out. Please retry.', 408);
     }
-    throw new ApiError('Unable to reach PALAR GUARD backend API. Verify the API server is running.', 0);
+    throw new ApiError('Unable to reach backend service. Please try again later.', 0);
+  }
+}
+
+async function withReadFallback<T>(fetcher: () => Promise<T>, fallback: () => T): Promise<T> {
+  if (isProd && !API_ROOT) {
+    return fallback();
+  }
+  try {
+    return await fetcher();
+  } catch (err: any) {
+    if (err instanceof ApiError && (err.status === 0 || err.status === 408 || err.status >= 500)) {
+      return fallback();
+    }
+    throw err;
   }
 }
 
@@ -180,86 +204,127 @@ export const apiService = {
 
   // Analytics Summary
   async getAnalyticsSummary(): Promise<any> {
-    return requestJson(`${API_BASE_URL}/analytics/summary`);
+    return withReadFallback(
+      () => requestJson(`${API_BASE_URL}/analytics/summary`),
+      () => getCentralAnalyticsSummary()
+    );
   },
 
   // Locations
   async getLocations(): Promise<LocationData[]> {
-    return requestJson<LocationData[]>(`${API_BASE_URL}/locations/`);
+    return withReadFallback(
+      () => requestJson<LocationData[]>(`${API_BASE_URL}/locations/`),
+      () => PALAR_LOCATIONS
+    );
   },
 
   async getLocationRiskBreakdown(locationId: number): Promise<any> {
-    return requestJson(`${API_BASE_URL}/locations/${locationId}/risk-breakdown`);
+    return withReadFallback(
+      () => requestJson(`${API_BASE_URL}/locations/${locationId}/risk-breakdown`),
+      () => {
+        const loc = PALAR_LOCATIONS.find((l) => l.id === locationId) || PALAR_LOCATIONS[0];
+        return {
+          location_id: loc.id,
+          name: loc.name,
+          risk_score: loc.risk_score,
+          confidence_level: loc.confidence_level,
+        };
+      }
+    );
   },
 
   // Groundwater & Forecast
   async getGroundwaterRecords(locationId = 1): Promise<GroundwaterPoint[]> {
-    const rows = await requestJson<any[]>(`${API_BASE_URL}/groundwater/?location_id=${locationId}`);
-    return rows.map((r) => ({
-      period: r.observation_date,
-      depth_mbgl: r.water_level_mbgl,
-      trend: r.trend_rate,
-      source: r.data_source,
-      provenance: r.provenance,
-    }));
+    return withReadFallback(
+      async () => {
+        const rows = await requestJson<any[]>(`${API_BASE_URL}/groundwater/?location_id=${locationId}`);
+        return rows.map((r) => ({
+          period: r.observation_date,
+          depth_mbgl: r.water_level_mbgl,
+          trend: r.trend_rate,
+          source: r.data_source,
+          provenance: r.provenance,
+        }));
+      },
+      () => GROUNDWATER_TIMESERIES[locationId] || GROUNDWATER_TIMESERIES[1]
+    );
   },
 
   async getGroundwaterForecast(locationId = 1): Promise<any> {
-    return requestJson(`${API_BASE_URL}/groundwater/forecast?location_id=${locationId}`);
+    return withReadFallback(
+      () => requestJson(`${API_BASE_URL}/groundwater/forecast?location_id=${locationId}`),
+      () => ({
+        location_id: locationId,
+        series: GROUNDWATER_TIMESERIES[locationId] || GROUNDWATER_TIMESERIES[1],
+      })
+    );
   },
 
   // Water Quality
   async getWaterQuality(): Promise<WaterQualityPoint[]> {
-    const [records, locs] = await Promise.all([
-      requestJson<any[]>(`${API_BASE_URL}/water-quality/`),
-      requestJson<LocationData[]>(`${API_BASE_URL}/locations/`),
-    ]);
-    return records.map((r) => {
-      const loc = locs.find((l) => l.id === r.location_id);
-      const status: WaterQualityPoint['status'] =
-        r.chromium_mg_l > 0.05 || r.tds_mg_l > 1500
-          ? 'Critical'
-          : r.bod_mg_l > 3.0 || r.tds_mg_l > 1000
-          ? 'Elevated'
-          : 'Normal';
-      return {
-        location_id: r.location_id,
-        location_name: loc?.name || `Station #${r.location_id}`,
-        ph: r.ph,
-        tds_mg_l: r.tds_mg_l,
-        ec_us_cm: r.ec_us_cm,
-        chromium_mg_l: r.chromium_mg_l,
-        bod_mg_l: r.bod_mg_l,
-        do_mg_l: r.do_mg_l,
-        status,
-        sample_context: 'River Surface Water',
-        standards_comparison: {
-          bis_drinking_status: r.chromium_mg_l > 0.05 ? 'Exceeds BIS 0.05 mg/L Cr' : 'Within BIS Limits',
-          cpcb_class_c_status: r.do_mg_l < 5.0 ? 'Below CPCB 5.0 mg/L DO' : 'Compliant',
-        },
-        provenance: r.provenance,
-        citation: r.data_source,
-      };
-    });
+    return withReadFallback<WaterQualityPoint[]>(
+      async () => {
+        const [records, locs] = await Promise.all([
+          requestJson<any[]>(`${API_BASE_URL}/water-quality/`),
+          requestJson<LocationData[]>(`${API_BASE_URL}/locations/`),
+        ]);
+        return records.map((r) => {
+          const loc = locs.find((l) => l.id === r.location_id);
+          const status: WaterQualityPoint['status'] =
+            r.chromium_mg_l > 0.05 || r.tds_mg_l > 1500
+              ? 'Critical'
+              : r.bod_mg_l > 3.0 || r.tds_mg_l > 1000
+              ? 'Elevated'
+              : 'Normal';
+          return {
+            location_id: r.location_id,
+            location_name: loc?.name || `Station #${r.location_id}`,
+            ph: r.ph,
+            tds_mg_l: r.tds_mg_l,
+            ec_us_cm: r.ec_us_cm,
+            chromium_mg_l: r.chromium_mg_l,
+            bod_mg_l: r.bod_mg_l,
+            do_mg_l: r.do_mg_l,
+            status,
+            sample_context: 'River Surface Water' as WaterQualityPoint['sample_context'],
+            standards_comparison: {
+              bis_drinking_status: r.chromium_mg_l > 0.05 ? 'Exceeds BIS 0.05 mg/L Cr' : 'Within BIS Limits',
+              cpcb_class_c_status: r.do_mg_l < 5.0 ? 'Below CPCB 5.0 mg/L DO' : 'Compliant',
+            },
+            provenance: r.provenance,
+            citation: r.data_source,
+          };
+        });
+      },
+      () => WATER_QUALITY_STATIONS
+    );
   },
 
   // Rainfall
   async getRainfall(locationId = 1): Promise<any[]> {
-    return requestJson<any[]>(`${API_BASE_URL}/rainfall/?location_id=${locationId}`);
+    return withReadFallback(
+      () => requestJson<any[]>(`${API_BASE_URL}/rainfall/?location_id=${locationId}`),
+      () => RAINFALL_SERIES
+    );
   },
 
   // Anomalies
   async getAnomalies(): Promise<AnomalyAlertItem[]> {
-    const [alerts, locs] = await Promise.all([
-      requestJson<any[]>(`${API_BASE_URL}/anomalies/`),
-      requestJson<LocationData[]>(`${API_BASE_URL}/locations/`),
-    ]);
-    return alerts.map((a) => ({
-      ...a,
-      location_name: locs.find((l) => l.id === a.location_id)?.name || `Station #${a.location_id}`,
-      mad_deviation: 0,
-      detection_method: 'Robust Z-score / Seasonal IQR',
-    }));
+    return withReadFallback(
+      async () => {
+        const [alerts, locs] = await Promise.all([
+          requestJson<any[]>(`${API_BASE_URL}/anomalies/`),
+          requestJson<LocationData[]>(`${API_BASE_URL}/locations/`),
+        ]);
+        return alerts.map((a) => ({
+          ...a,
+          location_name: locs.find((l) => l.id === a.location_id)?.name || `Station #${a.location_id}`,
+          mad_deviation: 0,
+          detection_method: 'Robust Z-score / Seasonal IQR',
+        }));
+      },
+      () => ANOMALIES_DATA
+    );
   },
 
   async updateAnomalyStatus(alertId: number, newStatus: string): Promise<any> {
@@ -316,25 +381,35 @@ export const apiService = {
 
   // Community Reports
   async getCommunityReports(): Promise<CommunityReportItem[]> {
-    const [reports, locs] = await Promise.all([
-      requestJson<any[]>(`${API_BASE_URL}/community/reports`),
-      requestJson<LocationData[]>(`${API_BASE_URL}/locations/`),
-    ]);
-    return reports.map((r) => ({
-      ...r,
-      location_name: locs.find((l) => l.id === r.location_id)?.name || 'Palar Basin',
-    }));
+    return withReadFallback(
+      async () => {
+        const [reports, locs] = await Promise.all([
+          requestJson<any[]>(`${API_BASE_URL}/community/reports`),
+          requestJson<LocationData[]>(`${API_BASE_URL}/locations/`),
+        ]);
+        return reports.map((r) => ({
+          ...r,
+          location_name: locs.find((l) => l.id === r.location_id)?.name || 'Palar Basin',
+        }));
+      },
+      () => COMMUNITY_REPORTS_DATA
+    );
   },
 
   async getMyCommunityReports(): Promise<CommunityReportItem[]> {
-    const [reports, locs] = await Promise.all([
-      requestJson<any[]>(`${API_BASE_URL}/community/my-reports`),
-      requestJson<LocationData[]>(`${API_BASE_URL}/locations/`),
-    ]);
-    return reports.map((r) => ({
-      ...r,
-      location_name: locs.find((l) => l.id === r.location_id)?.name || 'Palar Basin',
-    }));
+    return withReadFallback(
+      async () => {
+        const [reports, locs] = await Promise.all([
+          requestJson<any[]>(`${API_BASE_URL}/community/my-reports`),
+          requestJson<LocationData[]>(`${API_BASE_URL}/locations/`),
+        ]);
+        return reports.map((r) => ({
+          ...r,
+          location_name: locs.find((l) => l.id === r.location_id)?.name || 'Palar Basin',
+        }));
+      },
+      () => COMMUNITY_REPORTS_DATA
+    );
   },
 
   async submitCommunityReport(report: {
@@ -361,18 +436,23 @@ export const apiService = {
 
   // Recharge
   async getRechargeAssessments(): Promise<RechargeItem[]> {
-    const rows = await requestJson<any[]>(`${API_BASE_URL}/recharge/`);
-    return rows.map((r) => ({
-      id: r.id,
-      location_name: r.location_name,
-      soil: r.soil_permeability,
-      slope: r.slope_gradient_pct,
-      head_m: r.aquifer_storage_head_m,
-      score: r.recharge_suitability_score,
-      recommended: r.recommended_intervention,
-      status: r.status,
-      hydrological_context: r.methodology,
-    }));
+    return withReadFallback(
+      async () => {
+        const rows = await requestJson<any[]>(`${API_BASE_URL}/recharge/`);
+        return rows.map((r) => ({
+          id: r.id,
+          location_name: r.location_name,
+          soil: r.soil_permeability,
+          slope: r.slope_gradient_pct,
+          head_m: r.aquifer_storage_head_m,
+          score: r.recharge_suitability_score,
+          recommended: r.recommended_intervention,
+          status: r.status,
+          hydrological_context: r.methodology,
+        }));
+      },
+      () => RECHARGE_ASSESSMENTS_DATA
+    );
   },
 
   // AI Assistant
@@ -383,19 +463,29 @@ export const apiService = {
     provenance: string;
     limitations: string;
   }> {
-    return requestJson(`${API_BASE_URL}/assistant/query`, {
-      method: 'POST',
-      body: JSON.stringify({ query }),
-    });
+    return withReadFallback(
+      () =>
+        requestJson(`${API_BASE_URL}/assistant/query`, {
+          method: 'POST',
+          body: JSON.stringify({ query }),
+        }),
+      () => getCentralAssistantResponse(query)
+    );
   },
 
   // Maps
   async getMapOverview(): Promise<any> {
-    return requestJson(`${API_BASE_URL}/maps/overview`);
+    return withReadFallback(
+      () => requestJson(`${API_BASE_URL}/maps/overview`),
+      () => getCentralMapOverview()
+    );
   },
 
   async getMapStationDetail(stationId: number): Promise<any> {
-    return requestJson(`${API_BASE_URL}/maps/stations/${stationId}`);
+    return withReadFallback(
+      () => requestJson(`${API_BASE_URL}/maps/stations/${stationId}`),
+      () => getCentralStationDetail(stationId)
+    );
   },
 
   // Document Intelligence

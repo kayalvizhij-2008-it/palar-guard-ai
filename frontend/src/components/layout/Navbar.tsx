@@ -5,7 +5,7 @@ import { Menu, X, LogIn, LogOut, UserCheck } from 'lucide-react';
 
 interface NavbarProps {
   currentView: string;
-  onNavigate: (view: string) => void;
+  onNavigate: (view: string, locationId?: number, overrideMode?: 'simple' | 'expert') => void;
   onOpenAuth: () => void;
   onToggleMobileMenu?: () => void;
   mobileMenuOpen?: boolean;
@@ -83,7 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               type="button"
               onClick={() => {
                 setMode('simple');
-                if (!isLanding) onNavigate('dashboard');
+                if (!isLanding) onNavigate('dashboard', undefined, 'simple');
               }}
               className={`px-2.5 py-1 text-[11px] font-medium rounded-full transition-colors ${
                 mode === 'simple' ? 'bg-[#10b981] text-[#041a11] font-semibold' : 'text-stone-300 hover:text-white'
@@ -95,7 +95,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               type="button"
               onClick={() => {
                 setMode('expert');
-                if (!isLanding) onNavigate('dashboard');
+                if (!isLanding) onNavigate('dashboard', undefined, 'expert');
               }}
               className={`px-2.5 py-1 text-[11px] font-medium rounded-full transition-colors ${
                 mode === 'expert' ? 'bg-[#d9c27a] text-[#041a11] font-semibold' : 'text-stone-300 hover:text-white'
