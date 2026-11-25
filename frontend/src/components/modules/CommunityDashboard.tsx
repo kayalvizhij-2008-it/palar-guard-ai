@@ -4,7 +4,7 @@ import { PALAR_LOCATIONS, WATER_QUALITY_STATIONS, ANOMALIES_DATA } from '../../d
 import { DataBadge } from '../common/DataBadge';
 import { apiService } from '../../services/api';
 import { 
-  Droplets, AlertTriangle, ShieldCheck, MapPin, 
+  Droplets, AlertTriangle, ShieldCheck, ShieldAlert, MapPin, 
   Send, Upload, CheckCircle2, FileText, Info, 
   ChevronRight, ArrowRight, HeartHandshake, Eye, 
   Clock, HelpCircle, BookOpen, Search, PhoneCall
@@ -31,7 +31,7 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
 }) => {
   const { lang } = useLanguage();
   const [selectedStationId, setSelectedStationId] = useState<number>(1); // Default to Ranipet
-  const [activeTab, setActiveTab] = useState<'overview' | 'report' | 'explain' | 'tracker' | 'learn'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'report' | 'tracker' | 'alerts' | 'learn' | 'updates'>('overview');
 
   // Reporting Form State
   const [reportCategory, setReportCategory] = useState<string>('Unusual Water Color & Odor');
@@ -110,81 +110,93 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
           <div className="max-w-3xl space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/40 text-xs font-mono text-emerald-300">
               <HeartHandshake className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{lang === 'ta' ? 'மக்களுக்கான நீர் கண்காணிப்பு தளம்' : 'COMMUNITY ACCESS & CITIZEN PORTAL'}</span>
+              <span>{lang === 'ta' ? 'உங்கள் நீர். உங்கள் சமூகம். உங்கள் குரல்.' : 'YOUR WATER. YOUR COMMUNITY. YOUR VOICE.'}</span>
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
               {lang === 'ta' 
                 ? 'உங்கள் பகுதி நீர் நிலவரம் & பாதுகாப்பு' 
-                : 'Water Situation In Your Area & Protection'}
+                : 'Palar Community Water Intelligence'}
             </h1>
 
             <p className="text-sm sm:text-base text-stone-300 leading-relaxed max-w-2xl">
               {lang === 'ta'
                 ? 'எளிய மொழியில் பாலாற்று படுகை நிலத்தடி நீர் நிலை, குடிநீர் பாதுகாப்பு மற்றும் உடனடி நீர் பிரச்சனை புகார்கள் பதிவு செய்யும் இடம்.'
-                : 'Clear water health insights for farmers, residents, and citizens. Check your local water levels, understand drinking safety, and report water pollution incidents in under two minutes.'}
+                : 'Clear water health insights for farmers, residents, and citizens. Check your local water levels, understand drinking safety, track alerts, and submit water issues with verified triage.'}
             </p>
 
-            {/* Quick Sub-Navigation Pills */}
+            {/* 6 Quick Sub-Navigation Pills */}
             <div className="flex flex-wrap items-center gap-2 pt-2">
               <button
                 onClick={() => setActiveTab('overview')}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
                   activeTab === 'overview'
                     ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
                     : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
                 }`}
               >
-                <Droplets className="w-4 h-4" />
-                <span>{lang === 'ta' ? 'உள்ளூர் நீர் நிலை' : 'Water Near You'}</span>
+                <Droplets className="w-3.5 h-3.5" />
+                <span>{lang === 'ta' ? 'உள்ளூர் நீர் நிலை' : 'Local Water Info'}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('report')}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
                   activeTab === 'report'
                     ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
                     : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
                 }`}
               >
-                <AlertTriangle className="w-4 h-4 text-amber-400" />
-                <span>{lang === 'ta' ? 'புகார் பதிவு செய்ய' : 'Report Water Issue'}</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('explain')}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  activeTab === 'explain'
-                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-                }`}
-              >
-                <HelpCircle className="w-4 h-4" />
-                <span>{lang === 'ta' ? 'நீரை புரிந்து கொள்ளுங்கள்' : 'Understand Your Water'}</span>
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                <span>{lang === 'ta' ? 'புகார் பதிவு செய்ய' : 'Report a Problem'}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('tracker')}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
                   activeTab === 'tracker'
                     ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
                     : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
                 }`}
               >
-                <FileText className="w-4 h-4" />
+                <FileText className="w-3.5 h-3.5" />
                 <span>{lang === 'ta' ? 'என் புகார்கள்' : 'My Reports'} ({userReports.length})</span>
               </button>
 
               <button
+                onClick={() => setActiveTab('alerts')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  activeTab === 'alerts'
+                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
+                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
+                }`}
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+                <span>{lang === 'ta' ? 'அவசர எச்சரிக்கைகள்' : 'Alerts'}</span>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('learn')}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
                   activeTab === 'learn'
                     ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
                     : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
                 }`}
               >
-                <BookOpen className="w-4 h-4" />
-                <span>{lang === 'ta' ? 'மழைநீர் சேகரிப்பு வழிகாட்டி' : 'Conservation Tips'}</span>
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>{lang === 'ta' ? 'வழிகாட்டி & சேமிப்பு' : 'Learn'}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('updates')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  activeTab === 'updates'
+                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
+                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
+                }`}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{lang === 'ta' ? 'கள நடவடிக்கைகள்' : 'Community Updates'}</span>
               </button>
             </div>
           </div>
@@ -464,139 +476,173 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
       )}
 
       {/* ============================================================ */}
-      {/* TAB 3: UNDERSTAND YOUR WATER (PLAIN LANGUAGE GUIDE) */}
-      {/* ============================================================ */}
-      {activeTab === 'explain' && (
-        <div className="space-y-6">
-          <div className="max-w-3xl space-y-2">
-            <h2 className="text-2xl font-bold text-white">Understand Your Water Numbers</h2>
-            <p className="text-sm text-stone-300 leading-relaxed">
-              Environmental reports use scientific abbreviations like mbgl, TDS, and pH. Here is what they actually mean for your family and farm.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* mbgl */}
-            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-              <div className="text-xs font-mono font-bold text-emerald-400">TERM 01</div>
-              <h3 className="text-lg font-bold text-white">What is "mbgl" (Meters Below Ground)?</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                "Meters Below Ground Level" tells you how deep the water table sits below the soil.
-              </p>
-              <div className="p-3 rounded-xl bg-[#020b06] border border-white/5 space-y-1 text-xs">
-                <div className="flex justify-between text-emerald-400 font-semibold">
-                  <span>0 - 5 mbgl:</span>
-                  <span>Very Shallow (High Water Table)</span>
-                </div>
-                <div className="flex justify-between text-stone-300">
-                  <span>5 - 12 mbgl:</span>
-                  <span>Normal Water Table</span>
-                </div>
-                <div className="flex justify-between text-amber-400 font-semibold">
-                  <span>12 - 18 mbgl:</span>
-                  <span>Deep (Requires Deep Borewells)</span>
-                </div>
-                <div className="flex justify-between text-rose-400 font-bold">
-                  <span>&gt; 18 mbgl:</span>
-                  <span>Critical Drawdown (Water Stress Zone)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* TDS */}
-            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-              <div className="text-xs font-mono font-bold text-cyan-400">TERM 02</div>
-              <h3 className="text-lg font-bold text-white">What is "TDS" (Total Dissolved Solids)?</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                TDS measures all salts, minerals, and metals dissolved in water in milligrams per liter (mg/L).
-              </p>
-              <div className="p-3 rounded-xl bg-[#020b06] border border-white/5 space-y-1 text-xs">
-                <div className="flex justify-between text-emerald-400 font-semibold">
-                  <span>&lt; 300 mg/L:</span>
-                  <span>Excellent for Drinking</span>
-                </div>
-                <div className="flex justify-between text-stone-300">
-                  <span>300 - 600 mg/L:</span>
-                  <span>Good Drinking Water (BIS 10500)</span>
-                </div>
-                <div className="flex justify-between text-amber-400 font-semibold">
-                  <span>600 - 1200 mg/L:</span>
-                  <span>Hard Water (Filter Recommended)</span>
-                </div>
-                <div className="flex justify-between text-rose-400 font-bold">
-                  <span>&gt; 1500 mg/L:</span>
-                  <span>Unacceptable without RO Treatment</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Chromium */}
-            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-              <div className="text-xs font-mono font-bold text-rose-400">TERM 03</div>
-              <h3 className="text-lg font-bold text-white">Why Chromium (Cr) Matters in Palar Basin</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Chromium is an industrial chemical historically used in leather tanning. Hexavalent chromium is toxic and requires strict zero-discharge compliance.
-              </p>
-              <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/30 text-xs text-rose-200">
-                Safe drinking limit is <strong>0.05 mg/L</strong> (BIS standard). When PALAR GUARD detects values above 0.05 mg/L, it flags a priority investigation signal for water authority inspectors.
-              </div>
-            </div>
-
-            {/* Recharge */}
-            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-              <div className="text-xs font-mono font-bold text-emerald-400">TERM 04</div>
-              <h3 className="text-lg font-bold text-white">How Managed Aquifer Recharge Works</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Instead of rainwater running waste into the ocean, check dams and percolation shafts channel rainwater through sand beds into underground charnockite fissures, reviving dried village wells.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ============================================================ */}
-      {/* TAB 4: MY REPORTS TRACKER */}
+      {/* TAB 3: MY REPORTS TRACKER (WITH VERTICAL STATUS TIMELINE) */}
       {/* ============================================================ */}
       {activeTab === 'tracker' && (
         <div className="space-y-6">
           <div className="max-w-2xl space-y-2">
             <h2 className="text-2xl font-bold text-white">Track Your Submitted Reports</h2>
             <p className="text-sm text-stone-300">
-              Every citizen incident report is tracked with a transparent reference ID and audit trail.
+              Every citizen incident report is tracked with a transparent reference ID, timestamp, and verifiable field audit trail.
             </p>
           </div>
 
           <div className="space-y-4">
-            {userReports.map(rep => (
-              <div key={rep.id} className="p-5 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-emerald-400 text-sm">{rep.id}</span>
-                    <span className="text-stone-500">•</span>
-                    <span className="text-xs font-semibold text-white">{rep.location}</span>
+            {userReports.map(rep => {
+              const stepIndex = rep.status === 'Verified' ? 3 : rep.status === 'Action Recorded' ? 4 : 2;
+
+              return (
+                <div key={rep.id} className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-emerald-400 text-sm">{rep.id}</span>
+                      <span className="text-stone-500">•</span>
+                      <span className="text-xs font-semibold text-white">{rep.location}</span>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                      rep.status === 'Verified'
+                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
+                        : rep.status === 'Action Recorded'
+                        ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40'
+                        : 'bg-amber-950 text-amber-300 border border-amber-500/40'
+                    }`}>
+                      {rep.status}
+                    </span>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                    rep.status === 'Verified'
-                      ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
-                      : rep.status === 'Action Recorded'
-                      ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40'
-                      : 'bg-amber-950 text-amber-300 border border-amber-500/40'
-                  }`}>
-                    {rep.status}
-                  </span>
+
+                  <div className="text-xs font-semibold text-emerald-300">{rep.category}</div>
+                  <p className="text-xs text-stone-300 leading-relaxed font-normal">{rep.description}</p>
+
+                  {/* Vertical / Horizontal Status Progress Steps */}
+                  <div className="pt-2">
+                    <div className="text-[11px] font-mono text-stone-400 mb-2">Investigation Lifecycle:</div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { num: '1', title: 'Submitted' },
+                        { num: '2', title: 'Triage' },
+                        { num: '3', title: 'Field Verified' },
+                        { num: '4', title: 'Action Taken' }
+                      ].map((step, idx) => {
+                        const isDone = idx < stepIndex;
+                        const isCurrent = idx === stepIndex - 1;
+
+                        return (
+                          <div 
+                            key={step.num}
+                            className={`p-2 rounded-lg text-center border text-[11px] transition-all ${
+                              isCurrent
+                                ? 'bg-[#0a311f] border-emerald-400 text-emerald-300 font-bold'
+                                : isDone
+                                ? 'bg-black/40 border-emerald-500/30 text-stone-300'
+                                : 'bg-black/20 border-white/[0.04] text-stone-600'
+                            }`}
+                          >
+                            <div className="font-mono text-[10px]">{step.num}</div>
+                            <div className="truncate">{step.title}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {rep.notes && (
+                    <div className="p-3 rounded-xl bg-[#020b06] border border-white/5 text-xs text-emerald-300 flex items-start gap-2">
+                      <Info className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span><strong>Technical Action:</strong> {rep.notes}</span>
+                    </div>
+                  )}
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-                <div className="text-xs font-semibold text-stone-300">{rep.category}</div>
-                <p className="text-xs text-stone-300 leading-relaxed">{rep.description}</p>
+      {/* ============================================================ */}
+      {/* TAB 4: ALERTS (CHRONOLOGICAL NOTIFICATION FEED WITH LAYPERSON EXPLANATIONS) */}
+      {/* ============================================================ */}
+      {activeTab === 'alerts' && (
+        <div className="space-y-6">
+          <div className="max-w-2xl space-y-2">
+            <h2 className="text-2xl font-bold text-white">Public Water Safety Advisories</h2>
+            <p className="text-sm text-stone-300">
+              Plain-language notifications from official CPCB, TNPCB, and CGWB monitoring networks across the Palar basin.
+            </p>
+          </div>
 
-                {rep.notes && (
-                  <div className="p-3 rounded-xl bg-[#020b06] border border-white/5 text-xs text-emerald-300 flex items-start gap-2">
-                    <Info className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span><strong>Technical Action:</strong> {rep.notes}</span>
-                  </div>
-                )}
+          <div className="space-y-4">
+            {/* Alert 1 */}
+            <div className="p-6 rounded-2xl bg-[#1f0b09] border border-rose-500/30 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                  <span className="font-mono text-xs font-bold text-rose-400">HIGH ANOMALY · RANIPET REACH</span>
+                  <span className="text-stone-500">•</span>
+                  <span className="text-xs text-stone-400">2026-11-25 09:30 IST</span>
+                </div>
+                <DataBadge provenance="HISTORICAL_REPORT" />
               </div>
-            ))}
+
+              <h3 className="text-base font-bold text-white">
+                Elevated Total Chromium Surge (0.082 mg/L vs 0.05 mg/L Standard)
+              </h3>
+
+              <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-2 text-xs">
+                <div className="text-stone-300">
+                  <strong className="text-rose-300">What this means for residents:</strong> Water samples downstream of Ranipet industrial cluster show chemical hardness above the permissible drinking limit. Untreated open well water should not be consumed directly without reverse osmosis (RO) filtration.
+                </div>
+                <div className="text-emerald-300">
+                  <strong className="text-white">Action Underway:</strong> TNPCB field inspection team #Alpha dispatched for duplicate verification sampling.
+                </div>
+              </div>
+            </div>
+
+            {/* Alert 2 */}
+            <div className="p-6 rounded-2xl bg-[#1f1609] border border-amber-500/30 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                  <span className="font-mono text-xs font-bold text-amber-400">SEASONAL DRAWDOWN · VANIYAMBADI</span>
+                  <span className="text-stone-500">•</span>
+                  <span className="text-xs text-stone-400">2026-11-23 14:15 IST</span>
+                </div>
+                <DataBadge provenance="VERIFIED_PUBLIC" />
+              </div>
+
+              <h3 className="text-base font-bold text-white">
+                Pre-Monsoon Water Table Drawdown (15.1 mbgl Depletion)
+              </h3>
+
+              <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-2 text-xs">
+                <div className="text-stone-300">
+                  <strong className="text-amber-300">What this means for farmers:</strong> Shallow open wells in the upper reach have plunged below 15 meters. Micro-irrigation and rotational pumping recommended to prevent borewell motor burning.
+                </div>
+                <div className="text-emerald-300">
+                  <strong className="text-white">Intervention:</strong> Check dam desiltation prioritized at Vaniyambadi weir to retain post-monsoon infiltration.
+                </div>
+              </div>
+            </div>
+
+            {/* Alert 3 */}
+            <div className="p-6 rounded-2xl bg-[#071f14] border border-emerald-500/30 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                  <span className="font-mono text-xs font-bold text-emerald-400">RECHARGE NOTICE · WALAJAH ALLUVIUM</span>
+                  <span className="text-stone-500">•</span>
+                  <span className="text-xs text-stone-400">2026-11-21 11:00 IST</span>
+                </div>
+                <DataBadge provenance="VERIFIED_PUBLIC" />
+              </div>
+
+              <h3 className="text-base font-bold text-white">
+                Monsoon Infiltration Shafts Ready for Catchment Inflow
+              </h3>
+
+              <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 text-xs text-stone-300">
+                12 newly completed infiltration shafts in the Walajah-Arcot reach are operational. Local farmers are advised to keep field drainage trenches clear of plastic debris to maximize groundwater recharge.
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -618,27 +664,73 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
               <h3 className="text-base font-bold text-emerald-300">1. Agricultural Farm Recharge Shaft</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
+              <p className="text-xs text-stone-300 leading-relaxed font-normal">
                 Dig a 3m × 3m percolation pit filled with boulders, gravel, and coarse river sand around dried borewell casing with slotted PVC pipe. Channels monsoon runoff straight into fractured charnockite aquifers.
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
               <h3 className="text-base font-bold text-emerald-300">2. Roof-Top Rainwater Storage</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
+              <p className="text-xs text-stone-300 leading-relaxed font-normal">
                 Connect rooftop gutters through first-flush filters to domestic storage sumps. Every 100 sq. meter roof in Vellore/Ranipet yields ~68,000 liters of pure drinking water per monsoon season.
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
               <h3 className="text-base font-bold text-emerald-300">3. Check Dam Desiltation</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
+              <p className="text-xs text-stone-300 leading-relaxed font-normal">
                 Remove clay silt deposits from check dam upstream reservoirs prior to Southwest monsoon. Restores riverbed hydraulic conductivity from 0.2 m/day to over 4.5 m/day.
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
               <h3 className="text-base font-bold text-emerald-300">4. Community Well Water Testing</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
+              <p className="text-xs text-stone-300 leading-relaxed font-normal">
                 Test borewells twice a year (pre-monsoon in May and post-monsoon in January). Free or subsidized testing available through district TWAD board labs.
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* TAB 6: COMMUNITY UPDATES (VERIFIED FIELD ACTION FEED) */}
+      {/* ============================================================ */}
+      {activeTab === 'updates' && (
+        <div className="space-y-6">
+          <div className="max-w-2xl space-y-2">
+            <h2 className="text-2xl font-bold text-white">Verified Field Action & River Updates</h2>
+            <p className="text-sm text-stone-300">
+              Transparent log of actions taken by district authorities, researchers, and citizen groups to protect the Palar River Basin.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
+              <div className="flex items-center justify-between text-xs font-mono text-emerald-400">
+                <span>ACTION #PLR-ACT-2026-042</span>
+                <span>2026-11-24 · Walajah Reach</span>
+              </div>
+              <h3 className="text-lg font-bold text-white">Walajah Check Dam Silt Removal Completed</h3>
+              <p className="text-xs text-stone-300 leading-relaxed font-normal">
+                Excavation teams removed 1,420 m³ of impervious clay sediment from the upstream apron of the Walajah-Arcot check dam. Saturated hydraulic conductivity increased from 0.4 m/day to 4.8 m/day, restoring natural infiltration into unconfined village aquifers.
+              </p>
+              <div className="pt-2 flex items-center gap-2 text-xs font-mono text-stone-400">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Verified by Water Resources Department & Team Innovnexa</span>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
+              <div className="flex items-center justify-between text-xs font-mono text-cyan-400">
+                <span>ACTION #PLR-ACT-2026-039</span>
+                <span>2026-11-22 · Ambur & Vaniyambadi</span>
+              </div>
+              <h3 className="text-lg font-bold text-white">48 Agricultural Borewell Water Quality Screenings</h3>
+              <p className="text-xs text-stone-300 leading-relaxed font-normal">
+                Field investigators equipped with portable spectrophotometers completed on-site testing across 48 community wells. All readings recorded into the Palar Guard live telemetry registry. 3 anomalies flagged for secondary laboratory titration.
+              </p>
+              <div className="pt-2 flex items-center gap-2 text-xs font-mono text-stone-400">
+                <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+                <span>Verified 100% Chain-of-Custody</span>
+              </div>
             </div>
           </div>
         </div>

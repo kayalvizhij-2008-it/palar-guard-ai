@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { CinematicHeroSequence } from '../hero/CinematicHeroSequence';
 import { DigitalTwinMap } from './DigitalTwinMap';
 import { DataBadge } from '../common/DataBadge';
 import { BokehParticleGalaxy } from '../effects/BokehParticleGalaxy';
+import { VerticalFallingTimeline } from '../landing/VerticalFallingTimeline';
 import { 
   ArrowRight, ShieldCheck, ShieldAlert, Droplets, AlertTriangle, Layers, 
   Search, Eye, Activity, Database, CheckCircle2, FileText, 
@@ -19,6 +20,40 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPresentation }) => {
   const { t, lang } = useLanguage();
   const [activeStage, setActiveStage] = useState<number>(0);
+  const heroContainerRef = useRef<HTMLDivElement>(null);
+  const [heroScrollProgress, setHeroScrollProgress] = useState<number>(0);
+
+  // Smooth scroll tracking across 360vh container for continuous 6-stage Earth camera trajectory
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!heroContainerRef.current) return;
+      const rect = heroContainerRef.current.getBoundingClientRect();
+      const containerHeight = heroContainerRef.current.offsetHeight;
+      const windowHeight = window.innerHeight;
+      const scrollableDist = containerHeight - windowHeight;
+      if (scrollableDist <= 0) return;
+      
+      const scrolled = -rect.top;
+      const progress = Math.max(0, Math.min(1, scrolled / scrollableDist));
+      setHeroScrollProgress(progress);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleScrollToStage = (stageIdx: number) => {
+    if (!heroContainerRef.current) return;
+    const stageTargets = [0.0, 0.22, 0.42, 0.62, 0.78, 1.0];
+    const targetProgress = stageTargets[Math.max(0, Math.min(5, stageIdx - 1))];
+    const containerTop = heroContainerRef.current.offsetTop;
+    const containerHeight = heroContainerRef.current.offsetHeight;
+    const windowHeight = window.innerHeight;
+    const scrollableDist = containerHeight - windowHeight;
+    const targetScrollY = containerTop + (targetProgress * scrollableDist);
+    window.scrollTo({ top: targetScrollY, behavior: 'smooth' });
+  };
 
   const workflowStages = [
     {
@@ -165,51 +200,121 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
   return (
     <div className="bg-[#020905] text-[#f4f7f5] overflow-hidden selection:bg-emerald-500/30 selection:text-emerald-200">
       {/* ============================================================ */}
-      {/* 1. CINEMATIC 6-SCENE FULL-SCREEN ANIMATED HERO */}
+      {/* 1. CINEMATIC 6-STAGE FULL-SCREEN SCROLL-DRIVEN HERO */}
       {/* ============================================================ */}
-      <CinematicHeroSequence 
-        onExplore={onExplore}
-        onOpenPresentation={onOpenPresentation}
-      />
+      <div ref={heroContainerRef} className="relative h-[360vh] w-full">
+        <div className="sticky top-0 h-screen w-full overflow-hidden">
+          <CinematicHeroSequence 
+            onExplore={onExplore}
+            onOpenPresentation={onOpenPresentation}
+            scrollProgress={heroScrollProgress}
+            onScrollToStage={handleScrollToStage}
+          />
+        </div>
+      </div>
 
       {/* ============================================================ */}
-      {/* SECTION 1 — THE CHALLENGE */}
+      {/* PART 2 — DRAMATIC EDITORIAL HEADING REVEAL & 6-STAGE WORKFLOW */}
       {/* ============================================================ */}
-      <section id="challenge" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#04120a]">
+      <section id="editorial" className="py-28 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#020b06] relative">
         <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
+          <div className="text-center max-w-4xl mx-auto space-y-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/90 border border-emerald-500/40 text-xs font-mono text-emerald-400">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              {lang === 'ta' ? 'பிரிவு 01 · நீர்வள பாதிப்புகள்' : 'SECTION 01 · HYDROLOGICAL VULNERABILITY'}
+              {lang === 'ta' ? 'அறிவியல் முன்னறிவிப்பு & நதிப் பாதுகாப்பு' : 'PALAR BASIN ENVIRONMENTAL INTELLIGENCE'}
             </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+            
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.08]">
               {lang === 'ta' ? (
                 <>
-                  நீர் இடர்கள் மாறுகின்றன. <br />
-                  <span className="text-[#2ad58b]">நுண்ணறிவு மேம்பட வேண்டும்.</span>
+                  நீரை அறிவோம். <br />
+                  <span className="text-emerald-400">நாளைய தலைமுறையை காப்போம்.</span>
                 </>
               ) : (
                 <>
-                  Water risks are changing. <br />
-                  <span className="text-[#2ad58b]">Intelligence must evolve.</span>
+                  UNDERSTANDING WATER. <br />
+                  <span className="text-emerald-400">PROTECTING TOMORROW.</span>
                 </>
               )}
             </h2>
-            <p className="text-base text-stone-300 leading-relaxed font-normal">
+
+            <p className="text-base sm:text-lg text-stone-300 max-w-3xl mx-auto leading-relaxed font-normal">
               {lang === 'ta'
-                ? 'பாலாறு நதிப்படுகை (17,810 ச.கி.மீ) தமிழ்நாட்டின் முக்கிய விவசாயம், குடிநீர் மற்றும் தொழிற்துறை தேவைகளை பூர்த்தி செய்கிறது. கோடை வறட்சி, தீவிர நிலத்தடி நீர் உறிஞ்சுதல் மற்றும் தொழிற்சாலை கழிவுகளால் ஏற்படும் அழுத்தங்களை எதிர்கொள்ள முன்கூட்டிய துல்லிய நுண்ணறிவு அவசியமாகிறது.'
-                : 'The Palar River Basin (17,810 km²) sustains critical agriculture, municipal water supplies, and industrial hubs across Tamil Nadu. Unprecedented pressure from seasonal drought, heavy alluvium extraction, and effluent discharge demands predictive, location-specific intelligence.'}
+                ? 'பாலாறு நதிப்படுகைக்கான நிலத்தடி நீர், மழைப்பொழிவு, நீர் தரம் மற்றும் மாசு இடர் தகவல்களை ஒருங்கிணைக்கும் அதிநவீன சுற்றுச்சூழல் முடிவெடுக்கும் தளம்.'
+                : 'An integrated environmental intelligence platform bringing groundwater, rainfall, water quality, and pollution-risk information together for the Palar River Basin.'}
             </p>
+
+            {/* 6-Stage Workflow Pills: OBSERVE → ANALYSE → PREDICT → PRIORITISE → VERIFY → ACT */}
+            <div className="pt-4 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-mono">
+              {[
+                { name: 'OBSERVE', ta: 'கண்காணி' },
+                { name: 'ANALYSE', ta: 'பகுப்பாய்' },
+                { name: 'PREDICT', ta: 'கணித்தறி' },
+                { name: 'PRIORITISE', ta: 'முன்னுரிமை' },
+                { name: 'VERIFY', ta: 'சரிபார்' },
+                { name: 'ACT', ta: 'செயல்படுத்து' }
+              ].map((stage, idx, arr) => (
+                <React.Fragment key={stage.name}>
+                  <button
+                    onClick={() => setActiveStage(idx)}
+                    className={`px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
+                      activeStage === idx 
+                        ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 font-bold shadow-emerald-glow'
+                        : 'bg-black/40 border-white/10 text-stone-400 hover:border-emerald-500/40'
+                    }`}
+                  >
+                    <span className="text-[10px] text-emerald-400">0{idx + 1}</span>
+                    <span>{lang === 'ta' ? stage.ta : stage.name}</span>
+                  </button>
+                  {idx < arr.length - 1 && (
+                    <span className="text-stone-600 font-bold select-none">→</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Active Stage Detailed Breakdown Banner */}
+          <div className="p-8 rounded-3xl bg-[#061e12] border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-8 shadow-forest-lg">
+            <div className="space-y-3 max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="text-xs font-mono font-bold text-emerald-400">
+                  STAGE {workflowStages[activeStage].step}
+                </span>
+                <span className="text-stone-500">·</span>
+                <span className="text-xs font-mono uppercase text-stone-300 font-bold">
+                  {workflowStages[activeStage].name}
+                </span>
+                <DataBadge provenance={workflowStages[activeStage].provenance} />
+              </div>
+              <h3 className="text-2xl font-bold text-white">{workflowStages[activeStage].title}</h3>
+              <p className="text-sm text-stone-300 leading-relaxed font-normal">{workflowStages[activeStage].desc}</p>
+            </div>
+
+            <div className="shrink-0 p-6 rounded-2xl bg-[#020b06] border border-white/10 text-center min-w-[240px]">
+              <div className="text-xs font-mono text-stone-400 mb-1">Key Operational Metric</div>
+              <div className="text-2xl font-extrabold text-emerald-400 font-sans tabular-nums mb-4">
+                {workflowStages[activeStage].metric}
+              </div>
+              <button
+                onClick={() => onExplore('dashboard')}
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span>Inspect in Workspace</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* 3 Core Basin Vulnerability Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
             {/* Groundwater Stress Card */}
             <div className="p-8 rounded-2xl bg-[#071d13] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-4">
               <div className="w-12 h-12 rounded-xl bg-emerald-950/90 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
                 <Droplets className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-white">Severe Groundwater Drawdown</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
+              <p className="text-xs text-stone-300 leading-relaxed font-normal">
                 CGWB long-term monitoring records show water levels in Ranipet and Ambur regularly plunging below 14.9 mbgl in summer months. Over-extraction from shallow unconfined alluvium rapidly depletes community and agricultural borewells.
               </p>
               <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-stone-400 border-t border-white/[0.06]">
@@ -224,7 +329,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
                 <CloudRain className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-white">Monsoon Concentration & Deficit</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
+              <p className="text-xs text-stone-300 leading-relaxed font-normal">
                 The Palar Catchment receives 980 mm of annual rainfall, with over 55% crammed into short, high-intensity storms during the October–November Northeast Monsoon. High surface runoff limits natural infiltration without dedicated artificial recharge structures.
               </p>
               <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-stone-400 border-t border-white/[0.06]">
@@ -239,7 +344,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-white">Water Quality & Chemical Stress</h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
+              <p className="text-xs text-stone-300 leading-relaxed font-normal">
                 Industrial tannery effluent historical discharges across the Vaniyambadi–Ranipet stretch cause elevated Total Dissolved Solids (&gt;1850 mg/L) and Total Chromium surges (&gt;0.05 mg/L limit), classified as CPCB Priority-V restoration corridor.
               </p>
               <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-stone-400 border-t border-white/[0.06]">
@@ -252,77 +357,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
       </section>
 
       {/* ============================================================ */}
-      {/* SECTION 2 — OUR INTELLIGENCE (6-STAGE WORKFLOW) */}
+      {/* PART 3 — VERTICAL FALLING-CARD TIMELINE (FROM OBSERVATION TO ACTION) */}
       {/* ============================================================ */}
-      <section id="intelligence" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#020d07]">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
-              SECTION 02 · SYSTEM ARCHITECTURE
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              One Basin. <span className="text-[#2ad58b]">Connected Intelligence.</span>
-            </h2>
-            <p className="text-base text-stone-300">
-              Transforming fragmented records into structured, verifiable, and explainable decision intelligence across six interconnected stages.
-            </p>
-          </div>
-
-          {/* 6 Stage Interactive Rail */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {workflowStages.map((stage, sIdx) => {
-              const isSelected = activeStage === sIdx;
-              return (
-                <div
-                  key={sIdx}
-                  onClick={() => setActiveStage(sIdx)}
-                  className={`p-4 rounded-xl cursor-pointer transition-all flex flex-col justify-between text-left ${
-                    isSelected 
-                      ? 'bg-[#0a2f1e] border-2 border-[#2ad58b] shadow-emerald-glow' 
-                      : 'bg-[#05170e] border border-white/[0.08] hover:border-emerald-500/30'
-                  }`}
-                >
-                  <div>
-                    <div className="text-xs font-mono font-bold text-emerald-400 mb-1">{stage.step}</div>
-                    <h4 className="text-sm font-bold text-white tracking-wide">{stage.name}</h4>
-                  </div>
-                  <div className="mt-4 pt-2 border-t border-white/[0.08] flex items-center justify-between text-[10px] font-mono text-stone-400">
-                    <span>{stage.metric}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Selected Stage Deep-Dive Card */}
-          <div className="p-8 rounded-2xl bg-[#061e12] border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-8 shadow-forest-lg">
-            <div className="space-y-3 max-w-2xl">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-emerald-400">STAGE {workflowStages[activeStage].step}</span>
-                <span className="text-stone-500">·</span>
-                <span className="text-xs font-mono uppercase text-stone-300">{workflowStages[activeStage].name}</span>
-                <DataBadge provenance={workflowStages[activeStage].provenance} />
-              </div>
-              <h3 className="text-2xl font-bold text-white">{workflowStages[activeStage].title}</h3>
-              <p className="text-sm text-stone-300 leading-relaxed">{workflowStages[activeStage].desc}</p>
-            </div>
-
-            <div className="shrink-0 p-6 rounded-xl bg-[#020b06] border border-white/10 text-center min-w-[220px]">
-              <div className="text-xs font-mono text-stone-400 mb-1">Key Operational Output</div>
-              <div className="text-xl font-extrabold text-emerald-400 font-sans tabular-nums mb-3">
-                {workflowStages[activeStage].metric}
-              </div>
-              <button
-                onClick={() => onExplore('dashboard')}
-                className="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <span>Inspect in Console</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <VerticalFallingTimeline onExplore={onExplore} />
 
       {/* ============================================================ */}
       {/* SECTION 3 — OUR CAPABILITIES (6 BENTO FEATURES) */}
