@@ -147,6 +147,9 @@ export const WaterAnalyticsChart: React.FC = () => {
           <span>{t('legend_wq')}</span>
         </div>
       </div>
+      <div className="mb-1 text-center text-[9px] font-mono tracking-wide text-stone-400">
+        SYNTHETIC DEMONSTRATION DATA — NOT A REAL ENVIRONMENTAL MEASUREMENT
+      </div>
 
       {/* Multi-line SVG Chart */}
       <div className="relative w-full overflow-hidden">
