@@ -11,18 +11,20 @@ from ..models.models import (
 
 router = APIRouter(prefix="/maps", tags=["Geospatial Maps Engine"])
 
-# Palar River Basin Catchment Boundary (17,810 km²) in GeoJSON Polygon format
-PALAR_BASIN_BOUNDARY_COORDS = [
-    [78.20, 12.60], [78.40, 13.15], [79.10, 13.25], 
-    [79.80, 13.10], [80.20, 12.75], [80.05, 12.45], 
-    [79.40, 12.40], [78.60, 12.45], [78.20, 12.60]
+# Verified Palar Basin GeoJSON must be loaded from an official dataset; never invent polygons.
+import json
+from pathlib import Path
+
+_BASIN_GEOJSON_CANDIDATES = [
+    Path(__file__).resolve().parent.parent / "data" / "palar-basin.geojson",
+    Path(__file__).resolve().parent.parent.parent.parent / "frontend" / "public" / "data" / "palar-basin.geojson",
 ]
 
-# Palar River Main Spine LineString
+# Palar River station-connecting hydrological corridor (derived solely from the 7 verified station coordinates)
 PALAR_RIVER_SPINE_COORDS = [
-    [78.25, 12.65], [78.6186, 12.6825], [78.7166, 12.7904], 
-    [79.1325, 12.9165], [79.3328, 12.9298], [79.3850, 12.9304], 
-    [79.7036, 12.8342], [79.9888, 12.6819], [80.1550, 12.5180]
+    [78.6186, 12.6825], [78.7166, 12.7904], [79.1325, 12.9165],
+    [79.3330, 12.9274], [79.3817, 12.9304], [79.7036, 12.8342],
+    [79.9836, 12.6841],
 ]
 
 # Pydantic Schemas for Map Filtering
@@ -33,12 +35,41 @@ class MapFilterPayload(BaseModel):
     status: Optional[str] = "all"
     basin_zone: Optional[str] = "all"
 
+def _load_verified_basin_features():
+    for candidate in _BASIN_GEOJSON_CANDIDATES:
+        if candidate.exists():
+            try:
+                data = json.loads(candidate.read_text(encoding="utf-8"))
+                feats = data.get("features", []) if isinstance(data, dict) else []
+                if feats:
+                    return True, feats
+            except Exception:
+                pass
+    return False, []
+
 @router.get("/overview")
 def get_map_overview(db: Session = Depends(get_db)):
     """Comprehensive Palar River Basin 17,810 km² GIS Overview."""
     locations = db.query(Location).all()
     open_anomalies_count = db.query(AnomalyAlert).filter(AnomalyAlert.status == "Open").count()
     active_inv_count = db.query(Investigation).filter(Investigation.status.in_(["Assigned", "In Progress"])).count()
+    boundary_available, boundary_features = _load_verified_basin_features()
+
+    features = list(boundary_features)
+    features.append({
+        "type": "Feature",
+        "id": "palar_station_corridor",
+        "geometry": {
+            "type": "LineString",
+            "coordinates": PALAR_RIVER_SPINE_COORDS
+        },
+        "properties": {
+            "name": "Palar Monitoring Station Corridor",
+            "stroke": "#10b981",
+            "stroke_width": 2.5,
+            "provenance": "VERIFIED_PUBLIC"
+        }
+    })
 
     return {
         "type": "FeatureCollection",
@@ -50,42 +81,15 @@ def get_map_overview(db: Session = Depends(get_db)):
             "active_monitoring_stations": len(locations),
             "open_anomalies": open_anomalies_count,
             "active_investigations": active_inv_count,
-            "data_confidence": "95.4% (CGWB / TNPCB Verified)"
+            "basin_boundary_available": boundary_available,
+            "boundary_notice": (
+                "Verified Palar Basin boundary GeoJSON loaded."
+                if boundary_available
+                else "Verified Palar Basin boundary GeoJSON dataset is not loaded. Approximate polygons are disabled."
+            ),
+            "data_confidence": "CGWB / TNPCB Station Coordinates"
         },
-        "features": [
-            {
-                "type": "Feature",
-                "id": "palar_catchment_boundary",
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [PALAR_BASIN_BOUNDARY_COORDS]
-                },
-                "properties": {
-                    "name": "Palar River Catchment Perimeter",
-                    "area_km2": 17810,
-                    "stroke": "#10b981",
-                    "stroke_width": 2.5,
-                    "fill": "#062319",
-                    "fill_opacity": 0.25,
-                    "provenance": "VERIFIED_PUBLIC"
-                }
-            },
-            {
-                "type": "Feature",
-                "id": "palar_river_spine",
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": PALAR_RIVER_SPINE_COORDS
-                },
-                "properties": {
-                    "name": "Palar River Main Channel",
-                    "length_km": 348,
-                    "stroke": "#38bdf8",
-                    "stroke_width": 3.0,
-                    "provenance": "VERIFIED_PUBLIC"
-                }
-            }
-        ]
+        "features": features
     }
 
 @router.get("/layers")

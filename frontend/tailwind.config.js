@@ -40,7 +40,8 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', '"Noto Sans Tamil"', 'system-ui', 'sans-serif'],
+        serif: ['"Cormorant Garamond"', '"Noto Sans Tamil"', 'Georgia', 'serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       boxShadow: {

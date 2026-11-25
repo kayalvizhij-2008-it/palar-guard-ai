@@ -1,101 +1,112 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sphere } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useLanguage } from '../../context/LanguageContext';
-import { ExternalLink, Globe } from 'lucide-react';
+import { latLonToVector3 } from '../../lib/geo';
+import { Globe } from 'lucide-react';
 
-// Create procedural high-detail Earth texture
-function createMiniEarthTexture(): THREE.CanvasTexture {
-  const width = 1024;
-  const height = 512;
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d')!;
+const EARTH_MAP = '/textures/planets/earth_atmos_2048.jpg';
+const CLOUD_MAP = '/textures/planets/earth_clouds_1024.png';
+const FOCUS = { lat: 12.9, lon: 79.3 };
 
-  // Deep space ocean
-  const oceanGrad = ctx.createLinearGradient(0, 0, 0, height);
-  oceanGrad.addColorStop(0, '#020b14');
-  oceanGrad.addColorStop(0.5, '#051926');
-  oceanGrad.addColorStop(1, '#020b12');
-  ctx.fillStyle = oceanGrad;
-  ctx.fillRect(0, 0, width, height);
+function useTextures() {
+  const [state, setState] = useState<{
+    map: THREE.Texture | null;
+    clouds: THREE.Texture | null;
+    done: boolean;
+  }>({ map: null, clouds: null, done: false });
 
-  const toX = (lng: number) => ((lng + 180) / 360) * width;
-  const toY = (lat: number) => ((90 - lat) / 180) * height;
+  useEffect(() => {
+    let cancelled = false;
+    const loaded: THREE.Texture[] = [];
+    const loader = new THREE.TextureLoader();
 
-  // Continents in dark forest emerald
-  ctx.fillStyle = '#0a2e1d';
-  ctx.strokeStyle = '#105e38';
-  ctx.lineWidth = 1.5;
+    const loadTex = (url: string, isColor: boolean) =>
+      new Promise<THREE.Texture | null>((resolve) =>
+        loader.load(
+          url,
+          (tx) => {
+            tx.colorSpace = isColor ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+            tx.anisotropy = 4;
+            loaded.push(tx);
+            resolve(tx);
+          },
+          undefined,
+          () => resolve(null)
+        )
+      );
 
-  // Africa
-  ctx.beginPath();
-  ctx.ellipse(toX(20), toY(5), width * 0.08, height * 0.32, 0, 0, Math.PI * 2);
-  ctx.fill();
+    Promise.all([loadTex(EARTH_MAP, true), loadTex(CLOUD_MAP, false)]).then(([map, clouds]) => {
+      if (!cancelled) setState({ map, clouds, done: true });
+    });
 
-  // Eurasia (Europe + Asia)
-  ctx.beginPath();
-  ctx.ellipse(toX(85), toY(45), width * 0.28, height * 0.26, 0.1, 0, Math.PI * 2);
-  ctx.fill();
+    return () => {
+      cancelled = true;
+      loaded.forEach((x) => x.dispose());
+    };
+  }, []);
 
-  // India subcontinent
-  ctx.fillStyle = '#0e422a';
-  ctx.beginPath();
-  ctx.moveTo(toX(70), toY(28));
-  ctx.lineTo(toX(88), toY(26));
-  ctx.lineTo(toX(78), toY(8));
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  // Tamil Nadu & Palar radiant beacon
-  ctx.fillStyle = '#10b981';
-  ctx.shadowColor = '#34d399';
-  ctx.shadowBlur = 10;
-  ctx.beginPath();
-  ctx.arc(toX(79.5), toY(12.8), 6, 0, Math.PI * 2);
-  ctx.fill();
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.ClampToEdgeWrapping;
-  return texture;
+  return state;
 }
 
-function MiniEarthMesh() {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const texture = useMemo(() => createMiniEarthTexture(), []);
+const VERT = `varying vec3 vN; void main(){ vN = normalize(normalMatrix*normal); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const FRAG = `varying vec3 vN; uniform vec3 uColor; void main(){ float i = pow(0.62 - dot(vN, vec3(0.,0.,1.)), 4.0); gl_FragColor = vec4(uColor,1.0)*i*0.9; }`;
 
-  useFrame((_, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.15;
-    }
+function Earth({ onStatus }: { onStatus: (ok: boolean) => void }) {
+  const tex = useTextures();
+  const clouds = useRef<THREE.Mesh>(null);
+  const uniforms = useMemo(() => ({ uColor: { value: new THREE.Color('#8fd9c0') } }), []);
+  const marker = useMemo(() => latLonToVector3(FOCUS.lat, FOCUS.lon, 1.012), []);
+
+  useEffect(() => {
+    if (tex.done) onStatus(!!tex.map);
+  }, [tex.done, tex.map, onStatus]);
+
+  useFrame((_, d) => {
+    if (clouds.current) clouds.current.rotation.y += Math.min(d, 0.1) * 0.01;
   });
 
   return (
     <group>
-      <mesh ref={meshRef}>
-        <sphereGeometry args={[1.5, 48, 48]} />
+      <mesh>
+        <sphereGeometry args={[1, 64, 64]} />
         <meshStandardMaterial
-          map={texture}
-          roughness={0.7}
-          metalness={0.1}
-          emissive="#062e1c"
-          emissiveIntensity={0.3}
+          key={tex.map ? 'mini-textured' : 'mini-fallback'}
+          map={tex.map ?? undefined}
+          color={tex.map ? '#ffffff' : '#1f3d31'}
+          roughness={0.92}
+          metalness={0}
         />
       </mesh>
-
-      {/* Atmospheric Glow Ring */}
-      <mesh scale={[1.58, 1.58, 1.58]}>
-        <sphereGeometry args={[1, 32, 32]} />
-        <meshBasicMaterial
-          color="#10b981"
-          transparent
-          opacity={0.12}
+      {tex.clouds && (
+        <mesh ref={clouds}>
+          <sphereGeometry args={[1.007, 48, 48]} />
+          <meshStandardMaterial
+            map={tex.clouds}
+            color="#fcfbf7"
+            transparent
+            opacity={0.42}
+            depthWrite={false}
+            roughness={1}
+          />
+        </mesh>
+      )}
+      <mesh>
+        <sphereGeometry args={[1.05, 48, 48]} />
+        <shaderMaterial
+          uniforms={uniforms}
+          vertexShader={VERT}
+          fragmentShader={FRAG}
           side={THREE.BackSide}
+          transparent
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
         />
+      </mesh>
+      <mesh position={marker}>
+        <sphereGeometry args={[0.014, 12, 12]} />
+        <meshBasicMaterial color="#d9c27a" />
       </mesh>
     </group>
   );
@@ -106,38 +117,45 @@ interface GlobeMiniViewProps {
 }
 
 export const GlobeMiniView: React.FC<GlobeMiniViewProps> = ({ onOpenGlobe }) => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const [texOk, setTexOk] = useState(true);
+  const cam = useMemo(() => latLonToVector3(14, 76, 3.25).toArray() as [number, number, number], []);
 
   return (
-    <div className="rounded-2xl bg-[#061e15] border border-white/[0.08] p-3.5 shadow-xl flex flex-col justify-between h-[210px] relative overflow-hidden group">
-      {/* Header matching blueprint */}
+    <div className="rounded-2xl bg-[#071c15] border border-white/[0.08] p-3.5 shadow-xl flex flex-col justify-between h-[220px] relative overflow-hidden group">
       <div className="flex items-center justify-between z-10">
-        <h4 className="text-xs font-bold text-white tracking-wide flex items-center gap-1.5">
-          <Globe className="w-3.5 h-3.5 text-emerald-400" />
+        <h4 className="text-xs font-bold text-[#fcfbf7] tracking-wide flex items-center gap-1.5">
+          <Globe className="w-3.5 h-3.5 text-teal-400" />
           <span>{t('card_global_title')}</span>
         </h4>
         <button
+          type="button"
           onClick={onOpenGlobe}
-          className="text-[11px] text-stone-300 hover:text-emerald-300 transition-colors font-medium flex items-center gap-1"
+          className="text-[11px] text-stone-300 hover:text-teal-300 transition-colors font-medium flex items-center gap-1"
         >
           <span>{t('card_global_btn')}</span>
         </button>
       </div>
 
-      {/* 3D WebGL Canvas */}
       <div className="flex-1 w-full h-full relative cursor-grab active:cursor-grabbing">
-        <Canvas camera={{ position: [0, 0.4, 3.2], fov: 42 }}>
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[5, 3, 5]} intensity={1.5} color="#e0f2fe" />
-          <pointLight position={[-5, -3, -5]} intensity={0.4} color="#059669" />
-          <MiniEarthMesh />
-          <OrbitControls enableZoom={false} enablePan={false} autoRotate={false} />
+        <Canvas
+          dpr={[1, 1.5]}
+          camera={{ position: cam, fov: 38, near: 0.1, far: 50 }}
+          gl={{ antialias: true, alpha: true, powerPreference: 'default' }}
+        >
+          <ambientLight intensity={0.42} />
+          <directionalLight position={[4, 2, 5]} intensity={2.2} color="#fffaf0" />
+          <Earth onStatus={setTexOk} />
+          <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.35} rotateSpeed={0.5} />
         </Canvas>
       </div>
 
-      {/* Subtle bottom tag */}
-      <div className="z-10 text-[10px] text-stone-400 text-center font-mono">
-        Lat 12.8°N, Lng 79.2°E • Tamil Nadu, India
+      <div className="z-10 text-[10px] text-stone-400 text-center font-mono tabular-nums">
+        {texOk
+          ? `${lang === 'ta' ? 'பாலாறு வடிநிலப் பகுதி' : 'Palar basin region'} · ~12.9°N, 79.3°E`
+          : lang === 'ta'
+          ? 'செயற்கைக்கோள் படம் ஏற்றப்படவில்லை'
+          : 'Satellite texture unavailable'}
       </div>
     </div>
   );

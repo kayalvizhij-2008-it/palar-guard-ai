@@ -42,15 +42,15 @@ export const CustomCursor: React.FC = () => {
         return;
       }
 
-      // Preserve native text cursor inside inputs/textareas
-      if (target.closest('input, textarea, [contenteditable="true"]')) {
+      // Preserve native cursor inside inputs, selects, textareas, maps, or explicit opt-outs
+      if (target.closest('input, textarea, select, option, [contenteditable="true"], [data-no-custom-cursor="true"]')) {
         setCursorMode('text');
         return;
       }
 
       // Map grabbing context
-      if (target.closest('.leaflet-container, [data-interactive-map="true"]')) {
-        setCursorMode(isMouseDown ? 'map-grabbing' : 'map-grab');
+      if (target.closest('.leaflet-container, [data-interactive-map="true"], canvas')) {
+        setCursorMode('hidden');
         return;
       }
 

@@ -1,150 +1,192 @@
-import React, { useState } from 'react';
-import { PALAR_LOCATIONS, WATER_QUALITY_STATIONS } from '../../data/palarData';
+import React, { useEffect, useState } from 'react';
 import { DataBadge } from '../common/DataBadge';
-import { FileText, Download, Printer, CheckCircle2, Filter } from 'lucide-react';
+import { apiService } from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext';
+import { LocationData, WaterQualityPoint } from '../../types';
+import { Download, Printer, CheckCircle2, FileText, Search, AlertCircle } from 'lucide-react';
 
 export const AnalyticsReportingModule: React.FC = () => {
-  const [selectedStation, setSelectedStation] = useState<string>("All Stations");
-  const [reportType, setReportType] = useState<string>("Executive Environmental Dossier");
+  const { lang } = useLanguage();
+  const L = (en: string, ta: string) => (lang === 'ta' ? ta : en);
+
+  const [locations, setLocations] = useState<LocationData[]>([]);
+  const [waterQuality, setWaterQuality] = useState<WaterQualityPoint[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const loadDossierData = async () => {
+    setErrorMsg(null);
+    try {
+      const [locs, wq] = await Promise.all([apiService.getLocations(), apiService.getWaterQuality()]);
+      setLocations(locs);
+      setWaterQuality(wq);
+    } catch (err: any) {
+      setErrorMsg(err?.message || L('Unable to load live report records.', 'அறிக்கைத் தரவை ஏற்ற முடியவில்லை.'));
+    }
+  };
+
+  useEffect(() => {
+    loadDossierData();
+  }, []);
+
+  const filteredStations = locations.filter(
+    (l) =>
+      l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      l.district.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleExportCSV = () => {
-    // Generate actual CSV content
-    const headers = "Location ID,Station Name,District,Basin Zone,Risk Score,Confidence Level\n";
-    const rows = PALAR_LOCATIONS.map(l => 
-      `${l.id},"${l.name}","${l.district}","${l.basin_zone}",${l.risk_score},"${l.confidence_level}"`
-    ).join("\n");
-    const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(headers + rows);
-    
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", csvContent);
-    downloadAnchor.setAttribute("download", `PALAR_GUARD_AI_Data_Export_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+    const headers = 'Location ID,Station Name,District,Basin Zone,Risk Score,Confidence Level,TDS mg/L,Chromium mg/L\n';
+    const rows = filteredStations
+      .map((l) => {
+        const wq = waterQuality.find((w) => w.location_id === l.id);
+        return `${l.id},"${l.name}","${l.district}","${l.basin_zone}",${l.risk_score},"${l.confidence_level}",${wq?.tds_mg_l ?? ''},${wq?.chromium_mg_l ?? ''}`;
+      })
+      .join('\n');
+    const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(headers + rows);
+
+    const a = document.createElement('a');
+    a.setAttribute('href', csvContent);
+    a.setAttribute('download', `PALAR_GUARD_AI_Dossier_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
     setDownloadSuccess(true);
     setTimeout(() => setDownloadSuccess(false), 3000);
   };
 
-  const handlePrintDossier = () => {
-    window.print();
-  };
-
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-[#092218] border border-white/[0.08] rounded-2xl shadow-forest-md">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-xl font-extrabold text-ivory tracking-tight">Analytics & Dossier Reporting Centre</h2>
+      {/* Reports & Dossiers Workspace: Ivory, Charcoal & Muted Champagne Gold */}
+      <div className="rounded-2xl bg-[#151817]/95 border border-[#d9c27a]/30 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-[#d9c27a]">
+              <FileText className="w-3.5 h-3.5" />
+              {L('EDITORIAL DOSSIER WORKSPACE', 'ஆவண & அறிக்கை நூலகம்')}
+            </span>
             <DataBadge provenance="VERIFIED_PUBLIC" />
           </div>
+          <h2 className="text-xl font-serif font-semibold text-[#fcfbf7] tracking-wide">
+            {L('Reports & Environmental Dossiers', 'சுற்றுச்சூழல் அறிக்கைகள் & தொகுப்புகள்')}
+          </h2>
           <p className="text-xs text-stone-300">
-            Export structured CSV datasets and generate publication-ready environmental dossiers for authorities and academic review.
+            {L(
+              'Search station audits, export live CSV tables, and print institutional hydrological briefs.',
+              'நிலையத் தணிக்கைகளைத் தேடி CSV கோப்புகளாகவும் அச்சு அறிக்கைகளாகவும் பதிவிறக்கவும்.'
+            )}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
+            type="button"
             onClick={handleExportCSV}
-            className="px-4 py-2 bg-[#0d2a1e] hover:bg-[#123828] text-emerald-300 border border-emerald-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-forest-sm"
+            className="px-4 py-2 bg-[#1e2320] hover:bg-[#272d29] text-[#d9c27a] border border-[#d9c27a]/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export Raw CSV</span>
+            <span>{L('Export Live CSV', 'CSV பதிவிறக்கு')}</span>
           </button>
           <button
-            onClick={handlePrintDossier}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-forest-sm"
+            type="button"
+            onClick={() => window.print()}
+            className="px-4 py-2 bg-[#d9c27a] hover:bg-[#e5d292] text-[#111513] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Print Dossier</span>
+            <span>{L('Print Dossier', 'அறிக்கை அச்சிடு')}</span>
           </button>
         </div>
       </div>
 
-      {downloadSuccess && (
-        <div className="p-3 bg-emerald-950 border border-emerald-500/40 rounded-lg text-xs text-emerald-300 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>CSV dataset downloaded successfully to your local machine!</span>
+      {errorMsg && (
+        <div className="p-4 rounded-xl bg-rose-950/60 border border-rose-500/40 text-xs text-rose-200 flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400" />
+            {errorMsg}
+          </span>
+          <button type="button" onClick={loadDossierData} className="px-3 py-1 rounded bg-rose-600 text-white font-semibold">
+            {L('Retry', 'மீண்டும் முயற்சி')}
+          </button>
         </div>
       )}
 
-      {/* Printable Executive Dossier Preview */}
-      <div className="p-8 bg-[#092218] border border-white/[0.08] rounded-2xl space-y-6 print:bg-white print:text-black">
-        {/* Document Header */}
-        <div className="border-b border-white/10 pb-5 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+      {downloadSuccess && (
+        <div className="p-3 bg-emerald-950/80 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{L('Live CSV dataset downloaded successfully.', 'நேரடி CSV தரவுத்தொகுப்பு பதிவிறக்கப்பட்டது.')}</span>
+        </div>
+      )}
+
+      {/* Printable Warm Ivory Dossier Sheet */}
+      <div className="p-6 sm:p-8 bg-[#f7f4eb] text-[#141917] border border-[#d8d0ba] rounded-2xl space-y-6 shadow-md">
+        <div className="border-b border-[#ded7c3] pb-5 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
-            <div className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest font-bold">EXECUTIVE ENVIRONMENTAL INTELLIGENCE DOSSIER</div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-white mt-1">Palar River Basin Hydrological Audit</h1>
-            <p className="text-xs text-stone-400 mt-1">Tamil Nadu, India • Generated: {new Date().toLocaleDateString()} • System ID: PG-2026-AUDIT</p>
+            <div className="text-[10px] font-mono text-[#8b6f26] uppercase tracking-[0.2em] font-bold">
+              {L('EXECUTIVE ENVIRONMENTAL INTELLIGENCE DOSSIER', 'நிர்வாக சுற்றுச்சூழல் நுண்ணறிவு அறிக்கை')}
+            </div>
+            <h1 className="text-2xl font-serif font-bold text-[#111815] mt-1">
+              {L('Palar River Basin Hydrological Audit', 'பாலாறு வடிநில நீரியல் தணிக்கை அறிக்கை')}
+            </h1>
+            <p className="text-xs text-[#54615a] mt-1 font-mono">
+              {L('Tamil Nadu, India', 'தமிழ்நாடு, இந்தியா')} · {new Date().toLocaleDateString()} · PG-2026-AUDIT
+            </p>
           </div>
-          <div className="shrink-0">
-            <span className="px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/30 font-mono text-xs font-bold whitespace-nowrap inline-block">
-              OFFICIAL BENCHMARK
-            </span>
+          <div className="relative w-full sm:w-64 print:hidden">
+            <Search className="w-3.5 h-3.5 text-[#66736c] absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={L('Filter station or district…', 'நிலையம் அல்லது மாவட்டம்…')}
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white border border-[#cfc6ad] text-xs text-[#111815] placeholder:text-[#7c8982] focus:outline-none focus:border-[#9e7f32]"
+            />
           </div>
         </div>
 
-        {/* Executive Summary Narrative */}
-        <div className="space-y-3 text-xs leading-relaxed text-stone-200">
-          <h3 className="text-sm font-bold text-emerald-300">1. Executive Summary & Basin Status</h3>
+        <div className="space-y-2 text-xs leading-relaxed text-[#2c3832]">
+          <h3 className="text-sm font-bold text-[#111815]">
+            {L('1. Catchment Summary & Verification Principle', '1. வடிநிலச் சுருக்கம் & சரிபார்ப்பு நெறிமுறை')}
+          </h3>
           <p>
-            The Palar River Catchment (17,810 km²) demonstrates critical spatial variance between upper industrial tannery clusters (Ambur, Vaniyambadi, Ranipet) and agrarian recharge reaches (Walajapet, Kanchipuram). Basin-wide groundwater depth averages 13.2 mbgl, reflecting a 0.6 m/yr accelerated pre-monsoon drawdown.
-          </p>
-          <p>
-            Statistical anomaly surveillance identified a Critical Total Chromium outlier (0.082 mg/L, Z-score 3.84) in the Ranipet industrial reach, prompting dispatch of field verification units.
+            {L(
+              'Across the 17,810 km² Palar catchment, upper industrial reaches (Ambur, Vaniyambadi, Ranipet) exhibit distinct salinity and chromium screening profiles compared to downstream agrarian tank cascades (Walajapet, Kanchipuram). All statistical anomalies trigger field verification workflows rather than automated regulatory rulings.',
+              '17,810 ச.கி.மீ பாலாறு வடிநிலத்தில் மேல் பகுதி தொழிற்பேட்டை மையங்களும் கீழ் பகுதி வேளாண் ஏரித் தொடர்களும் வேறுபட்ட நீர் தரப் பண்புகளைக் கொண்டுள்ளன. புள்ளிவிவர மாறுபாடுகள் அனைத்தும் கள ஆய்வுக்கு மட்டுமே அனுப்பப்படுகின்றன.'
+            )}
           </p>
         </div>
 
-        {/* Station Audit Table */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-bold text-emerald-300">2. Baseline Monitoring Station Summary</h3>
-          <table className="w-full text-left text-xs border border-white/10">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border border-[#dcd4be]">
             <thead>
-              <tr className="bg-white/5 border-b border-white/10 font-mono text-[11px] text-stone-300">
-                <th className="p-2.5">Station Name</th>
-                <th className="p-2.5">Basin Zone</th>
-                <th className="p-2.5 text-right">Risk (0-100)</th>
+              <tr className="bg-[#ece6d4] border-b border-[#d6ceb6] font-mono text-[11px] text-[#3c4842]">
+                <th className="p-2.5">{L('Station', 'நிலையம்')}</th>
+                <th className="p-2.5">{L('Zone', 'மண்டலம்')}</th>
+                <th className="p-2.5 text-right">{L('Risk (0-100)', 'இடர்')}</th>
                 <th className="p-2.5 text-right">TDS (mg/L)</th>
-                <th className="p-2.5 text-right">Chromium (mg/L)</th>
-                <th className="p-2.5 text-center">Confidence</th>
+                <th className="p-2.5 text-right">{L('Chromium', 'குரோமியம்')}</th>
+                <th className="p-2.5 text-center">{L('Confidence', 'நம்பகத்தன்மை')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.06] font-mono text-[11px]">
-              {WATER_QUALITY_STATIONS.map((st) => {
-                const loc = PALAR_LOCATIONS.find(l => l.id === st.location_id);
+            <tbody className="divide-y divide-[#e5decb] font-mono text-[11px]">
+              {filteredStations.map((loc) => {
+                const wq = waterQuality.find((w) => w.location_id === loc.id);
                 return (
-                  <tr key={st.location_id} className="hover:bg-white/[0.02]">
-                    <td className="p-2.5 font-sans font-bold text-white">{st.location_name}</td>
-                    <td className="p-2.5 text-stone-300">{loc?.basin_zone}</td>
-                    <td className="p-2.5 text-right text-amber-400 font-bold">{loc?.risk_score}</td>
-                    <td className="p-2.5 text-right text-stone-300">{st.tds_mg_l}</td>
-                    <td className={`p-2.5 text-right ${st.chromium_mg_l > 0.05 ? 'text-red-400 font-bold' : 'text-emerald-400'}`}>
-                      {st.chromium_mg_l}
+                  <tr key={loc.id} className="hover:bg-[#f0ebd9]">
+                    <td className="p-2.5 font-sans font-semibold text-[#111815]">{loc.name}</td>
+                    <td className="p-2.5 text-[#4e5b54]">{loc.basin_zone}</td>
+                    <td className="p-2.5 text-right font-bold text-[#9a6318] tabular-nums">{loc.risk_score}</td>
+                    <td className="p-2.5 text-right tabular-nums">{wq?.tds_mg_l ?? '—'}</td>
+                    <td className={`p-2.5 text-right tabular-nums ${(wq?.chromium_mg_l ?? 0) > 0.05 ? 'text-rose-700 font-bold' : 'text-teal-800'}`}>
+                      {wq?.chromium_mg_l ?? '—'}
                     </td>
-                    <td className="p-2.5 text-center">
-                      <DataBadge provenance={st.provenance} />
-                    </td>
+                    <td className="p-2.5 text-center text-[#36443d]">{loc.confidence_level}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-        </div>
-
-        {/* Limitations and Methodology Statement */}
-        <div className="p-4 bg-[#05160e] rounded-xl border border-white/[0.06] space-y-2 text-xs">
-          <h4 className="font-bold text-white">3. Methodological Limitations & Provenance Notice</h4>
-          <p className="text-[11px] text-stone-400 leading-relaxed">
-            Data synthesized from Central Ground Water Board (CGWB) observation wells, CPCB river stretch criteria, and India Meteorological Department precipitation series. Point monitoring records represent localized bore profiles and should not be extrapolated across unverified geological boundaries without on-ground geoelectric resistivity surveys.
-          </p>
-        </div>
-
-        {/* Signoff Strip */}
-        <div className="pt-6 border-t border-white/10 flex items-center justify-between text-xs text-stone-400 font-mono">
-          <div>Report prepared by: <strong>Kayalvizhi J (Founder & Project Lead)</strong></div>
-          <div>Chennai Institute of Technology</div>
         </div>
       </div>
     </div>

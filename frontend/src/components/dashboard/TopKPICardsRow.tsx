@@ -1,152 +1,143 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { Droplet, Waves, AlertTriangle, ShieldCheck, RefreshCw } from 'lucide-react';
+import { apiService } from '../../services/api';
+import { Droplet, Waves, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Reveal } from '../motion/motion';
 
 interface TopKPICardsRowProps {
   onRefreshData?: () => void;
   onSelectCard?: (cardId: string) => void;
+  refreshTrigger?: number;
 }
 
 export const TopKPICardsRow: React.FC<TopKPICardsRowProps> = ({
   onRefreshData,
-  onSelectCard
+  onSelectCard,
+  refreshTrigger = 0,
 }) => {
-  const { t } = useLanguage();
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState('10:24 AM');
+  const { t, lang } = useLanguage();
+  const L = (en: string, ta: string) => (lang === 'ta' ? ta : en);
 
-  const handleRefresh = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsRefreshing(true);
-    setTimeout(() => {
-      const now = new Date();
-      setLastUpdated(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-      setIsRefreshing(false);
+  const [summary, setSummary] = useState<any>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const loadSummary = async () => {
+    setErrorMsg(null);
+    try {
+      const data = await apiService.getAnalyticsSummary();
+      setSummary(data);
       onRefreshData?.();
-    }, 600);
+    } catch (err: any) {
+      setErrorMsg(err?.message || L('Backend API unavailable', 'சேவையகம் இணைக்கப்படவில்லை'));
+    }
   };
 
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 select-none">
-      
-      {/* 1. Rainfall KPI Card */}
-      <div 
-        onClick={() => onSelectCard?.('rainfall')}
-        className="rounded-2xl bg-[#061e15] border border-white/[0.08] p-4 hover:border-emerald-500/40 transition-all duration-200 cursor-pointer shadow-lg flex items-center gap-3.5 group"
-      >
-        <div className="w-12 h-12 rounded-xl bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-          <Droplet className="w-6 h-6 text-cyan-400 fill-cyan-400/30" />
-        </div>
-        <div className="min-w-0">
-          <span className="text-xs text-stone-300 font-medium block truncate">
-            {t('kpi_rainfall_title')}
-          </span>
-          <div className="text-xl font-black text-white font-mono tracking-tight my-0.5">
-            682 mm
-          </div>
-          <span className="text-[11px] text-emerald-400 font-medium block truncate">
-            {t('kpi_rainfall_sub')}
-          </span>
-        </div>
-      </div>
+  useEffect(() => {
+    loadSummary();
+  }, [refreshTrigger]);
 
-      {/* 2. Groundwater KPI Card */}
-      <div 
-        onClick={() => onSelectCard?.('groundwater')}
-        className="rounded-2xl bg-[#061e15] border border-white/[0.08] p-4 hover:border-emerald-500/40 transition-all duration-200 cursor-pointer shadow-lg flex items-center gap-3.5 group"
-      >
-        <div className="w-12 h-12 rounded-xl bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-          <Waves className="w-6 h-6 text-cyan-400" />
-        </div>
-        <div className="min-w-0">
-          <span className="text-xs text-stone-300 font-medium block truncate">
-            {t('kpi_groundwater_title')}
-          </span>
-          <div className="text-xl font-black text-white font-mono tracking-tight my-0.5">
-            76%
-          </div>
-          <span className="text-[11px] text-emerald-400 font-medium block truncate">
-            {t('kpi_groundwater_sub')}
-          </span>
-        </div>
-      </div>
-
-      {/* 3. Risk Level KPI Card (Alert Crimson styling from blueprint) */}
-      <div 
-        onClick={() => onSelectCard?.('risk_priority')}
-        className="rounded-2xl bg-[#140b0d] border border-red-500/40 p-4 hover:border-red-400 transition-all duration-200 cursor-pointer shadow-lg shadow-red-950/30 flex items-center gap-3.5 group"
-      >
-        <div className="w-12 h-12 rounded-xl bg-red-950/80 border border-red-500/40 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-          <AlertTriangle className="w-6 h-6 text-red-400 fill-red-400/20" />
-        </div>
-        <div className="min-w-0">
-          <span className="text-xs text-stone-300 font-medium block truncate">
-            {t('kpi_risk_title')}
-          </span>
-          <div className="text-lg sm:text-xl font-black text-amber-300 tracking-tight my-0.5 whitespace-nowrap">
-            {t('kpi_risk_val')}
-          </div>
-          <span className="text-[11px] text-amber-400/90 font-medium block whitespace-nowrap">
-            {t('kpi_risk_sub')}
-          </span>
-        </div>
-      </div>
-
-      {/* 4. Overall Reliability KPI Card */}
-      <div 
-        onClick={() => onSelectCard?.('confidence')}
-        className="rounded-2xl bg-[#061e15] border border-white/[0.08] p-4 hover:border-emerald-500/40 transition-all duration-200 cursor-pointer shadow-lg flex items-center gap-3.5 group"
-      >
-        <div className="w-12 h-12 rounded-xl bg-emerald-950/70 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-          <ShieldCheck className="w-6 h-6 text-emerald-400" />
-        </div>
-        <div className="min-w-0">
-          <span className="text-xs text-stone-300 font-medium block truncate">
-            {t('kpi_reliability_title')}
-          </span>
-          <div className="text-xl font-black text-white font-mono tracking-tight my-0.5">
-            95%
-          </div>
-          <span className="text-[11px] text-emerald-400 font-medium block truncate">
-            {t('kpi_reliability_sub')}
-          </span>
-        </div>
-      </div>
-
-      {/* 5. Direct / Live Data KPI Card */}
-      <div 
-        onClick={() => onSelectCard?.('digital_twin')}
-        className="rounded-2xl bg-[#061e15] border border-white/[0.08] p-4 hover:border-emerald-500/40 transition-all duration-200 cursor-pointer shadow-lg flex items-center justify-between gap-3 group"
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="relative flex items-center justify-center shrink-0">
-            <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="absolute w-5 h-5 rounded-full bg-emerald-500/30 animate-ping"></span>
-          </div>
-          <div className="min-w-0">
-            <span className="text-xs text-stone-300 font-medium block truncate">
-              {t('kpi_live_data_title')}
-            </span>
-            <div className="text-xl font-black text-white font-mono tracking-tight my-0.5">
-              {lastUpdated}
-            </div>
-            <span className="text-[10.5px] text-stone-400 block truncate">
-              {t('kpi_live_data_sub')}
-            </span>
-          </div>
-        </div>
-
+  if (errorMsg && !summary) {
+    return (
+      <div className="rounded-2xl border border-rose-500/40 bg-rose-950/50 p-4 flex flex-wrap items-center justify-between gap-3 text-xs text-rose-200">
+        <span>{errorMsg}</span>
         <button
-          onClick={handleRefresh}
-          className={`p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-stone-300 hover:text-white transition-all shrink-0 ${
-            isRefreshing ? 'animate-spin text-emerald-400' : ''
-          }`}
-          title="Refresh live basin telemetry"
+          type="button"
+          onClick={loadSummary}
+          className="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-semibold"
         >
-          <RefreshCw className="w-4 h-4" />
+          {L('Retry Summary', 'மீண்டும் முயற்சி')}
         </button>
       </div>
+    );
+  }
 
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+      <Reveal kind="fall" delay={0}>
+        <button
+          type="button"
+          onClick={() => onSelectCard?.('digital_twin')}
+          className="w-full h-full text-left rounded-2xl bg-[#071821]/90 border border-cyan-500/20 p-4 hover:border-cyan-400/50 transition-colors flex items-center gap-3.5"
+        >
+          <div className="w-11 h-11 rounded-xl bg-cyan-950/80 border border-cyan-500/35 flex items-center justify-center shrink-0">
+            <Droplet className="w-5 h-5 text-cyan-400" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-xs text-slate-300 block truncate">
+              {L('Monitored Stations', 'கண்காணிப்பு நிலையங்கள்')}
+            </span>
+            <div className="text-xl font-semibold text-white font-mono tabular-nums">
+              {summary ? summary.monitored_stations : '—'}
+            </div>
+            <span className="text-[11px] text-cyan-300 block truncate">{t('kpi_rainfall_sub')}</span>
+          </div>
+        </button>
+      </Reveal>
+
+      <Reveal kind="fall" delay={0.06}>
+        <button
+          type="button"
+          onClick={() => onSelectCard?.('groundwater')}
+          className="w-full h-full text-left rounded-2xl bg-[#071d1c]/90 border border-teal-500/20 p-4 hover:border-teal-400/50 transition-colors flex items-center gap-3.5"
+        >
+          <div className="w-11 h-11 rounded-xl bg-teal-950/80 border border-teal-500/35 flex items-center justify-center shrink-0">
+            <Waves className="w-5 h-5 text-teal-400" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-xs text-slate-300 block truncate">{t('kpi_groundwater_title')}</span>
+            <div className="text-xl font-semibold text-white font-mono tabular-nums">
+              {summary ? `${summary.basin_average_gw_mbgl} mbgl` : '—'}
+            </div>
+            <span className="text-[11px] text-teal-300 block truncate">{t('kpi_groundwater_sub')}</span>
+          </div>
+        </button>
+      </Reveal>
+
+      <Reveal kind="fall" delay={0.12}>
+        <button
+          type="button"
+          onClick={() => onSelectCard?.('risk_priority')}
+          className="w-full h-full text-left rounded-2xl bg-[#191012]/90 border border-rose-500/30 p-4 hover:border-rose-400/60 transition-colors flex items-center gap-3.5"
+        >
+          <div className="w-11 h-11 rounded-xl bg-rose-950/80 border border-rose-500/40 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-rose-400" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-xs text-slate-300 block truncate">{t('kpi_risk_title')}</span>
+            <div className="text-xl font-semibold text-amber-300 font-mono tabular-nums">
+              {summary?.highest_risk_station ? `${summary.highest_risk_station.risk_score}/100` : '—'}
+            </div>
+            <span className="text-[11px] text-amber-300/90 block truncate">
+              {summary?.highest_risk_station?.name || t('kpi_risk_sub')}
+            </span>
+          </div>
+        </button>
+      </Reveal>
+
+      <Reveal kind="fall" delay={0.18}>
+        <button
+          type="button"
+          onClick={() => onSelectCard?.('anomalies')}
+          className="w-full h-full text-left rounded-2xl bg-[#141320]/90 border border-violet-500/25 p-4 hover:border-violet-400/50 transition-colors flex items-center gap-3.5"
+        >
+          <div className="w-11 h-11 rounded-xl bg-violet-950/80 border border-violet-500/40 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-5 h-5 text-violet-300" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-xs text-slate-300 block truncate">
+              {L('Open Anomalies', 'திறந்த எச்சரிக்கைகள்')}
+            </span>
+            <div className="text-xl font-semibold text-white font-mono tabular-nums">
+              {summary ? summary.active_anomalies : '—'}
+            </div>
+            <span className="text-[11px] text-violet-300 block truncate">
+              {summary
+                ? `${summary.groundwater_observations_count} GW · ${summary.water_quality_observations_count} WQ`
+                : t('kpi_reliability_sub')}
+            </span>
+          </div>
+        </button>
+      </Reveal>
     </div>
   );
 };

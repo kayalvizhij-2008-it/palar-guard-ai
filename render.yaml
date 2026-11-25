@@ -1,3 +1,11 @@
+databases:
+  # Persistent Managed PostgreSQL for Render Deployment (prevents data loss on restart)
+  - name: palar-guard-db
+    region: singapore
+    plan: free
+    databaseName: palar_guard
+    user: palar_guard_user
+
 services:
   # FastAPI Environmental Intelligence Backend on Render
   - type: web
@@ -14,11 +22,14 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: DATABASE_URL
-        value: sqlite:///./palar_guard.db
+        fromDatabase:
+          name: palar-guard-db
+          property: connectionString
       - key: CORS_ORIGINS
-        value: "https://frontend-tau-kohl-99.vercel.app,https://frontend-6xbla5345-kayalvizhij-2008-its-projects.vercel.app,http://localhost:5173,http://127.0.0.1:5173"
+        value: "https://frontend-tau-kohl-99.vercel.app,https://frontend-6xbla5345-kayalvizhij-2008-its-projects.vercel.app"
       - key: SECRET_KEY
         generateValue: true
+      # Set INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD in Render Dashboard (or run python -m app.provision_admin)
 
   # Static Frontend on Render (Backup / Multi-Cloud Mirror)
   - type: web

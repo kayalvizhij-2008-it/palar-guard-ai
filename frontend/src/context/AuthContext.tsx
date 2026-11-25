@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, UserRole } from '../types';
+import { apiService } from '../services/api';
 
 export interface Organization {
   id: string;
@@ -20,63 +21,89 @@ interface AuthContextType {
   role: UserRole;
   organization: Organization;
   isAuthenticated: boolean;
-  login: (email: string, role?: UserRole) => void;
+  isLoadingSession: boolean;
+  loginWithCredentials: (email: string, password: string) => Promise<User>;
+  registerAccount: (fullName: string, email: string, password: string, role?: 'Community Reporter' | 'Viewer') => Promise<User>;
   logout: () => void;
-  switchRole: (newRole: UserRole) => void;
+  refreshSession: () => Promise<void>;
   switchOrganization: (orgId: string) => void;
 }
-
-const DEFAULT_USER: User = {
-  id: 1,
-  email: "admin@palarguard.ai",
-  full_name: "Kayalvizhi J",
-  role: "Administrator",
-  is_active: true
-};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(DEFAULT_USER);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoadingSession, setIsLoadingSession] = useState<boolean>(true);
   const [organization, setOrganization] = useState<Organization>(AVAILABLE_ORGANIZATIONS[0]);
 
-  const login = (email: string, role: UserRole = "Administrator") => {
-    const newUser: User = {
-      id: Math.floor(Math.random() * 1000) + 1,
-      email,
-      full_name: email.split('@')[0].toUpperCase(),
-      role,
-      is_active: true
-    };
-    setUser(newUser);
-  };
-
-  const logout = () => {
-    setUser(null);
-  };
-
-  const switchRole = (newRole: UserRole) => {
-    if (user) {
-      setUser({ ...user, role: newRole });
+  const refreshSession = async () => {
+    const token = localStorage.getItem('palar_token');
+    if (!token) {
+      setUser(null);
+      setIsLoadingSession(false);
+      return;
+    }
+    try {
+      const me = await apiService.getMe();
+      setUser(me);
+      localStorage.setItem('palar_user', JSON.stringify(me));
+    } catch {
+      localStorage.removeItem('palar_token');
+      localStorage.removeItem('palar_user');
+      setUser(null);
+    } finally {
+      setIsLoadingSession(false);
     }
   };
 
+  useEffect(() => {
+    refreshSession();
+  }, []);
+
+  const loginWithCredentials = async (email: string, password: string): Promise<User> => {
+    const res = await apiService.login(email, password);
+    setUser(res.user);
+    return res.user;
+  };
+
+  const registerAccount = async (
+    fullName: string,
+    email: string,
+    password: string,
+    role: 'Community Reporter' | 'Viewer' = 'Community Reporter'
+  ): Promise<User> => {
+    await apiService.register(fullName, email, password, role);
+    const loginRes = await apiService.login(email, password);
+    setUser(loginRes.user);
+    return loginRes.user;
+  };
+
+  const logout = () => {
+    localStorage.removeItem('palar_token');
+    localStorage.removeItem('palar_user');
+    setUser(null);
+  };
+
   const switchOrganization = (orgId: string) => {
-    const found = AVAILABLE_ORGANIZATIONS.find(o => o.id === orgId);
+    const found = AVAILABLE_ORGANIZATIONS.find((o) => o.id === orgId);
     if (found) setOrganization(found);
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      role: user?.role || "Viewer",
-      organization,
-      isAuthenticated: !!user,
-      login,
-      logout,
-      switchRole,
-      switchOrganization
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        role: (user?.role as UserRole) || 'Viewer',
+        organization,
+        isAuthenticated: !!user,
+        isLoadingSession,
+        loginWithCredentials,
+        registerAccount,
+        logout,
+        refreshSession,
+        switchOrganization,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

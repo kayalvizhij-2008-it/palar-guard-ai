@@ -1,738 +1,588 @@
-import React, { useState } from 'react';
-import { useLanguage } from '../../context/LanguageContext';
-import { PALAR_LOCATIONS, WATER_QUALITY_STATIONS, ANOMALIES_DATA } from '../../data/palarData';
-import { DataBadge } from '../common/DataBadge';
-import { apiService } from '../../services/api';
-import { 
-  Droplets, AlertTriangle, ShieldCheck, ShieldAlert, MapPin, 
-  Send, Upload, CheckCircle2, FileText, Info, 
-  ChevronRight, ArrowRight, HeartHandshake, Eye, 
-  Clock, HelpCircle, BookOpen, Search, PhoneCall
+import React, { useEffect, useState } from 'react';
+import {
+  Droplets,
+  AlertTriangle,
+  MapPin,
+  Send,
+  CheckCircle2,
+  FileText,
+  BookOpen,
+  HeartHandshake,
+  ShieldAlert,
+  HelpCircle,
+  RefreshCw,
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+import { apiService } from '../../services/api';
+import { PALAR_LOCATIONS, WATER_QUALITY_STATIONS, ANOMALIES_DATA, COMMUNITY_REPORTS_DATA } from '../../data/palarData';
+import { AnomalyAlertItem, CommunityReportItem, GroundwaterPoint, LocationData, WaterQualityPoint } from '../../types';
 
 interface CommunityDashboardProps {
   onSwitchToProfessional?: () => void;
   onSelectLocation?: (id: number) => void;
+  initialTab?: CommunityTab;
 }
 
-interface SubmittedReport {
-  id: string;
-  category: string;
-  location: string;
-  date: string;
-  status: 'Under Review' | 'Verified' | 'Action Recorded';
-  description: string;
-  notes?: string;
-}
+export type CommunityTab = 'near_you' | 'report' | 'understand' | 'my_reports' | 'alerts' | 'updates' | 'tips';
 
-export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({ 
+export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
   onSwitchToProfessional,
-  onSelectLocation 
+  initialTab = 'near_you',
 }) => {
   const { lang } = useLanguage();
-  const [selectedStationId, setSelectedStationId] = useState<number>(1); // Default to Ranipet
-  const [activeTab, setActiveTab] = useState<'overview' | 'report' | 'tracker' | 'alerts' | 'learn' | 'updates'>('overview');
+  const { user, isAuthenticated } = useAuth();
+  const L = (en: string, ta: string) => (lang === 'ta' ? ta : en);
 
-  // Reporting Form State
-  const [reportCategory, setReportCategory] = useState<string>('Unusual Water Color & Odor');
+  const [activeTab, setActiveTab] = useState<CommunityTab>(initialTab);
+  const [locations, setLocations] = useState<LocationData[]>([]);
+  const [qualityRows, setQualityRows] = useState<WaterQualityPoint[]>([]);
+  const [gwRows, setGwRows] = useState<GroundwaterPoint[]>([]);
+  const [anomalies, setAnomalies] = useState<AnomalyAlertItem[]>([]);
+  const [reports, setReports] = useState<CommunityReportItem[]>([]);
+  const [selectedStationId, setSelectedStationId] = useState<number>(1);
+
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  // Report form
+  const [reportCategory, setReportCategory] = useState('Well Depletion');
   const [reportLocationId, setReportLocationId] = useState<number>(1);
-  const [reportDescription, setReportDescription] = useState<string>('');
-  const [reporterName, setReporterName] = useState<string>('');
-  const [reporterPhone, setReporterPhone] = useState<string>('');
-  const [photoUploaded, setPhotoUploaded] = useState<boolean>(false);
-  const [submittedRefId, setSubmittedRefId] = useState<string | null>(null);
+  const [reportDescription, setReportDescription] = useState('');
+  const [reporterName, setReporterName] = useState(user?.full_name || '');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
 
-  // Community Reports List
-  const [userReports, setUserReports] = useState<SubmittedReport[]>([
-    {
-      id: 'PLR-2026-COMM-8492',
-      category: 'Unusual Water Color & Odor',
-      location: 'Ranipet Industrial Corridor',
-      date: '2026-11-24',
-      status: 'Verified',
-      description: 'Yellowish-brown froth observed downstream of industrial drain near check dam.',
-      notes: 'Field team dispatched with mobile photometer; sample verified for elevated Chromium.'
-    },
-    {
-      id: 'PLR-2026-COMM-7104',
-      category: 'Borewell Dry Spell',
-      location: 'Ambur Tannery Cluster',
-      date: '2026-11-20',
-      status: 'Action Recorded',
-      description: 'Agricultural well water table plunged beyond 18 mbgl within 3 weeks.',
-      notes: 'Recorded in seasonal drawdown database; recharge shaft feasibility recommended.'
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  const loadCommunityData = async () => {
+    setLoading(true);
+    setApiError(null);
+    setIsDemoMode(false);
+    try {
+      const [locs, wq, anoms, reps] = await Promise.all([
+        apiService.getLocations(),
+        apiService.getWaterQuality(),
+        apiService.getAnomalies(),
+        isAuthenticated ? apiService.getMyCommunityReports() : apiService.getCommunityReports(),
+      ]);
+      setLocations(locs);
+      setQualityRows(wq);
+      setAnomalies(anoms);
+      setReports(reps);
+      if (locs.length > 0) {
+        const gw = await apiService.getGroundwaterRecords(selectedStationId || locs[0].id);
+        setGwRows(gw);
+      }
+    } catch (err: any) {
+      setApiError(
+        err?.message ||
+          L(
+            'Unable to connect to PALAR GUARD AI backend server.',
+            'PALAR GUARD AI சேவையகத்துடன் இணைக்க முடியவில்லை.'
+          )
+      );
+    } finally {
+      setLoading(false);
     }
-  ]);
-
-  const selectedLoc = PALAR_LOCATIONS.find(l => l.id === selectedStationId) || PALAR_LOCATIONS[0];
-  const selectedWq = WATER_QUALITY_STATIONS.find(w => w.location_id === selectedStationId);
-  const selectedAlert = ANOMALIES_DATA.find(a => a.location_id === selectedStationId && a.status === 'Open');
-
-  // Handle Citizen Report Submission
-  const handleReportSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reportDescription.trim()) return;
-
-    const loc = PALAR_LOCATIONS.find(l => l.id === reportLocationId) || PALAR_LOCATIONS[0];
-    const generatedId = `PLR-2026-COMM-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const newReport: SubmittedReport = {
-      id: generatedId,
-      category: reportCategory,
-      location: loc.name,
-      date: new Date().toISOString().split('T')[0],
-      status: 'Under Review',
-      description: reportDescription,
-      notes: 'Submitted to Palar Basin field verification triage queue.'
-    };
-
-    setUserReports([newReport, ...userReports]);
-    setSubmittedRefId(generatedId);
-    setReportDescription('');
-    setPhotoUploaded(false);
-
-    // Call backend API
-    apiService.submitCommunityReport({
-      reporter_name: reporterName || 'Community Citizen',
-      location_id: loc.id,
-      incident_type: reportCategory,
-      description: reportDescription,
-      latitude: loc.latitude,
-      longitude: loc.longitude
-    });
   };
 
+  useEffect(() => {
+    loadCommunityData();
+  }, [isAuthenticated, selectedStationId]);
+
+  const enableExplicitDemo = () => {
+    setIsDemoMode(true);
+    setApiError(null);
+    setLocations(PALAR_LOCATIONS);
+    setQualityRows(WATER_QUALITY_STATIONS);
+    setAnomalies(ANOMALIES_DATA);
+    setReports(COMMUNITY_REPORTS_DATA);
+  };
+
+  const handleReportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (reportDescription.trim().length < 5) {
+      setApiError(L('Please enter at least 5 characters describing the issue.', 'குறைந்தது 5 எழுத்துகளில் விவரத்தை உள்ளிடவும்.'));
+      return;
+    }
+    setSubmitting(true);
+    setApiError(null);
+    setSubmitMessage(null);
+    try {
+      const loc = locations.find((l) => l.id === reportLocationId);
+      const created = await apiService.submitCommunityReport({
+        reporter_name: reporterName.trim() || user?.full_name || 'Community Citizen',
+        location_id: reportLocationId,
+        category: reportCategory,
+        description: reportDescription.trim(),
+        latitude: loc?.latitude,
+        longitude: loc?.longitude,
+      });
+      setReports((prev) => [created, ...prev]);
+      setReportDescription('');
+      setSubmitMessage(
+        L(
+          `Report #${created.id} submitted with status "${created.status}".`,
+          `புகார் #${created.id} "${created.status}" நிலையில் பதிவு செய்யப்பட்டது.`
+        )
+      );
+    } catch (err: any) {
+      setApiError(err?.message || L('Could not submit report to backend.', 'புகாரைப் பதிவு செய்ய முடியவில்லை.'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const selectedLoc = locations.find((l) => l.id === selectedStationId) || locations[0];
+  const selectedWq = qualityRows.find((w) => w.location_id === selectedStationId);
+  const latestGw = gwRows[gwRows.length - 1];
+  const localAlerts = anomalies.filter((a) => a.location_id === selectedStationId && a.status !== 'Dismissed');
+
+  const tabs: { id: CommunityTab; label: string }[] = [
+    { id: 'near_you', label: L('Water Near You', 'உங்கள் பகுதி நீர்') },
+    { id: 'report', label: L('Report Water Issue', 'புகார் பதிவு') },
+    { id: 'understand', label: L('Understand Your Water', 'நீரைப் புரிந்துகொள்க') },
+    { id: 'my_reports', label: L('My Reports', 'என் புகார்கள்') },
+    { id: 'alerts', label: L('Alerts', 'எச்சரிக்கைகள்') },
+    { id: 'updates', label: L('Community Updates', 'மக்கள் செய்திகள்') },
+    { id: 'tips', label: L('Conservation Tips', 'நீர் சேமிப்பு') },
+  ];
+
   return (
-    <div className="space-y-6 animate-fade-in text-left">
-      {/* 1. Welcome Banner & Mode Awareness */}
-      <div className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#042115] via-[#072e1e] to-[#051c12] border border-emerald-500/30 shadow-forest-lg overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-4">
-          <div className="max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/40 text-xs font-mono text-emerald-300">
-              <HeartHandshake className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{lang === 'ta' ? 'உங்கள் நீர். உங்கள் சமூகம். உங்கள் குரல்.' : 'YOUR WATER. YOUR COMMUNITY. YOUR VOICE.'}</span>
-            </div>
-
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              {lang === 'ta' 
-                ? 'உங்கள் பகுதி நீர் நிலவரம் & பாதுகாப்பு' 
-                : 'Palar Community Water Intelligence'}
-            </h1>
-
-            <p className="text-sm sm:text-base text-stone-300 leading-relaxed max-w-2xl">
-              {lang === 'ta'
-                ? 'எளிய மொழியில் பாலாற்று படுகை நிலத்தடி நீர் நிலை, குடிநீர் பாதுகாப்பு மற்றும் உடனடி நீர் பிரச்சனை புகார்கள் பதிவு செய்யும் இடம்.'
-                : 'Clear water health insights for farmers, residents, and citizens. Check your local water levels, understand drinking safety, track alerts, and submit water issues with verified triage.'}
-            </p>
-
-            {/* 6 Quick Sub-Navigation Pills */}
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <button
-                onClick={() => setActiveTab('overview')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  activeTab === 'overview'
-                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-                }`}
-              >
-                <Droplets className="w-3.5 h-3.5" />
-                <span>{lang === 'ta' ? 'உள்ளூர் நீர் நிலை' : 'Local Water Info'}</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('report')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  activeTab === 'report'
-                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-                }`}
-              >
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                <span>{lang === 'ta' ? 'புகார் பதிவு செய்ய' : 'Report a Problem'}</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('tracker')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  activeTab === 'tracker'
-                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-                }`}
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>{lang === 'ta' ? 'என் புகார்கள்' : 'My Reports'} ({userReports.length})</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('alerts')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  activeTab === 'alerts'
-                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-                }`}
-              >
-                <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
-                <span>{lang === 'ta' ? 'அவசர எச்சரிக்கைகள்' : 'Alerts'}</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('learn')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  activeTab === 'learn'
-                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                <span>{lang === 'ta' ? 'வழிகாட்டி & சேமிப்பு' : 'Learn'}</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('updates')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  activeTab === 'updates'
-                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-                }`}
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{lang === 'ta' ? 'கள நடவடிக்கைகள்' : 'Community Updates'}</span>
-              </button>
-            </div>
+    <div className="space-y-6 text-left">
+      {/* Header Banner */}
+      <div className="rounded-2xl border border-emerald-500/25 bg-[#081f15] p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-2 text-xs font-mono text-[#10b981]">
+            <HeartHandshake className="w-4 h-4" />
+            <span>{L('COMMUNITY WATER PORTAL · SIMPLE & ACCESSIBLE', 'மக்கள் நீர் பலகம் · எளிய தமிழ் & ஆங்கிலம்')}</span>
           </div>
-
-          {/* Top Right Switcher to Professional Mode (Flex-safe) */}
-          {onSwitchToProfessional && (
-            <div className="flex-shrink-0 pt-1">
-              <button
-                onClick={onSwitchToProfessional}
-                className="px-4 py-2.5 rounded-xl bg-[#092b1d] hover:bg-[#0c3926] text-emerald-300 border border-emerald-500/40 text-xs font-semibold flex items-center gap-2 shadow-forest-sm transition-colors"
-              >
-                <span>{lang === 'ta' ? 'தொழில்முறை ஆய்வு பலகம் →' : 'Switch to Professional Workspace →'}</span>
-              </button>
-            </div>
-          )}
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[#fcfbf7]">
+            {L('Your Neighbourhood Water Guide', 'உங்கள் பகுதி நீர் வழிகாட்டி')}
+          </h1>
+          <p className="text-xs sm:text-sm text-[#a4b2a9] leading-relaxed">
+            {L(
+              'Check local borewell depth and drinking-water safety in plain language, report problems directly, and follow conservation guidance.',
+              'உங்கள் பகுதி கிணற்று நீர் ஆழம் மற்றும் குடிநீர் பாதுகாப்பை எளிய மொழியில் பார்த்து, நீர் பிரச்சனைகளை உடனடியாகப் புகார் செய்யுங்கள்.'
+            )}
+          </p>
         </div>
+
+        {onSwitchToProfessional && (
+          <button
+            type="button"
+            onClick={onSwitchToProfessional}
+            className="self-start lg:self-center shrink-0 px-4 py-2.5 rounded-xl bg-[#05140d] hover:bg-[#0d2d1f] border border-[#d9c27a]/40 text-xs font-medium text-[#fcfbf7] transition-colors"
+          >
+            {L('Switch to Professional Workspace →', 'தொழில்முறை பலகத்திற்கு மாறு →')}
+          </button>
+        )}
       </div>
 
-      {/* ============================================================ */}
-      {/* TAB 1: WATER SITUATION NEAR YOU */}
-      {/* ============================================================ */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6">
-          {/* Location Selector Bar */}
-          <div className="p-4 rounded-2xl bg-[#061b12] border border-white/10 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-emerald-400" />
-              <div>
-                <span className="text-xs text-stone-400 font-mono">Select Your District / Reach:</span>
-                <div className="text-sm font-bold text-white">{selectedLoc.name} ({selectedLoc.district} District)</div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {PALAR_LOCATIONS.slice(0, 5).map(loc => {
-                const shortLabel = loc.name.replace(' Industrial Corridor', '').replace(' Tannery Cluster', '').replace(' Cantonment', '');
-                return (
-                  <button
-                    key={loc.id}
-                    onClick={() => setSelectedStationId(loc.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      selectedStationId === loc.id
-                        ? 'bg-emerald-600 text-white shadow-forest-sm'
-                        : 'bg-[#09251a] hover:bg-[#0c3122] text-stone-300 border border-white/5'
-                    }`}
-                  >
-                    {shortLabel}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Simple Human-Readable Status Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* 1. Water Table Depth */}
-            <div className="p-6 rounded-2xl bg-[#072116] border border-white/10 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-emerald-400">GROUNDWATER DEPTH</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-500/30">
-                  CGWB VERIFIED
-                </span>
-              </div>
-              <div className="text-3xl font-extrabold text-white">
-                {selectedStationId === 1 ? '14.9 m' : '11.8 m'}
-                <span className="text-sm font-normal text-stone-300 ml-2">below ground</span>
-              </div>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                {selectedStationId === 1
-                  ? 'Deep water table. Local borewells must reach 50+ feet to draw water. Pre-monsoon drop of 0.6m per year.'
-                  : 'Moderate water table. Normal recharge response following monsoon rains.'}
-              </p>
-              <div className="pt-2 flex items-center gap-2 text-xs text-emerald-400 font-semibold">
-                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span>{selectedStationId === 1 ? 'Status: Heavy Extraction' : 'Status: Stable Recharge'}</span>
-              </div>
-            </div>
-
-            {/* 2. Water Quality for Drinking / Daily Use */}
-            <div className="p-6 rounded-2xl bg-[#072116] border border-white/10 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-amber-400">WATER QUALITY & SAFETY</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-950 text-amber-300 border border-amber-500/30">
-                  SURVEILLANCE
-                </span>
-              </div>
-              <div className="text-3xl font-extrabold text-white">
-                {selectedWq ? `${selectedWq.tds_mg_l} mg/L` : '780 mg/L'}
-                <span className="text-sm font-normal text-stone-300 ml-2">TDS Minerals</span>
-              </div>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                {selectedStationId === 1
-                  ? 'Elevated minerals and industrial discharges detected. Filter or boil before drinking. Not advised for raw consumption.'
-                  : 'Acceptable mineral balance for domestic use. Complies with rural standards.'}
-              </p>
-              <div className="pt-2 flex items-center gap-2 text-xs font-semibold">
-                <span className={`w-2 h-2 rounded-full ${selectedStationId === 1 ? 'bg-rose-500' : 'bg-emerald-400'}`}></span>
-                <span className={selectedStationId === 1 ? 'text-rose-400' : 'text-emerald-400'}>
-                  {selectedStationId === 1 ? 'Requires Filtration (TDS > 1500)' : 'Safe for General Use'}
-                </span>
-              </div>
-            </div>
-
-            {/* 3. Monsoon & Rainfall Outlook */}
-            <div className="p-6 rounded-2xl bg-[#072116] border border-white/10 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-cyan-400">RAINFALL & RECHARGE</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-950 text-cyan-300 border border-cyan-500/30">
-                  IMD MONITORED
-                </span>
-              </div>
-              <div className="text-3xl font-extrabold text-white">
-                682 mm
-                <span className="text-sm font-normal text-stone-300 ml-2">(+12% above normal)</span>
-              </div>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Favorable Northeast monsoon replenishment across the middle basin. Soil moisture saturation supports natural percolation.
-              </p>
-              <div className="pt-2 flex items-center gap-2 text-xs text-cyan-400 font-semibold">
-                <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
-                <span>Active Aquifer Replenishment</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Active Local Warning Banner if present */}
-          {selectedAlert && (
-            <div className="p-5 rounded-2xl bg-amber-950/70 border border-amber-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-amber-900/80 text-amber-300 shrink-0 mt-0.5 sm:mt-0">
-                  <AlertTriangle className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wide">
-                    COMMUNITY ADVISORY · {selectedLoc.name.toUpperCase()}
-                  </div>
-                  <h4 className="text-base font-bold text-white mt-0.5">{selectedAlert.trigger_reason}</h4>
-                  <p className="text-xs text-stone-300 mt-1 max-w-2xl">
-                    Environmental sensors identified anomalous chemical concentration in nearby drain outflows. Public advised to avoid direct borewell extraction for drinking without reverse-osmosis filtration.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setActiveTab('report')}
-                className="shrink-0 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-colors"
-              >
-                Report Related Concern →
-              </button>
-            </div>
-          )}
+      {/* Explicit Demo Data Disclosure */}
+      {isDemoMode && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-950/50 p-3.5 text-xs text-amber-200 flex flex-wrap items-center justify-between gap-3">
+          <span>
+            <strong>SYNTHETIC DEMONSTRATION DATA — NOT A REAL ENVIRONMENTAL MEASUREMENT.</strong>{' '}
+            {L('Showing offline sample records because the backend API is unreachable.', 'சேவையகம் இணைக்கப்படாததால் மாதிரி டெமோ தரவு காட்டப்படுகிறது.')}
+          </span>
+          <button
+            type="button"
+            onClick={loadCommunityData}
+            className="px-3 py-1 rounded bg-amber-500 text-black font-semibold inline-flex items-center gap-1"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>{L('Reconnect API', 'மீண்டும் இணை')}</span>
+          </button>
         </div>
       )}
 
-      {/* ============================================================ */}
-      {/* TAB 2: REPORT A WATER PROBLEM (CITIZEN REPORTING) */}
-      {/* ============================================================ */}
+      {/* Clear Error & Retry Banner */}
+      {apiError && (
+        <div className="rounded-xl border border-rose-500/40 bg-rose-950/60 p-4 text-xs text-rose-200 flex flex-wrap items-center justify-between gap-3">
+          <span>{apiError}</span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={loadCommunityData}
+              className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold"
+            >
+              {L('Retry Connection', 'மீண்டும் முயற்சி')}
+            </button>
+            <button
+              type="button"
+              onClick={enableExplicitDemo}
+              className="px-3 py-1.5 rounded-lg border border-amber-400/50 text-amber-200 hover:bg-amber-950/50"
+            >
+              {L('Load Synthetic Demo Data', 'மாதிரி டெமோ தரவைக் காட்டு')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Sub-navigation Tabs */}
+      <nav aria-label={L('Community sections', 'மக்கள் பகுதிகள்')} className="flex flex-wrap gap-2">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+              activeTab === tab.id
+                ? 'bg-[#10b981] text-[#041a11] font-semibold'
+                : 'bg-[#081b13] text-[#a4b2a9] border border-white/10 hover:text-[#fcfbf7]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      {/* 1. WATER NEAR YOU */}
+      {activeTab === 'near_you' && (
+        <div className="space-y-5">
+          {loading ? (
+            <div className="p-8 rounded-2xl bg-[#081b13] border border-white/10 text-xs text-[#a4b2a9]">
+              {L('Loading local basin observations...', 'உங்கள் பகுதி நீர் விவரங்கள் ஏற்றப்படுகின்றன...')}
+            </div>
+          ) : selectedLoc ? (
+            <>
+              <div className="rounded-2xl border border-white/10 bg-[#081b13] p-5 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-2.5">
+                  <MapPin className="w-5 h-5 text-[#10b981]" />
+                  <div>
+                    <div className="text-[11px] font-mono text-[#85928a]">{L('SELECT YOUR AREA', 'உங்கள் பகுதியைத் தேர்ந்தெடுக்கவும்')}</div>
+                    <div className="text-base font-semibold text-[#fcfbf7]">
+                      {selectedLoc.name} · {selectedLoc.district}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {locations.map((loc) => (
+                    <button
+                      key={loc.id}
+                      type="button"
+                      onClick={() => setSelectedStationId(loc.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                        selectedStationId === loc.id
+                          ? 'bg-[#10b981] text-[#041a11] font-semibold'
+                          : 'bg-[#05140d] text-[#a4b2a9] border border-white/10 hover:text-white'
+                      }`}
+                    >
+                      {loc.district} ({loc.name.split(' ')[0]})
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="rounded-2xl border border-white/10 bg-[#081b13] p-6 space-y-3">
+                  <div className="text-xs font-mono text-[#10b981]">{L('WELL WATER DEPTH', 'கிணற்று நீர் ஆழம்')}</div>
+                  <div className="text-3xl font-semibold text-[#fcfbf7] tabular-nums">
+                    {latestGw ? `${latestGw.depth_mbgl} m` : '—'}
+                  </div>
+                  <p className="text-xs text-[#a4b2a9] leading-relaxed">
+                    {latestGw && latestGw.depth_mbgl > 14
+                      ? L('Water lies deep below ground. Plan irrigation carefully before summer.', 'நிலத்தடி நீர் ஆழத்தில் உள்ளது. கோடைகாலத்தில் சிக்கனமாகப் பயன்படுத்தவும்.')
+                      : L('Moderate water table depth for this reach.', 'இந்தப் பகுதியில் நிலத்தடி நீர் மிதமான ஆழத்தில் உள்ளது.')}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-[#081b13] p-6 space-y-3">
+                  <div className="text-xs font-mono text-[#d9c27a]">{L('DRINKING WATER SAFETY', 'குடிநீர் பாதுகாப்பு')}</div>
+                  <div className="text-xl font-semibold text-[#fcfbf7]">
+                    {selectedWq && (selectedWq.chromium_mg_l > 0.05 || selectedWq.tds_mg_l > 1500)
+                      ? L('Filter / RO Required', 'வடிகட்டி / RO அவசியம்')
+                      : L('Within Permissible Range', 'அனுமதிக்கப்பட்ட வரம்பிற்குள்')}
+                  </div>
+                  <p className="text-xs text-[#a4b2a9] leading-relaxed tabular-nums">
+                    {selectedWq
+                      ? L(
+                          `Dissolved minerals (TDS): ${selectedWq.tds_mg_l} mg/L. Chromium: ${selectedWq.chromium_mg_l} mg/L.`,
+                          `கரைந்த உப்புகள் (TDS): ${selectedWq.tds_mg_l} mg/L. குரோமியம்: ${selectedWq.chromium_mg_l} mg/L.`
+                        )
+                      : L('No recent laboratory water-quality record loaded.', 'சமீபத்திய நீர் தரப் பதிவு இல்லை.')}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-[#081b13] p-6 space-y-3">
+                  <div className="text-xs font-mono text-[#0891b2]">{L('LOCAL ADVISORIES', 'உள்ளூர் எச்சரிக்கைகள்')}</div>
+                  <div className="text-xl font-semibold text-[#fcfbf7] tabular-nums">
+                    {localAlerts.length} {L('Active Notice(s)', 'எச்சரிக்கை(கள்)')}
+                  </div>
+                  <p className="text-xs text-[#a4b2a9] leading-relaxed">
+                    {localAlerts[0]
+                      ? localAlerts[0].trigger_reason
+                      : L('No open anomaly alerts currently logged for this station.', 'தற்போது இந்த நிலையத்தில் திறந்த எச்சரிக்கைகள் இல்லை.')}
+                  </p>
+                </div>
+              </div>
+            </>
+          ) : null}
+        </div>
+      )}
+
+      {/* 2. REPORT WATER ISSUE */}
       {activeTab === 'report' && (
-        <div className="p-6 sm:p-8 rounded-3xl bg-[#061d13] border border-white/10 space-y-6">
-          <div className="max-w-2xl space-y-2">
-            <h2 className="text-2xl font-bold text-white">Report a Water Problem</h2>
-            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-              Observed unusual water discoloration, foul tannery smell, sudden borewell failure, or illegal pipe discharge into Palar riverbed? Submit an incident report below. Your report is verified by science and field investigators.
+        <div className="rounded-2xl border border-white/10 bg-[#081b13] p-6 sm:p-8 max-w-2xl space-y-5">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold text-[#fcfbf7]">
+              {L('Report a Water Issue', 'நீர் பிரச்சனையைப் புகார் செய்யவும்')}
+            </h2>
+            <p className="text-xs text-[#a4b2a9]">
+              {L(
+                'Describe dried borewells, discolored river water, or chemical odors. Reports are saved to the database for triage.',
+                'கிணறு வற்றுதல், நீர் நிறமாற்றம் அல்லது துர்நாற்றம் குறித்துப் புகார் அளிக்கவும்.'
+              )}
             </p>
           </div>
 
-          {submittedRefId && (
-            <div className="p-5 rounded-2xl bg-emerald-950/80 border border-emerald-500/50 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                <span>Report Submitted Successfully!</span>
-              </div>
-              <p className="text-xs text-stone-200">
-                Your report has been logged with reference number: <strong className="text-emerald-300 font-mono text-sm">{submittedRefId}</strong>.
-                You can track field review updates under the <button onClick={() => setActiveTab('tracker')} className="underline text-emerald-400 font-bold">My Reports</button> tab.
-              </p>
+          {submitMessage && (
+            <div className="p-4 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-xs text-emerald-200 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{submitMessage}</span>
             </div>
           )}
 
-          <form onSubmit={handleReportSubmit} className="space-y-5 max-w-2xl">
-            {/* 1. Category */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-stone-300">1. Problem Category</label>
+          <form onSubmit={handleReportSubmit} className="space-y-4 text-xs">
+            <div>
+              <label className="block text-[#a4b2a9] mb-1">{L('Issue Category', 'பிரச்சனை வகை')}</label>
               <select
                 value={reportCategory}
                 onChange={(e) => setReportCategory(e.target.value)}
-                className="w-full p-3 rounded-xl bg-[#03110a] border border-white/10 text-white text-xs font-medium focus:outline-none focus:border-emerald-500"
+                className="w-full p-2.5 rounded-xl bg-[#05140d] border border-white/10 text-[#fcfbf7]"
               >
-                <option value="Unusual Water Color & Odor">Unusual Water Color & Odor (Yellow/Brown/Chemical)</option>
-                <option value="Suspected Industrial / Tannery Discharge">Suspected Industrial / Tannery Discharge</option>
-                <option value="Sudden Borewell Water Table Depletion">Sudden Borewell Water Table Depletion (Water ran dry)</option>
-                <option value="Damaged Check Dam or Sluice Gate">Damaged Check Dam or Sluice Gate</option>
-                <option value="Illegal Sand Mining in Riverbed">Illegal Sand Mining in Riverbed</option>
+                <option value="Well Depletion">{L('Well / Borewell Depletion', 'கிணறு / ஆழ்துளை கிணறு வற்றுதல்')}</option>
+                <option value="Effluent Discoloration">{L('Water Discoloration', 'நீர் நிறமாற்றம்')}</option>
+                <option value="Odor/Foaming">{L('Chemical Odor / Foaming', 'துர்நாற்றம் / நுரை')}</option>
+                <option value="Sand Mining">{L('Riverbed Disturbance / Sand Mining', 'ஆற்றுப்படுகை பாதிப்பு')}</option>
               </select>
             </div>
 
-            {/* 2. Location */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-stone-300">2. Nearest Town / Basin Location</label>
+            <div>
+              <label className="block text-[#a4b2a9] mb-1">{L('Nearest Palar Station', 'அருகிலுள்ள பகுதி')}</label>
               <select
                 value={reportLocationId}
                 onChange={(e) => setReportLocationId(Number(e.target.value))}
-                className="w-full p-3 rounded-xl bg-[#03110a] border border-white/10 text-white text-xs font-medium focus:outline-none focus:border-emerald-500"
+                className="w-full p-2.5 rounded-xl bg-[#05140d] border border-white/10 text-[#fcfbf7]"
               >
-                {PALAR_LOCATIONS.map(loc => (
+                {(locations.length ? locations : PALAR_LOCATIONS).map((loc) => (
                   <option key={loc.id} value={loc.id}>
-                    {loc.name} — {loc.district} District ({loc.basin_zone})
+                    {loc.name} — {loc.district}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* 3. Description */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-stone-300">3. Problem Details</label>
-              <textarea
-                rows={4}
-                value={reportDescription}
-                onChange={(e) => setReportDescription(e.target.value)}
-                placeholder="Describe what you observed (time of day, color, smell, affected wells, approximate landmark)..."
-                className="w-full p-3 rounded-xl bg-[#03110a] border border-white/10 text-white text-xs font-medium placeholder-stone-500 focus:outline-none focus:border-emerald-500"
-                required
+            <div>
+              <label className="block text-[#a4b2a9] mb-1">{L('Your Name (Optional)', 'உங்கள் பெயர் (விருப்பம்)')}</label>
+              <input
+                type="text"
+                value={reporterName}
+                onChange={(e) => setReporterName(e.target.value)}
+                placeholder={L('Anonymous Citizen', 'பொதுமக்கள்')}
+                className="w-full p-2.5 rounded-xl bg-[#05140d] border border-white/10 text-[#fcfbf7]"
               />
             </div>
 
-            {/* 4. Optional Photo Upload */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-stone-300">4. Attach Photo (Optional)</label>
-              <div 
-                onClick={() => setPhotoUploaded(!photoUploaded)}
-                className={`p-4 rounded-xl border border-dashed cursor-pointer text-center transition-colors ${
-                  photoUploaded 
-                    ? 'bg-emerald-950/40 border-emerald-500 text-emerald-300' 
-                    : 'bg-[#03110a] border-white/20 hover:border-emerald-500/50 text-stone-400'
-                }`}
-              >
-                <Upload className="w-5 h-5 mx-auto mb-1 text-emerald-400" />
-                <span className="text-xs font-medium">
-                  {photoUploaded ? '✓ Photo selected (palar_water_sample.jpg)' : 'Click to attach photo or field observation snapshot'}
-                </span>
-              </div>
-            </div>
-
-            {/* 5. Reporter Contact Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-stone-300">Your Name (Optional)</label>
-                <input
-                  type="text"
-                  value={reporterName}
-                  onChange={(e) => setReporterName(e.target.value)}
-                  placeholder="Anonymous or Your Name"
-                  className="w-full p-2.5 rounded-xl bg-[#03110a] border border-white/10 text-white text-xs placeholder-stone-500 focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-stone-300">Phone Number (For verification updates)</label>
-                <input
-                  type="tel"
-                  value={reporterPhone}
-                  onChange={(e) => setReporterPhone(e.target.value)}
-                  placeholder="+91 XXXXX XXXXX"
-                  className="w-full p-2.5 rounded-xl bg-[#03110a] border border-white/10 text-white text-xs placeholder-stone-500 focus:outline-none focus:border-emerald-500"
-                />
-              </div>
+            <div>
+              <label className="block text-[#a4b2a9] mb-1">{L('What did you observe?', 'நீங்கள் கண்ட விவரம்')}</label>
+              <textarea
+                rows={4}
+                required
+                minLength={5}
+                value={reportDescription}
+                onChange={(e) => setReportDescription(e.target.value)}
+                placeholder={L('Describe landmark, color, odor, or well depth...', 'அடையாளம், நிறம், மணம் அல்லது கிணற்று ஆழம் குறித்து எழுதுங்கள்...')}
+                className="w-full p-2.5 rounded-xl bg-[#05140d] border border-white/10 text-[#fcfbf7]"
+              />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#061811] font-bold text-sm shadow-emerald-glow transition-all flex items-center justify-center gap-2"
+              disabled={submitting}
+              className="px-6 py-3 rounded-xl bg-[#10b981] hover:bg-[#059669] disabled:opacity-50 text-[#041a11] font-semibold inline-flex items-center gap-2"
             >
               <Send className="w-4 h-4" />
-              <span>Submit Environmental Incident Report</span>
+              <span>{submitting ? L('Submitting...', 'அனுப்புகிறது...') : L('Submit Report', 'புகார் சமர்ப்பி')}</span>
             </button>
           </form>
         </div>
       )}
 
-      {/* ============================================================ */}
-      {/* TAB 3: MY REPORTS TRACKER (WITH VERTICAL STATUS TIMELINE) */}
-      {/* ============================================================ */}
-      {activeTab === 'tracker' && (
-        <div className="space-y-6">
-          <div className="max-w-2xl space-y-2">
-            <h2 className="text-2xl font-bold text-white">Track Your Submitted Reports</h2>
-            <p className="text-sm text-stone-300">
-              Every citizen incident report is tracked with a transparent reference ID, timestamp, and verifiable field audit trail.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            {userReports.map(rep => {
-              const stepIndex = rep.status === 'Verified' ? 3 : rep.status === 'Action Recorded' ? 4 : 2;
-
-              return (
-                <div key={rep.id} className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-emerald-400 text-sm">{rep.id}</span>
-                      <span className="text-stone-500">•</span>
-                      <span className="text-xs font-semibold text-white">{rep.location}</span>
-                    </div>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                      rep.status === 'Verified'
-                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
-                        : rep.status === 'Action Recorded'
-                        ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40'
-                        : 'bg-amber-950 text-amber-300 border border-amber-500/40'
-                    }`}>
-                      {rep.status}
-                    </span>
-                  </div>
-
-                  <div className="text-xs font-semibold text-emerald-300">{rep.category}</div>
-                  <p className="text-xs text-stone-300 leading-relaxed font-normal">{rep.description}</p>
-
-                  {/* Vertical / Horizontal Status Progress Steps */}
-                  <div className="pt-2">
-                    <div className="text-[11px] font-mono text-stone-400 mb-2">Investigation Lifecycle:</div>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[
-                        { num: '1', title: 'Submitted' },
-                        { num: '2', title: 'Triage' },
-                        { num: '3', title: 'Field Verified' },
-                        { num: '4', title: 'Action Taken' }
-                      ].map((step, idx) => {
-                        const isDone = idx < stepIndex;
-                        const isCurrent = idx === stepIndex - 1;
-
-                        return (
-                          <div 
-                            key={step.num}
-                            className={`p-2 rounded-lg text-center border text-[11px] transition-all ${
-                              isCurrent
-                                ? 'bg-[#0a311f] border-emerald-400 text-emerald-300 font-bold'
-                                : isDone
-                                ? 'bg-black/40 border-emerald-500/30 text-stone-300'
-                                : 'bg-black/20 border-white/[0.04] text-stone-600'
-                            }`}
-                          >
-                            <div className="font-mono text-[10px]">{step.num}</div>
-                            <div className="truncate">{step.title}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {rep.notes && (
-                    <div className="p-3 rounded-xl bg-[#020b06] border border-white/5 text-xs text-emerald-300 flex items-start gap-2">
-                      <Info className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <span><strong>Technical Action:</strong> {rep.notes}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+      {/* 3. UNDERSTAND YOUR WATER */}
+      {activeTab === 'understand' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            {
+              term: L('Depth to Water (mbgl)', 'நிலத்தடி நீர் ஆழம் (mbgl)'),
+              meaning: L(
+                'Meters Below Ground Level measures how deep water sits underground. Higher numbers mean the water table has dropped further.',
+                'நில மட்டத்திலிருந்து எத்தனை மீட்டர் ஆழத்தில் நீர் உள்ளது என்பதைக் குறிக்கிறது. எண் அதிகமானால் நீர் மட்டம் கீழே இறங்கியுள்ளது.'
+              ),
+            },
+            {
+              term: L('Total Dissolved Solids (TDS)', 'கரைந்த மொத்த திடப்பொருட்கள் (TDS)'),
+              meaning: L(
+                'Measures dissolved salts and minerals in mg/L. Below 500 mg/L is ideal for drinking; above 1500 mg/L tastes salty and requires RO treatment.',
+                'நீரில் கரைந்துள்ள உப்புகள் மற்றும் தாதுக்களின் அளவு. 500 mg/L-க்கு கீழ் குடிநீருக்கு நல்லது; 1500 mg/L-க்கு மேல் RO சுத்திகரிப்பு தேவை.'
+              ),
+            },
+            {
+              term: L('Total Chromium', 'மொத்த குரோமியம்'),
+              meaning: L(
+                'A heavy metal linked to industrial effluent. BIS 10500 sets a strict limit of 0.05 mg/L for drinking water.',
+                'தொழிற்சாலை கழிவுகளுடன் தொடர்புடைய கன உலோகம். குடிநீரில் 0.05 mg/L-க்கு மிகாமல் இருக்க வேண்டும்.'
+              ),
+            },
+            {
+              term: L('pH Balance', 'pH சமநிலை'),
+              meaning: L(
+                'Shows acidity or alkalinity on a 0–14 scale. Safe drinking water sits between 6.5 and 8.5.',
+                'நீரின் அமில/காரத் தன்மையைக் காட்டுகிறது. பாதுகாப்பான குடிநீருக்கு 6.5 முதல் 8.5 வரை இருக்க வேண்டும்.'
+              ),
+            },
+          ].map((card) => (
+            <div key={card.term} className="rounded-2xl border border-white/10 bg-[#081b13] p-5 space-y-2">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#10b981]">
+                <HelpCircle className="w-4 h-4" />
+                <span>{card.term}</span>
+              </div>
+              <p className="text-xs text-[#a4b2a9] leading-relaxed">{card.meaning}</p>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* ============================================================ */}
-      {/* TAB 4: ALERTS (CHRONOLOGICAL NOTIFICATION FEED WITH LAYPERSON EXPLANATIONS) */}
-      {/* ============================================================ */}
+      {/* 4. MY REPORTS */}
+      {activeTab === 'my_reports' && (
+        <div className="space-y-4">
+          <div className="text-xs text-[#a4b2a9]">
+            {isAuthenticated
+              ? L('Showing reports linked to your signed-in account.', 'உங்கள் கணக்கில் பதிவு செய்யப்பட்ட புகார்கள்:')
+              : L('Showing public community reports. Sign in to filter specifically to your own submissions.', 'பொது மக்கள் புகார்கள் காட்டப்படுகின்றன. உங்கள் புகார்களை மட்டும் பார்க்க உள்நுழையவும்.')}
+          </div>
+          {reports.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/15 bg-[#081b13] p-8 text-center text-xs text-[#85928a]">
+              {L('No community reports found.', 'புகார்கள் எதுவும் இல்லை.')}
+            </div>
+          ) : (
+            reports.map((rep) => (
+              <div key={rep.id} className="rounded-2xl border border-white/10 bg-[#081b13] p-5 space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs">
+                    <FileText className="w-4 h-4 text-[#10b981]" />
+                    <span className="font-mono text-[#d9c27a]">#{rep.id}</span>
+                    <span className="font-semibold text-[#fcfbf7]">{rep.title}</span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-[#05140d] border border-emerald-500/30 text-emerald-300">
+                    {rep.status}
+                  </span>
+                </div>
+                <p className="text-xs text-[#a4b2a9]">{rep.description}</p>
+                <div className="text-[11px] font-mono text-[#85928a]">
+                  {rep.category} · {rep.location_name || 'Palar Basin'} · {new Date(rep.created_at).toLocaleDateString()}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* 5. ALERTS */}
       {activeTab === 'alerts' && (
-        <div className="space-y-6">
-          <div className="max-w-2xl space-y-2">
-            <h2 className="text-2xl font-bold text-white">Public Water Safety Advisories</h2>
-            <p className="text-sm text-stone-300">
-              Plain-language notifications from official CPCB, TNPCB, and CGWB monitoring networks across the Palar basin.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            {/* Alert 1 */}
-            <div className="p-6 rounded-2xl bg-[#1f0b09] border border-rose-500/30 space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-                  <span className="font-mono text-xs font-bold text-rose-400">HIGH ANOMALY · RANIPET REACH</span>
-                  <span className="text-stone-500">•</span>
-                  <span className="text-xs text-stone-400">2026-11-25 09:30 IST</span>
-                </div>
-                <DataBadge provenance="HISTORICAL_REPORT" />
-              </div>
-
-              <h3 className="text-base font-bold text-white">
-                Elevated Total Chromium Surge (0.082 mg/L vs 0.05 mg/L Standard)
-              </h3>
-
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-2 text-xs">
-                <div className="text-stone-300">
-                  <strong className="text-rose-300">What this means for residents:</strong> Water samples downstream of Ranipet industrial cluster show chemical hardness above the permissible drinking limit. Untreated open well water should not be consumed directly without reverse osmosis (RO) filtration.
-                </div>
-                <div className="text-emerald-300">
-                  <strong className="text-white">Action Underway:</strong> TNPCB field inspection team #Alpha dispatched for duplicate verification sampling.
-                </div>
-              </div>
+        <div className="space-y-3">
+          {anomalies.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-[#081b13] p-8 text-center text-xs text-[#85928a]">
+              {L('No active alerts loaded from backend.', 'செயலில் உள்ள எச்சரிக்கைகள் இல்லை.')}
             </div>
-
-            {/* Alert 2 */}
-            <div className="p-6 rounded-2xl bg-[#1f1609] border border-amber-500/30 space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                  <span className="font-mono text-xs font-bold text-amber-400">SEASONAL DRAWDOWN · VANIYAMBADI</span>
-                  <span className="text-stone-500">•</span>
-                  <span className="text-xs text-stone-400">2026-11-23 14:15 IST</span>
+          ) : (
+            anomalies.map((al) => (
+              <div key={al.id} className="rounded-2xl border border-amber-500/30 bg-[#171208] p-5 space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-2 text-xs font-mono text-amber-300">
+                    <ShieldAlert className="w-4 h-4" />
+                    <span>{al.location_name} · {al.severity}</span>
+                  </span>
+                  <span className="text-[11px] font-mono text-[#a4b2a9]">{al.status}</span>
                 </div>
-                <DataBadge provenance="VERIFIED_PUBLIC" />
+                <div className="text-sm font-semibold text-[#fcfbf7]">{al.parameter}</div>
+                <p className="text-xs text-[#a4b2a9] leading-relaxed">{al.trigger_reason}</p>
               </div>
-
-              <h3 className="text-base font-bold text-white">
-                Pre-Monsoon Water Table Drawdown (15.1 mbgl Depletion)
-              </h3>
-
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-2 text-xs">
-                <div className="text-stone-300">
-                  <strong className="text-amber-300">What this means for farmers:</strong> Shallow open wells in the upper reach have plunged below 15 meters. Micro-irrigation and rotational pumping recommended to prevent borewell motor burning.
-                </div>
-                <div className="text-emerald-300">
-                  <strong className="text-white">Intervention:</strong> Check dam desiltation prioritized at Vaniyambadi weir to retain post-monsoon infiltration.
-                </div>
-              </div>
-            </div>
-
-            {/* Alert 3 */}
-            <div className="p-6 rounded-2xl bg-[#071f14] border border-emerald-500/30 space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                  <span className="font-mono text-xs font-bold text-emerald-400">RECHARGE NOTICE · WALAJAH ALLUVIUM</span>
-                  <span className="text-stone-500">•</span>
-                  <span className="text-xs text-stone-400">2026-11-21 11:00 IST</span>
-                </div>
-                <DataBadge provenance="VERIFIED_PUBLIC" />
-              </div>
-
-              <h3 className="text-base font-bold text-white">
-                Monsoon Infiltration Shafts Ready for Catchment Inflow
-              </h3>
-
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 text-xs text-stone-300">
-                12 newly completed infiltration shafts in the Walajah-Arcot reach are operational. Local farmers are advised to keep field drainage trenches clear of plastic debris to maximize groundwater recharge.
-              </div>
-            </div>
-          </div>
+            ))
+          )}
         </div>
       )}
 
-      {/* ============================================================ */}
-      {/* TAB 5: LEARN & RECHARGE TIPS (BILINGUAL TAMIL & ENGLISH) */}
-      {/* ============================================================ */}
-      {activeTab === 'learn' && (
-        <div className="space-y-6">
-          <div className="max-w-2xl space-y-2">
-            <h2 className="text-2xl font-bold text-white">
-              {lang === 'ta' ? 'மழைநீர் சேகரிப்பு & நிலத்தடி நீர் பெருக்கும் வழிகள்' : 'Rainwater Harvesting & Aquifer Recharge Guide'}
-            </h2>
-            <p className="text-sm text-stone-300">
-              Practical steps for farmers and householders across the Palar basin to protect borewells and recharge groundwater.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-              <h3 className="text-base font-bold text-emerald-300">1. Agricultural Farm Recharge Shaft</h3>
-              <p className="text-xs text-stone-300 leading-relaxed font-normal">
-                Dig a 3m × 3m percolation pit filled with boulders, gravel, and coarse river sand around dried borewell casing with slotted PVC pipe. Channels monsoon runoff straight into fractured charnockite aquifers.
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-              <h3 className="text-base font-bold text-emerald-300">2. Roof-Top Rainwater Storage</h3>
-              <p className="text-xs text-stone-300 leading-relaxed font-normal">
-                Connect rooftop gutters through first-flush filters to domestic storage sumps. Every 100 sq. meter roof in Vellore/Ranipet yields ~68,000 liters of pure drinking water per monsoon season.
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-              <h3 className="text-base font-bold text-emerald-300">3. Check Dam Desiltation</h3>
-              <p className="text-xs text-stone-300 leading-relaxed font-normal">
-                Remove clay silt deposits from check dam upstream reservoirs prior to Southwest monsoon. Restores riverbed hydraulic conductivity from 0.2 m/day to over 4.5 m/day.
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-              <h3 className="text-base font-bold text-emerald-300">4. Community Well Water Testing</h3>
-              <p className="text-xs text-stone-300 leading-relaxed font-normal">
-                Test borewells twice a year (pre-monsoon in May and post-monsoon in January). Free or subsidized testing available through district TWAD board labs.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ============================================================ */}
-      {/* TAB 6: COMMUNITY UPDATES (VERIFIED FIELD ACTION FEED) */}
-      {/* ============================================================ */}
+      {/* 6. COMMUNITY UPDATES */}
       {activeTab === 'updates' && (
-        <div className="space-y-6">
-          <div className="max-w-2xl space-y-2">
-            <h2 className="text-2xl font-bold text-white">Verified Field Action & River Updates</h2>
-            <p className="text-sm text-stone-300">
-              Transparent log of actions taken by district authorities, researchers, and citizen groups to protect the Palar River Basin.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-              <div className="flex items-center justify-between text-xs font-mono text-emerald-400">
-                <span>ACTION #PLR-ACT-2026-042</span>
-                <span>2026-11-24 · Walajah Reach</span>
+        <div className="space-y-3">
+          {reports
+            .filter((r) => r.status === 'Verified' || r.status === 'Action Initiated')
+            .map((r) => (
+              <div key={r.id} className="rounded-2xl border border-white/10 bg-[#081b13] p-5 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-mono text-[#10b981]">{r.status}</span>
+                  <span className="text-[#85928a] font-mono">{new Date(r.created_at).toLocaleDateString()}</span>
+                </div>
+                <h3 className="text-sm font-semibold text-[#fcfbf7]">{r.title}</h3>
+                <p className="text-xs text-[#a4b2a9]">{r.description}</p>
               </div>
-              <h3 className="text-lg font-bold text-white">Walajah Check Dam Silt Removal Completed</h3>
-              <p className="text-xs text-stone-300 leading-relaxed font-normal">
-                Excavation teams removed 1,420 m³ of impervious clay sediment from the upstream apron of the Walajah-Arcot check dam. Saturated hydraulic conductivity increased from 0.4 m/day to 4.8 m/day, restoring natural infiltration into unconfined village aquifers.
-              </p>
-              <div className="pt-2 flex items-center gap-2 text-xs font-mono text-stone-400">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>Verified by Water Resources Department & Team Innovnexa</span>
-              </div>
+            ))}
+          {reports.filter((r) => r.status === 'Verified' || r.status === 'Action Initiated').length === 0 && (
+            <div className="rounded-2xl border border-white/10 bg-[#081b13] p-8 text-center text-xs text-[#85928a]">
+              {L('No verified community updates yet.', 'சரிபார்க்கப்பட்ட சமூகப் புதுப்பிப்புகள் இன்னும் இல்லை.')}
             </div>
+          )}
+        </div>
+      )}
 
-            <div className="p-6 rounded-2xl bg-[#061d13] border border-white/10 space-y-3">
-              <div className="flex items-center justify-between text-xs font-mono text-cyan-400">
-                <span>ACTION #PLR-ACT-2026-039</span>
-                <span>2026-11-22 · Ambur & Vaniyambadi</span>
+      {/* 7. CONSERVATION TIPS */}
+      {activeTab === 'tips' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            {
+              title: L('1. Rooftop Rainwater Harvesting', '1. கூரை மழைநீர் சேகரிப்பு'),
+              desc: L(
+                'Route roof gutters through a first-flush gravel filter into a recharge pit or storage sump before Northeast monsoon storms.',
+                'வடகிழக்கு பருவமழைக்கு முன் கூரை மழைநீரை வடிகட்டி மூலம் சேகரிப்புத் தொட்டி அல்லது உறிஞ்சு குழிக்குச் செலுத்துங்கள்.'
+              ),
+            },
+            {
+              title: L('2. Farm Percolation Trenches', '2. பண்ணை ஊடுருவல் அகழிகள்'),
+              desc: L(
+                'Clear silt from contour bunds and farm ponds so storm runoff recharges shallow borewells instead of flowing away.',
+                'பண்ணைக் குட்டைகள் மற்றும் வரப்புகளில் உள்ள வண்டலை அகற்றி மழைநீரை நிலத்தடியில் சேமிக்கவும்.'
+              ),
+            },
+            {
+              title: L('3. Twice-Yearly Well Water Checks', '3. ஆண்டுக்கு இருமுறை கிணற்று நீர் பரிசோதனை'),
+              desc: L(
+                'Test domestic borewells before summer and after monsoon through district TWAD labs, especially near industrial stretches.',
+                'கோடைக்கு முன்பும் மழைக்குப் பிறகும் TWAD ஆய்வகங்களில் கிணற்று நீரின் தரத்தைச் சோதிக்கவும்.'
+              ),
+            },
+            {
+              title: L('4. Keep Surface Drains Unblocked', '4. நீர்வரத்து கால்வாய்களைத் தூய்மையாக வைத்தல்'),
+              desc: L(
+                'Prevent plastic and solid waste dumping in village eri feeder channels to protect groundwater recharge quality.',
+                'கிராம ஏரி வரத்துக் கால்வாய்களில் கழிவுகள் சேராமல் பாதுகாத்து நிலத்தடி நீரின் தரத்தைக் காப்போம்.'
+              ),
+            },
+          ].map((tip) => (
+            <div key={tip.title} className="rounded-2xl border border-white/10 bg-[#081b13] p-5 space-y-2">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#10b981]">
+                <BookOpen className="w-4 h-4" />
+                <span>{tip.title}</span>
               </div>
-              <h3 className="text-lg font-bold text-white">48 Agricultural Borewell Water Quality Screenings</h3>
-              <p className="text-xs text-stone-300 leading-relaxed font-normal">
-                Field investigators equipped with portable spectrophotometers completed on-site testing across 48 community wells. All readings recorded into the Palar Guard live telemetry registry. 3 anomalies flagged for secondary laboratory titration.
-              </p>
-              <div className="pt-2 flex items-center gap-2 text-xs font-mono text-stone-400">
-                <CheckCircle2 className="w-4 h-4 text-cyan-400" />
-                <span>Verified 100% Chain-of-Custody</span>
-              </div>
+              <p className="text-xs text-[#a4b2a9] leading-relaxed">{tip.desc}</p>
             </div>
-          </div>
+          ))}
         </div>
       )}
     </div>

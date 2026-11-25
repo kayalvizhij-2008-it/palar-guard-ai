@@ -16,6 +16,11 @@
       "dest": "/frontend/dist/assets/$1"
     },
     {
+      "src": "/textures/(.*)",
+      "headers": { "cache-control": "s-maxage=86400" },
+      "dest": "/frontend/dist/textures/$1"
+    },
+    {
       "src": "/animations/(.*)",
       "headers": { "cache-control": "s-maxage=86400" },
       "dest": "/frontend/dist/animations/$1"

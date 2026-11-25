@@ -1,139 +1,199 @@
-import React from 'react';
-import { DataBadge } from '../common/DataBadge';
-import { Settings, Shield, Activity, Users, Database, Clock, Server } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Shield, Users, Database, Clock, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
+import { apiService } from '../../services/api';
 
-export const AdminAuditModule: React.FC = () => {
-  const auditLogs = [
-    { time: "2026-02-24 10:15:20", actor: "admin@palarguard.ai", action: "DISPATCH_INVESTIGATION", entity: "INVESTIGATION #101", details: "Assigned Field Team Alpha to Ranipet Sluice Chromium alert." },
-    { time: "2026-02-24 09:40:12", actor: "analyst@palarguard.ai", action: "REVIEW_ANOMALY", entity: "ANOMALY #2", details: "Flagged Ambur Tannery cluster EC surge as Under Review." },
-    { time: "2026-02-23 16:30:45", actor: "system", action: "INGESTION_SYNC", entity: "CGWB_WELLS", details: "Imported Q1 2026 hydrograph records for 7 Palar observation wells." },
-    { time: "2026-02-23 14:10:00", actor: "community@palarguard.ai", action: "SUBMIT_REPORT", entity: "REPORT #2", details: "Logged dry agricultural well incident in Vaniyambadi." },
-    { time: "2026-02-22 08:00:00", actor: "system", action: "MODEL_RUN", entity: "MCDA_ENGINE", details: "Computed updated geospatial risk priority scores across all reaches." },
-  ];
+interface AdminAuditModuleProps {
+  onOpenAuth?: () => void;
+}
 
-  const userAccounts = [
-    { name: "Kayalvizhi J", email: "admin@palarguard.ai", role: "Administrator", status: "Active" },
-    { name: "Harini S", email: "analyst@palarguard.ai", role: "Environmental Analyst", status: "Active" },
-    { name: "Aarthi L", email: "investigator@palarguard.ai", role: "Field Investigator", status: "Active" },
-    { name: "CIT Fellow", email: "researcher@palarguard.ai", role: "Researcher", status: "Active" },
-    { name: "Palar Watershed Citizen", email: "community@palarguard.ai", role: "Community Reporter", status: "Active" },
-  ];
+const ALL_ROLES = [
+  'Administrator',
+  'Environmental Analyst',
+  'Field Investigator',
+  'Researcher',
+  'Community Reporter',
+  'Viewer',
+];
+
+export const AdminAuditModule: React.FC<AdminAuditModuleProps> = ({ onOpenAuth }) => {
+  const { isAuthenticated, role } = useAuth();
+  const { lang } = useLanguage();
+  const L = (en: string, ta: string) => (lang === 'ta' ? ta : en);
+
+  const [users, setUsers] = useState<any[]>([]);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [sysStatus, setSysStatus] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const isAdmin = isAuthenticated && role === 'Administrator';
+
+  const loadAdminData = async () => {
+    if (!isAdmin) return;
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const [u, l, s] = await Promise.all([
+        apiService.getAdminUsers(),
+        apiService.getAdminAuditLogs(),
+        apiService.getAdminSystemStatus(),
+      ]);
+      setUsers(u);
+      setLogs(l);
+      setSysStatus(s);
+    } catch (err: any) {
+      setErrorMsg(err?.message || L('Unable to load administration data.', 'நிர்வாகத் தரவுகளை ஏற்ற முடியவில்லை.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAdminData();
+  }, [isAdmin]);
+
+  const handleRoleChange = async (userId: number, newRole: string) => {
+    setErrorMsg(null);
+    try {
+      await apiService.updateUserRole(userId, newRole);
+      await loadAdminData();
+    } catch (err: any) {
+      setErrorMsg(err?.message || L('Role update failed.', 'உரிமை மாற்றம் தோல்வியடைந்தது.'));
+    }
+  };
+
+  if (!isAdmin) {
+    return (
+      <div className="rounded-2xl border border-rose-500/30 bg-[#120b0d] p-8 text-center space-y-4 max-w-xl mx-auto my-8">
+        <Lock className="w-8 h-8 text-rose-400 mx-auto" />
+        <h2 className="text-xl font-semibold text-[#fcfbf7]">
+          {L('Administrator Access Required', 'நிர்வாகி அணுகல் தேவை')}
+        </h2>
+        <p className="text-xs text-[#a4b2a9] leading-relaxed">
+          {isAuthenticated
+            ? L(
+                `Signed in as ${role}. System administration, user role management, and security audit logs are restricted to Administrators.`,
+                `நீங்கள் ${role} ஆக உள்நுழைந்துள்ளீர்கள். நிர்வாகி கணக்கிற்கு மட்டுமே இந்தப் பகுதி அனுமதிக்கப்பட்டுள்ளது.`
+              )
+            : L(
+                'Sign in with an Administrator account to manage user roles and inspect tamper-evident audit logs.',
+                'பயனர் உரிமைகள் மற்றும் தணிக்கை பதிவேடுகளைப் பார்க்க நிர்வாகி கணக்குடன் உள்நுழையவும்.'
+              )}
+        </p>
+        {!isAuthenticated && onOpenAuth && (
+          <button
+            type="button"
+            onClick={onOpenAuth}
+            className="px-6 py-2.5 rounded-xl bg-[#10b981] text-[#041a11] text-xs font-semibold"
+          >
+            {L('Sign In', 'உள்நுழைக')}
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-[#092218] border border-white/[0.08] rounded-2xl shadow-forest-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-[#092218] border border-white/[0.08] rounded-2xl">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-xl font-extrabold text-ivory tracking-tight">Administration & Audit Governance</h2>
-            <DataBadge provenance="VERIFIED_PUBLIC" />
-          </div>
-          <p className="text-xs text-stone-300">
-            System health diagnostics, verifiable tamper-evident audit logs, and account privilege management.
+          <h2 className="text-xl font-semibold text-[#fcfbf7]">
+            {L('Administration & Audit Console', 'நிர்வாகம் & தணிக்கை மையம்')}
+          </h2>
+          <p className="text-xs text-[#a4b2a9]">
+            {L('Live database counts, role-based user governance, and persisted audit trail.', 'நேரடி தரவுத்தள எண்ணிக்கை, பயனர் உரிமை நிர்வாகம் மற்றும் தணிக்கை பதிவேடு.')}
           </p>
         </div>
+        {loading && <Loader2 className="w-5 h-5 animate-spin text-emerald-400" />}
+      </div>
 
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-emerald-950/80 border border-emerald-500/30 text-emerald-300 rounded text-xs font-mono flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            System Health: Operational
+      {errorMsg && (
+        <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-xs text-rose-200 flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400" />
+            <span>{errorMsg}</span>
           </span>
+          <button type="button" onClick={loadAdminData} className="px-3 py-1 rounded bg-rose-600 text-white font-semibold">
+            {L('Retry', 'மீண்டும் முயற்சி')}
+          </button>
         </div>
-      </div>
+      )}
 
-      {/* System Health Status Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
-        <div className="p-4 bg-[#092218] border border-white/[0.08] rounded-xl space-y-1">
-          <div className="text-[10px] text-stone-400 flex items-center gap-1">
-            <Database className="w-3.5 h-3.5 text-emerald-400" />
-            <span>SQLite Database Layer</span>
+      {sysStatus && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono text-xs tabular-nums">
+          <div className="p-4 bg-[#092218] border border-white/[0.08] rounded-xl">
+            <div className="text-[10px] text-stone-400 flex items-center gap-1">
+              <Database className="w-3.5 h-3.5 text-emerald-400" />
+              <span>DATABASE ({sysStatus.database_backend})</span>
+            </div>
+            <div className="text-base font-semibold text-white mt-1">
+              {sysStatus.counts.locations} Stations / {sysStatus.counts.groundwater_records} GW
+            </div>
           </div>
-          <div className="text-base font-bold text-white">7 Stations / 91 Records</div>
-          <div className="text-[10px] text-emerald-400">Connected & Seeded</div>
-        </div>
-
-        <div className="p-4 bg-[#092218] border border-white/[0.08] rounded-xl space-y-1">
-          <div className="text-[10px] text-stone-400 flex items-center gap-1">
-            <Server className="w-3.5 h-3.5 text-cyan-400" />
-            <span>FastAPI REST Gateway</span>
+          <div className="p-4 bg-[#092218] border border-white/[0.08] rounded-xl">
+            <div className="text-[10px] text-stone-400">REGISTERED USERS</div>
+            <div className="text-base font-semibold text-white mt-1">{sysStatus.counts.users}</div>
           </div>
-          <div className="text-base font-bold text-white">11 Active Routers</div>
-          <div className="text-[10px] text-cyan-400">Latency: 12ms avg</div>
-        </div>
-
-        <div className="p-4 bg-[#092218] border border-white/[0.08] rounded-xl space-y-1">
-          <div className="text-[10px] text-stone-400 flex items-center gap-1">
-            <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Anomaly Model Engine</span>
+          <div className="p-4 bg-[#092218] border border-white/[0.08] rounded-xl">
+            <div className="text-[10px] text-stone-400">DOCUMENTS</div>
+            <div className="text-base font-semibold text-white mt-1">{sysStatus.counts.documents}</div>
           </div>
-          <div className="text-base font-bold text-white">Robust Z-Score</div>
-          <div className="text-[10px] text-emerald-400">Validated on MAD</div>
-        </div>
-
-        <div className="p-4 bg-[#092218] border border-white/[0.08] rounded-xl space-y-1">
-          <div className="text-[10px] text-stone-400 flex items-center gap-1">
-            <Shield className="w-3.5 h-3.5 text-amber-400" />
-            <span>Audit Trail Integrity</span>
+          <div className="p-4 bg-[#092218] border border-white/[0.08] rounded-xl">
+            <div className="text-[10px] text-stone-400 flex items-center gap-1">
+              <Shield className="w-3.5 h-3.5 text-amber-400" />
+              <span>AUDIT EVENTS</span>
+            </div>
+            <div className="text-base font-semibold text-white mt-1">{sysStatus.counts.audit_logs}</div>
           </div>
-          <div className="text-base font-bold text-white">Tamper Evident</div>
-          <div className="text-[10px] text-amber-300">100% Traceability</div>
         </div>
-      </div>
+      )}
 
-      {/* Main Grid: User Accounts & Audit Trail */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* User Accounts Column */}
-        <div className="lg:col-span-5 p-5 bg-[#092218] border border-white/[0.08] rounded-xl space-y-4">
-          <div className="border-b border-white/[0.08] pb-3">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Users className="w-4 h-4 text-emerald-400" />
-              <span>Platform User Accounts</span>
-            </h3>
-            <p className="text-[11px] text-stone-400">Configured credentials and access roles</p>
+        <div className="lg:col-span-6 p-5 bg-[#092218] border border-white/[0.08] rounded-xl space-y-4">
+          <div className="border-b border-white/[0.08] pb-3 flex items-center gap-2 text-sm font-semibold text-white">
+            <Users className="w-4 h-4 text-emerald-400" />
+            <span>{L('User Role Governance', 'பயனர் உரிமை நிர்வாகம்')}</span>
           </div>
-
-          <div className="space-y-2.5">
-            {userAccounts.map((acc, aIdx) => (
-              <div key={aIdx} className="p-3 bg-[#05160e] rounded-lg border border-white/[0.04] flex items-center justify-between text-xs">
+          <div className="space-y-2.5 max-h-[420px] overflow-y-auto">
+            {users.map((u) => (
+              <div key={u.id} className="p-3 bg-[#05160e] rounded-lg border border-white/[0.06] flex flex-wrap items-center justify-between gap-2 text-xs">
                 <div>
-                  <div className="font-semibold text-white">{acc.name}</div>
-                  <div className="text-[10px] text-stone-400 font-mono">{acc.email}</div>
+                  <div className="font-semibold text-white">{u.full_name}</div>
+                  <div className="text-[10px] text-stone-400 font-mono">{u.email}</div>
                 </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-mono text-emerald-300 font-bold">{acc.role}</div>
-                  <div className="text-[9px] text-emerald-400 font-mono">{acc.status}</div>
-                </div>
+                <select
+                  aria-label={`Role for ${u.email}`}
+                  value={u.role}
+                  onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                  className="px-2.5 py-1 rounded bg-[#092218] border border-white/10 text-xs text-emerald-300"
+                >
+                  {ALL_ROLES.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Audit Log Stream */}
-        <div className="lg:col-span-7 p-5 bg-[#092218] border border-white/[0.08] rounded-xl space-y-4">
-          <div className="border-b border-white/[0.08] pb-3 flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Clock className="w-4 h-4 text-cyan-400" />
-                <span>System Audit Log Trail</span>
-              </h3>
-              <p className="text-[11px] text-stone-400">Timestamped record of administrative and analyst actions</p>
-            </div>
-            <DataBadge provenance="VERIFIED_PUBLIC" />
+        <div className="lg:col-span-6 p-5 bg-[#092218] border border-white/[0.08] rounded-xl space-y-4">
+          <div className="border-b border-white/[0.08] pb-3 flex items-center gap-2 text-sm font-semibold text-white">
+            <Clock className="w-4 h-4 text-cyan-400" />
+            <span>{L('Persisted Audit Trail', 'தணிக்கை பதிவேடு')}</span>
           </div>
-
-          <div className="space-y-2.5">
-            {auditLogs.map((log, lIdx) => (
-              <div key={lIdx} className="p-3 bg-[#05160e] rounded-lg border border-white/[0.04] space-y-1 text-xs">
+          <div className="space-y-2.5 max-h-[420px] overflow-y-auto">
+            {logs.map((log) => (
+              <div key={log.id} className="p-3 bg-[#05160e] rounded-lg border border-white/[0.06] space-y-1 text-xs">
                 <div className="flex items-center justify-between font-mono text-[10px]">
-                  <span className="text-stone-400">{log.time}</span>
-                  <span className="px-1.5 py-0.5 rounded bg-white/5 text-emerald-300 border border-white/5 font-bold">
-                    {log.action}
-                  </span>
+                  <span className="text-stone-400">{new Date(log.created_at).toLocaleString()}</span>
+                  <span className="px-1.5 py-0.5 rounded bg-white/5 text-emerald-300">{log.action}</span>
                 </div>
                 <div className="text-[11px] font-semibold text-white">
-                  {log.entity} <span className="text-stone-400 font-normal font-mono">by {log.actor}</span>
+                  {log.entity} <span className="text-stone-400 font-normal font-mono">by {log.user_email}</span>
                 </div>
-                <p className="text-[11px] text-stone-300 leading-relaxed font-sans">{log.details}</p>
+                <p className="text-[11px] text-stone-300">{log.details}</p>
               </div>
             ))}
           </div>

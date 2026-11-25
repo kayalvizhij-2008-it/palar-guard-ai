@@ -1,16 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import {
+  ArrowRight,
+  ChevronRight,
+  Compass,
+  Droplets,
+  CloudRain,
+  AlertTriangle,
+  Users,
+  ShieldCheck,
+  FileSearch,
+  Award,
+  CheckCircle2,
+  Activity,
+  LineChart,
+  GraduationCap,
+  ShieldAlert,
+  Building2,
+  Cpu,
+  Sparkles,
+  FileText,
+} from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { CinematicHeroSequence } from '../hero/CinematicHeroSequence';
+import { ScrollEarthJourney } from '../hero/ScrollEarthJourney';
+import { VerticalFallingTimeline } from '../landing/VerticalFallingTimeline';
+import { HowToUseSection } from '../landing/HowToUseSection';
 import { DigitalTwinMap } from './DigitalTwinMap';
 import { DataBadge } from '../common/DataBadge';
-import { BokehParticleGalaxy } from '../effects/BokehParticleGalaxy';
-import { VerticalFallingTimeline } from '../landing/VerticalFallingTimeline';
-import { 
-  ArrowRight, ShieldCheck, ShieldAlert, Droplets, AlertTriangle, Layers, 
-  Search, Eye, Activity, Database, CheckCircle2, FileText, 
-  Users, MapPin, Compass, ExternalLink, ChevronRight, Cpu, 
-  LineChart, CloudRain, Award, BookOpen, GraduationCap, Building2, Sparkles
-} from 'lucide-react';
+import { Reveal, FlipCard } from '../motion/motion';
 
 interface LandingPageProps {
   onExplore: (module?: string) => void;
@@ -18,811 +34,811 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPresentation }) => {
-  const { t, lang } = useLanguage();
+  const { lang, setLang, setMode } = useLanguage();
+  const L = (en: string, ta: string) => (lang === 'ta' ? ta : en);
   const [activeStage, setActiveStage] = useState<number>(0);
-  const heroContainerRef = useRef<HTMLDivElement>(null);
-  const [heroScrollProgress, setHeroScrollProgress] = useState<number>(0);
-
-  // Smooth scroll tracking across 360vh container for continuous 6-stage Earth camera trajectory
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!heroContainerRef.current) return;
-      const rect = heroContainerRef.current.getBoundingClientRect();
-      const containerHeight = heroContainerRef.current.offsetHeight;
-      const windowHeight = window.innerHeight;
-      const scrollableDist = containerHeight - windowHeight;
-      if (scrollableDist <= 0) return;
-      
-      const scrolled = -rect.top;
-      const progress = Math.max(0, Math.min(1, scrolled / scrollableDist));
-      setHeroScrollProgress(progress);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleScrollToStage = (stageIdx: number) => {
-    if (!heroContainerRef.current) return;
-    const stageTargets = [0.0, 0.22, 0.42, 0.62, 0.78, 1.0];
-    const targetProgress = stageTargets[Math.max(0, Math.min(5, stageIdx - 1))];
-    const containerTop = heroContainerRef.current.offsetTop;
-    const containerHeight = heroContainerRef.current.offsetHeight;
-    const windowHeight = window.innerHeight;
-    const scrollableDist = containerHeight - windowHeight;
-    const targetScrollY = containerTop + (targetProgress * scrollableDist);
-    window.scrollTo({ top: targetScrollY, behavior: 'smooth' });
-  };
 
   const workflowStages = [
     {
-      step: "01",
-      name: lang === 'ta' ? "கண்காணி" : "OBSERVE",
-      title: lang === 'ta' ? "படுகை அளவிலான விரிவான தரவு சேகரிப்பு" : "Comprehensive Basin Data Harvesting",
-      desc: lang === 'ta' ? "மத்திய நிலத்தடி நீர் வாரியம் (CGWB) கிணறுகள், இந்திய வானிலை ஆய்வு மையம் (IMD) மழைப் பதிவுகள் மற்றும் TNPCB நீர் தரக் கண்காணிப்பு தரவுகளை ஒருங்கிணைத்தல்." : "Aggregate quarterly groundwater hydrographs from CGWB observation wells, IMD NWIC precipitation series, and TNPCB water-quality surveillance records.",
-      metric: lang === 'ta' ? "7 அடிப்படைக் கண்காணிப்பு நிலையங்கள்" : "7 Baseline Stations",
-      provenance: "VERIFIED_PUBLIC" as const
+      step: '01',
+      name: L('OBSERVE', 'கண்காணி'),
+      title: L('Basin-Wide Hydrological & Quality Data Ingestion', 'வடிநில அளவிலான நீர் & தரத் தரவு ஒருங்கிணைப்பு'),
+      desc: L(
+        'Aggregate CGWB observation well depths, IMD catchment rainfall records, and TNPCB water quality profiles across seven baseline river stations.',
+        'மத்திய நிலத்தடி நீர் வாரியம் (CGWB), இந்திய வானிலை ஆய்வு மையம் (IMD) மற்றும் TNPCB நீர் தரப் பதிவுகளை ஏழு நிலையங்களில் ஒருங்கிணைக்கிறது.'
+      ),
+      metric: L('7 Baseline Stations', '7 அடிப்படை நிலையங்கள்'),
+      provenance: 'VERIFIED_PUBLIC' as const,
+      target: 'groundwater',
     },
     {
-      step: "02",
-      name: lang === 'ta' ? "பகுப்பாய்" : "ANALYSE",
-      title: lang === 'ta' ? "பருவகால நீர்மட்ட குறைவு & இரசாயன அழுத்த பகுப்பாய்வு" : "Seasonal Drawdown & Ionic Stress Profiling",
-      desc: lang === 'ta' ? "ஆண்டுதோறும் குறையும் நீர் மட்டம் (மீட்டர்/ஆண்டு) மற்றும் BIS 10500 / CPCB வழிகாட்டுதல்களின்படி குரோமியம் மற்றும் TDS அளவுகளை மதிப்பிடுதல்." : "Compute multi-year moving averages, rate of water-table depletion (m/year), and cross-index Total Chromium and TDS against BIS 10500 and CPCB Class C standards.",
-      metric: lang === 'ta' ? "14.9 mbgl சராசரி ஆழம்" : "14.9 mbgl Mean Depth",
-      provenance: "HISTORICAL_REPORT" as const
+      step: '02',
+      name: L('ANALYSE', 'பகுப்பாய்'),
+      title: L('Seasonal Drawdown & Chemical Compliance Profiling', 'பருவகால நீர்மட்ட குறைவு & இரசாயன தரப் பகுப்பாய்வு'),
+      desc: L(
+        'Evaluate seasonal depth changes (mbgl) and benchmark TDS, EC, pH, BOD, DO, and Total Chromium against BIS 10500 and CPCB Class C thresholds.',
+        'நிலத்தடி நீர் ஆழ மாற்றங்களையும் TDS, EC, pH, BOD, DO மற்றும் குரோமியம் அளவுகளையும் BIS 10500 / CPCB தரநிலைகளுடன் ஒப்பிடுகிறது.'
+      ),
+      metric: L('BIS 10500 / CPCB', 'BIS 10500 / CPCB'),
+      provenance: 'HISTORICAL_REPORT' as const,
+      target: 'water_quality',
     },
     {
-      step: "03",
-      name: lang === 'ta' ? "கணித்தறி" : "PREDICT",
-      title: lang === 'ta' ? "முன்னோக்கு நிலத்தடி நீர்மட்ட கணிப்பு மாதிரிகள்" : "Walk-Forward Water Table Projections",
-      desc: lang === 'ta' ? "அடுத்த 4 காலாண்டுகளுக்கான கோடைகால நீர்மட்ட குறைவை 90% அறிவியல் துல்லியத்துடன் முன்கூட்டியே கணித்தல்." : "Seasonal baseline models project pre-monsoon drawdown across 4 upcoming quarters with empirical 90% confidence uncertainty intervals.",
-      metric: lang === 'ta' ? "17.0 mbgl கணிக்கப்பட்ட ஆழம்" : "17.0 mbgl Projected (±1.2m)",
-      provenance: "MODEL_PREDICTION" as const
+      step: '03',
+      name: L('PREDICT', 'கணித்தறி'),
+      title: L('Walk-Forward Projections With Uncertainty Bands', 'நிச்சயமற்ற வரம்புகளுடன் கூடிய முன்னோக்கு கணிப்பு'),
+      desc: L(
+        'Project upcoming seasonal groundwater depth across four quarters with explicit upper and lower confidence intervals and climate deficit scenarios.',
+        'அடுத்த நான்கு காலாண்டுகளுக்கான நிலத்தடி நீர்மட்டத்தை மேல் மற்றும் கீழ் நம்பிக்கை வரம்புகளுடன் கணிக்கிறது.'
+      ),
+      metric: L('4-Quarter Horizon', '4 காலாண்டு கணிப்பு'),
+      provenance: 'MODEL_PREDICTION' as const,
+      target: 'forecasting',
     },
     {
-      step: "04",
-      name: lang === 'ta' ? "முன்னுரிமைபடுத்து" : "PRIORITISE",
-      title: lang === 'ta' ? "விளக்கக்கூடிய பல-அளவுகோல் இடர் தரவரிசை" : "Explainable Multi-Criteria Risk Ranking",
-      desc: lang === 'ta' ? "நிலத்தடி நீர் அழுத்தம் (30%), நீர் தரம் (35%), மழைப்பொழிவு பற்றாக்குறை (15%) மற்றும் நம்பகத்தன்மை (10%) ஆகியவற்றை இணைத்து 0–100 குறியீடாக கணக்கிடுதல்." : "Synthesize groundwater stress (30%), water quality (35%), rainfall deficit (15%), observation recency (10%), and data confidence (10%) into an objective 0–100 index.",
-      metric: lang === 'ta' ? "ராணிப்பேட்டை முதலிடம் (78.5/100)" : "Ranipet #1 (78.5/100)",
-      provenance: "MODEL_PREDICTION" as const
+      step: '04',
+      name: L('PRIORITISE', 'முன்னுரிமைபடுத்து'),
+      title: L('Explainable Multi-Criteria Risk Ranking', 'விளக்கக்கூடிய பல-அளவுகோல் இடர் தரவரிசை'),
+      desc: L(
+        'Combine groundwater stress, water quality exceedances, rainfall deficit, recency, and data confidence into an inspectable 0–100 priority index.',
+        'நிலத்தடி நீர் அழுத்தம், நீர் தரம், மழை பற்றாக்குறை மற்றும் தரவு நம்பகத்தன்மை ஆகியவற்றை இணைத்து 0–100 இடர் குறியீட்டை உருவாக்குகிறது.'
+      ),
+      metric: L('Auditable MCDA Weights', 'சரிபார்க்கக்கூடிய எடைகள்'),
+      provenance: 'MODEL_PREDICTION' as const,
+      target: 'risk_priority',
     },
     {
-      step: "05",
-      name: lang === 'ta' ? "சரிபார்" : "VERIFY",
-      title: lang === 'ta' ? "கள ஆய்வு & புள்ளிவிவர இடர் சரிபார்ப்பு" : "Rigorous Provenance & Anomaly Triage",
-      desc: lang === 'ta' ? "Median Absolute Deviation (MAD) வலுவான Z-மதிப்புகளைக் கொண்டு கள ஆய்வுக்கு முன்னுரிமை அளித்து ஆய்வு செய்தல்." : "Screen parameters using Median Absolute Deviation (MAD) Robust Z-scores to flag chemical surges for field verification rather than unverified legal accusations.",
-      metric: "Robust Z = 3.84",
-      provenance: "MODEL_PREDICTION" as const
+      step: '05',
+      name: L('VERIFY', 'சரிபார்'),
+      title: L('Role-Protected Field Triage & Document Evidence', 'பாதுகாக்கப்பட்ட கள ஆய்வு & ஆவணச் சரிபார்ப்பு'),
+      desc: L(
+        'Statistical departures trigger Kanban field verification checklists and source-grounded Document Intelligence checks rather than automated accusations.',
+        'புள்ளிவிவர மாறுபாடுகள் நேரடி கள ஆய்வு சரிபார்ப்பு மற்றும் ஆவண நுண்ணறிவு சோதனைக்கு அனுப்பப்படுகின்றன.'
+      ),
+      metric: L('RBAC Audit Trail', 'RBAC தணிக்கை பதிவேடு'),
+      provenance: 'FIELD_VERIFIED' as const,
+      target: 'investigations',
     },
     {
-      step: "06",
-      name: lang === 'ta' ? "செயல்படுத்து" : "ACT",
-      title: lang === 'ta' ? "கள ஆய்வு & நிலத்தடி நீர் மறுசுழற்சி தீர்வுகள்" : "Field Investigation & Managed Aquifer Recharge",
-      desc: lang === 'ta' ? "கள ஆய்வுக் குழுக்களை அனுப்புதல், தடுப்பணைகள், ஊடுருவல் கிணறுகள் மற்றும் பாரம்பரிய ஏரிகளை தூர்வாரும் இடங்களை அடையாளம் காணுதல்." : "Dispatch field inspection teams with duplicate sample checklists while identifying optimal alluvium zones for check dams, percolation tanks, and traditional eri desiltation.",
-      metric: lang === 'ta' ? "ஆய்வுக் குழு அனுப்பப்பட்டது" : "Team Alpha Dispatched",
-      provenance: "VERIFIED_PUBLIC" as const
-    }
+      step: '06',
+      name: L('ACT', 'செயல்படுத்து'),
+      title: L('Managed Aquifer Recharge & Community Participation', 'நீர் செறிவூட்டல் திட்டமிடல் & மக்கள் பங்களிப்பு'),
+      desc: L(
+        'Screen alluvial reaches for check dams or eri restoration while enabling citizens to report local water issues in English or Tamil.',
+        'தடுப்பணை மற்றும் ஏரி புனரமைப்பு இடங்களை ஆய்வு செய்வதுடன், பொதுமக்கள் தமிழிலும் ஆங்கிலத்திலும் புகார் அளிக்க உதவுகிறது.'
+      ),
+      metric: L('Bilingual Action Loop', 'இருமொழி செயல்பாடு'),
+      provenance: 'COMMUNITY_REPORT' as const,
+      target: 'recharge',
+    },
   ];
 
-  const journeyMilestones = [
+  const capabilities = [
     {
-      num: "01",
-      phase: "THE PROBLEM",
-      title: lang === 'ta' ? "கடும் நிலத்தடி நீர் வீழ்ச்சி & இரசாயன அழுத்தம்" : "Acute Groundwater Depletion & Industrial Stress",
-      period: "Field Observations 2020–2022",
-      desc: lang === 'ta' 
-        ? "ராணிப்பேட்டை, ஆம்பூர் மற்றும் வாணியம்பாடியில் கடுமையான கோடை காலங்களில் நீர்மட்டம் 14.9 மீட்டருக்கும் ஆழமாக குறைந்து, கிணறுகள் வறண்டு போவது கண்டறியப்பட்டது."
-        : "Field reconnaissance across Ranipet, Ambur, and Vaniyambadi revealed pre-monsoon water tables plunging deeper than 14.9 mbgl, causing dry borewells and acute ionic stress in domestic supplies.",
-      badge: "GROUND REALITY",
-      metric: "14.9 mbgl Drawdown"
+      id: 'groundwater',
+      icon: Droplets,
+      accent: 'text-teal-400 border-teal-500/30 bg-teal-950/75 hover:border-teal-400/50',
+      provenance: 'VERIFIED_PUBLIC' as const,
+      title: L('1. Groundwater Intelligence', '1. நிலத்தடி நீர் நுண்ணறிவு'),
+      desc: L(
+        'Multi-year quarterly hydrographs from CGWB national hydrograph network wells tracking water table depth and seasonal recharge amplitude.',
+        'CGWB கண்காணிப்புக் கிணறுகளின் நீர்மட்ட ஆழம் மற்றும் பருவகால நீர் மீட்சி அளவுகளின் நேரடிப் பகுப்பாய்வு.'
+      ),
     },
     {
-      num: "02",
-      phase: "RESEARCH",
-      title: lang === 'ta' ? "பாலாற்று படுகை ஹைட்ரோஜியோலஜி ஆய்வு" : "Palar River Basin Hydrogeological Research",
-      period: "Scientific Literature & Archives",
-      desc: lang === 'ta'
-        ? "17,810 ச.கி.மீ நீர்ப்பிடிப்பு பகுதி, சார்னோகைட் பாறை அமைப்புகள் மற்றும் CPCB முன்னுரிமை-V நதிப் பகுதிகள் குறித்த விரிவான அறிவியல் ஆய்வு."
-        : "Comprehensive investigation of the 17,810 km² catchment area, weathered charnockite fissured aquifers, and CPCB Priority-V polluted river stretches published in hydrogeochemical bulletins.",
-      badge: "VERIFIED ARCHIVES",
-      metric: "17,810 km² Catchment"
+      id: 'rainfall',
+      icon: CloudRain,
+      accent: 'text-cyan-400 border-cyan-500/30 bg-cyan-950/75 hover:border-cyan-400/50',
+      provenance: 'VERIFIED_PUBLIC' as const,
+      title: L('2. Rainfall Response Analysis', '2. மழைப்பொழிவுப் பகுப்பாய்வு'),
+      desc: L(
+        'Catchment-wide precipitation series contrasting Southwest vs. Northeast monsoon rainfall and aquifer infiltration windows.',
+        'வடகிழக்கு மற்றும் தென்மேற்குப் பருவமழைப் பங்களிப்புகளையும் நீர் ஊடுருவல் காலங்களையும் ஒப்பிடுகிறது.'
+      ),
     },
     {
-      num: "03",
-      phase: "OBSERVATION",
-      title: lang === 'ta' ? "பல மூலத் தரவு ஒருங்கிணைப்பு" : "Multi-Source Telemetry Integration",
-      period: "Data Infrastructure",
-      desc: lang === 'ta'
-        ? "மத்திய நிலத்தடி நீர் வாரியம் (CGWB) கிணறு தரவுகள், IMD மழைப்பொழிவு பதிவுகள் மற்றும் TNPCB நீர் தர பகுப்பாய்வுகளை ஒரே அமைப்பில் இணைத்தல்."
-        : "Automated ingestion pipeline unifying quarterly CGWB observation well hydrographs, IMD NWIC precipitation series, and TNPCB ionic surveillance assays across 7 baseline river stations.",
-      badge: "LIVE INGESTION",
-      metric: "7 Baseline Stations"
+      id: 'water_quality',
+      icon: Activity,
+      accent: 'text-amber-400 border-amber-500/30 bg-amber-950/75 hover:border-amber-400/50',
+      provenance: 'HISTORICAL_REPORT' as const,
+      title: L('3. Water Quality Surveillance', '3. நீர் தரக் கண்காணிப்பு'),
+      desc: L(
+        'Laboratory parameter benchmarks across Total Chromium, TDS, EC, BOD, and Dissolved Oxygen with robust outlier screening.',
+        'குரோமியம், TDS, EC, BOD மற்றும் கரைந்த ஆக்ஸிஜன் அளவுகளை BIS 10500 / CPCB வரம்புகளுடன் ஒப்பிடுகிறது.'
+      ),
     },
     {
-      num: "04",
-      phase: "INTELLIGENCE",
-      title: lang === 'ta' ? "முன்னோக்கு கணிப்பு & வலுவான புள்ளிவிவர மாதிரிகள்" : "Walk-Forward Forecasting & Robust MAD Screening",
-      period: "AI & ML Architecture",
-      desc: lang === 'ta'
-        ? "90% நம்பிக்கை இடைவெளியுடன் 4 காலாண்டுகளுக்கான நீர்மட்ட கணிப்பு மற்றும் Median Absolute Deviation கொண்டு துல்லியமான மாறுபாடுகளைக் கண்டறிதல்."
-        : "Built explainable walk-forward seasonal models with ±1.2m empirical confidence intervals and Median Absolute Deviation (MAD) robust Z-score screening to avoid skew from pollution surges.",
-      badge: "ALGORITHMIC CORE",
-      metric: "MAD Z-Score = 3.84"
+      id: 'forecasting',
+      icon: LineChart,
+      accent: 'text-emerald-400 border-emerald-500/30 bg-emerald-950/75 hover:border-emerald-400/50',
+      provenance: 'MODEL_PREDICTION' as const,
+      title: L('4. Walk-Forward Projections', '4. முன்னோக்கு கணிப்புகள்'),
+      desc: L(
+        'Quarterly water table scenario projections under normal, deficit, and surplus monsoon conditions with explicit confidence bounds.',
+        'இயல்பு, பற்றாக்குறை மற்றும் மிகை மழைச் சூழல்களில் அடுத்த நான்கு காலாண்டுகளுக்கான நீர்மட்டக் கணிப்புகள்.'
+      ),
     },
     {
-      num: "05",
-      phase: "PRIORITISATION",
-      title: lang === 'ta' ? "விளக்கக்கூடிய பல-அளவுகோல் இடர் தரவரிசை" : "Multi-Criteria Decision Prioritisation",
-      period: "MCDA Framework",
-      desc: lang === 'ta'
-        ? "நீர்மட்ட அழுத்தம், நீர் தரம், மழை பற்றாக்குறை ஆகிய 5 காரணிகளை கொண்டு 0–100 இடர் மதிப்பெண் வழங்கி கள ஆய்வுக்கு முன்னுரிமை அளித்தல்."
-        : "Engineered objective weighted index synthesizing groundwater stress (30%), water quality (35%), and rainfall deficits (15%) to rank stretches; Ranipet prioritized at 78.5/100.",
-      badge: "DECISION SUPPORT",
-      metric: "Rank #1: Ranipet 78.5"
+      id: 'risk_priority',
+      icon: Compass,
+      accent: 'text-violet-400 border-violet-500/30 bg-violet-950/75 hover:border-violet-400/50',
+      provenance: 'MODEL_PREDICTION' as const,
+      title: L('5. Geospatial Risk Prioritisation', '5. புவிசார் இடர் முன்னுரிமை'),
+      desc: L(
+        'Transparent MCDA 0–100 priority rankings helping field officers focus inspection capacity on critical reaches first.',
+        'மிக அதிக அபாயம் உள்ள நதிப் பகுதிகளுக்கு முதலில் கள ஆய்வுக் குழுக்களை அனுப்ப உதவும் 0–100 தரவரிசை.'
+      ),
     },
     {
-      num: "06",
-      phase: "VERIFICATION",
-      title: lang === 'ta' ? "கள ஆய்வு & சான்று சரிபார்ப்பு பணிப்பாய்வு" : "Field Verification & Evidence Workflows",
-      period: "Operational Protocol",
-      desc: lang === 'ta'
-        ? "கள ஆய்வாளர்களுக்கு பணி ஒதுக்கீடு, இரட்டை மாதிரி சேகரிப்பு மற்றும் மாற்ற முடியாத தணிக்கை பதிவேடு மூலம் நம்பகத்தன்மையை உறுதி செய்தல்."
-        : "Integrated dispatcher assigning field inspection checklists, mobile spectrophotometer duplicate sampling, and immutable audit logs to verify anomalies before public advisories.",
-      badge: "AUDITABLE INTEGRITY",
-      metric: "100% Provenance Badges"
+      id: 'documents',
+      icon: ShieldCheck,
+      accent: 'text-[#d9c27a] border-[#d9c27a]/30 bg-[#1a170c]/80 hover:border-[#d9c27a]/60',
+      provenance: 'VERIFIED_PUBLIC' as const,
+      title: L('6. Document Intelligence & Audit', '6. ஆவண நுண்ணறிவு & தணிக்கை'),
+      desc: L(
+        'Source-grounded extraction across PDF, DOCX, CSV, XLSX, and TXT reports alongside full provenance classification and audit logs.',
+        'PDF, DOCX, CSV, XLSX மற்றும் TXT அறிக்கைகளில் இருந்து பக்க/வரி ஆதாரங்களுடன் தகவல்களைப் பிரித்தெடுத்தல்.'
+      ),
     },
-    {
-      num: "07",
-      phase: "ACTION",
-      title: lang === 'ta' ? "மறுசுழற்சி & தடுப்பணை திட்டமிடல்" : "Managed Aquifer Recharge (MAR) Interventions",
-      period: "Engineering Decision Siting",
-      desc: lang === 'ta'
-        ? "மழைநீரை பூமிக்குள் செலுத்தும் தடுப்பணைகள், செறிவூட்டும் கிணறுகள் மற்றும் ஊடுருவல் குளங்களுக்கான இடம் தேர்வு செய்யும் வழிகாட்டி."
-        : "Site suitability scoring based on soil permeability, hydraulic gradient, and aquifer storage, directing check dams and infiltration shafts to maximize post-monsoon water replenishment.",
-      badge: "GROUND ACTION",
-      metric: "84% Suitability Score"
-    },
-    {
-      num: "08",
-      phase: "THE FUTURE",
-      title: lang === 'ta' ? "மக்கள் பங்களிப்பு & எதிர்கால நதி பாதுகாப்பு" : "Decentralized Public Participation & Scalable Future",
-      period: "2026 & Beyond",
-      desc: lang === 'ta'
-        ? "விவசாயிகள் மற்றும் பொதுமக்கள் நேரடியாக நீர் பிரச்சனைகளை பதிவு செய்யும் மக்கள் பலகம் மற்றும் தமிழ் வழிகாட்டி மூலம் பாலாற்றை மீட்டெடுக்கும் கூட்டு முயற்சி."
-        : "Empowering basin communities through Community Access portal, bilingual educational resources, and transparent environmental intelligence to protect every drop.",
-      badge: "CITIZEN STEWARDSHIP",
-      metric: "Palar Basin Protected"
-    }
   ];
+
+  const stakeholders = [
+    {
+      icon: Users,
+      color: 'text-emerald-400 bg-emerald-950/80 border-emerald-500/30',
+      role: L('Role: Community / விவசாயி', 'பங்கு: பொதுமக்கள் / விவசாயி'),
+      title: L('Farmers & Local Residents', 'விவசாயிகள் & பொதுமக்கள்'),
+      desc: L(
+        'Check neighbourhood well depth in plain language, follow monsoon updates, and report water concerns in Tamil or English.',
+        'தங்கள் ஊர் கிணற்று நீர்மட்டம் மற்றும் குடிநீர் பாதுகாப்பை எளிய தமிழில் அறிந்து புகார் அளிக்கலாம்.'
+      ),
+    },
+    {
+      icon: GraduationCap,
+      color: 'text-cyan-400 bg-cyan-950/80 border-cyan-500/30',
+      role: L('Role: Researcher / ஆய்வாளர்', 'பங்கு: ஆராய்ச்சியாளர்'),
+      title: L('Environmental Researchers', 'சுற்றுச்சூழல் ஆய்வாளர்கள்'),
+      desc: L(
+        'Analyze multi-year hydrographs, benchmark chemical parameters, inspect walk-forward forecasts, and export CSV dossiers.',
+        'பல ஆண்டு நிலத்தடி நீர் வரைபடங்கள், வேதியியல் அளவுகள் மற்றும் கணிப்பு மாதிரிகளை ஆய்வு செய்யலாம்.'
+      ),
+    },
+    {
+      icon: ShieldAlert,
+      color: 'text-amber-400 bg-amber-950/80 border-amber-500/30',
+      role: L('Role: Field Investigator', 'பங்கு: கள அதிகாரி'),
+      title: L('Field Officers & Inspectors', 'கள ஆய்வு அதிகாரிகள்'),
+      desc: L(
+        'Triage statistical outlier tickets, verify community incident coordinates on-site, and record laboratory verification notes.',
+        'புள்ளிவிவர மாறுபாடுகளையும் மக்கள் புகார்களையும் களத்தில் சரிபார்த்து ஆய்வக முடிவுகளைப் பதிவு செய்யலாம்.'
+      ),
+    },
+    {
+      icon: Building2,
+      color: 'text-teal-400 bg-teal-950/80 border-teal-500/30',
+      role: L('Role: Water Authority', 'பங்கு: நீர்வளத்துறை'),
+      title: L('Basin & Municipal Authorities', 'நீர்வள & நகராட்சி அமைப்புகள்'),
+      desc: L(
+        'Evaluate check-dam and eri desiltation suitability across the 17,810 km² catchment and track priority interventions.',
+        'தடுப்பணை மற்றும் ஏரி தூர்வாருதல் தகுதியை மதிப்பிட்டு முன்னுரிமைப் பகுதிகளில் திட்டமிடலாம்.'
+      ),
+    },
+    {
+      icon: Compass,
+      color: 'text-emerald-300 bg-emerald-950/80 border-emerald-500/30',
+      role: L('Role: Watershed NGO', 'பங்கு: தன்னார்வக் குழுக்கள்'),
+      title: L('Basin Watch NGOs', 'நதிப் பாதுகாப்புக் குழுக்கள்'),
+      desc: L(
+        'Monitor public water advisories, mobilize village tank restoration, and engage citizens with evidence-backed metrics.',
+        'பொது நீர் எச்சரிக்கைகளைப் பகிர்ந்து கிராம ஏரிப் புனரமைப்புப் பணிகளை ஒருங்கிணைக்கலாம்.'
+      ),
+    },
+    {
+      icon: Cpu,
+      color: 'text-violet-300 bg-violet-950/80 border-violet-500/30',
+      role: L('Role: Administrator', 'பங்கு: கணினி நிர்வாகி'),
+      title: L('System Administrators', 'தள நிர்வாகிகள்'),
+      desc: L(
+        'Enforce JWT authentication and role permissions, audit system health, and review moderation and document logs.',
+        'பங்கு அடிப்படையிலான பாதுகாப்பு (RBAC), கணினி ஆரோக்கியம் மற்றும் தணிக்கைப் பதிவேடுகளை நிர்வகிக்கலாம்.'
+      ),
+    },
+  ];
+
+  const provenanceTiers = [
+    {
+      tier: 'TIER 1',
+      provenance: 'VERIFIED_PUBLIC' as const,
+      border: 'border-emerald-500/30',
+      accent: 'text-emerald-400',
+      title: L('Verified Public Observation', 'சரிபார்க்கப்பட்ட பொதுப் பதிவு'),
+      desc: L(
+        'Observations ingested from government monitoring agencies: CGWB hydrographs, IMD catchment rainfall, and TNPCB water quality series.',
+        'மத்திய நிலத்தடி நீர் வாரியம் (CGWB), இந்திய வானிலை ஆய்வு மையம் (IMD) மற்றும் TNPCB பதிவுகள்.'
+      ),
+    },
+    {
+      tier: 'TIER 2',
+      provenance: 'HISTORICAL_REPORT' as const,
+      border: 'border-cyan-500/30',
+      accent: 'text-cyan-400',
+      title: L('Historical Published Benchmark', 'வரலாற்று ஆய்வறிக்கை'),
+      desc: L(
+        'Peer-reviewed hydrogeological monographs and CPCB polluted-stretch reference benchmarks.',
+        'அங்கீகரிக்கப்பட்ட அறிவியல் ஆய்வுகள் மற்றும் CPCB நதி மாசுப் பகுதி ஆவணங்கள்.'
+      ),
+    },
+    {
+      tier: 'TIER 3',
+      provenance: 'MODEL_PREDICTION' as const,
+      border: 'border-violet-500/30',
+      accent: 'text-violet-400',
+      title: L('Statistical Model Forecast', 'புள்ளிவிவரக் கணிப்பு'),
+      desc: L(
+        'Walk-forward seasonal projections and Robust Z-score outlier flags labeled explicitly with confidence bounds.',
+        'நம்பிக்கை வரம்புகளுடன் கூடிய கணிப்புகளும் புள்ளிவிவர மாறுபாட்டுக் குறியீடுகளும்.'
+      ),
+    },
+    {
+      tier: 'TIER 4',
+      provenance: 'COMMUNITY_REPORT' as const,
+      border: 'border-amber-500/30',
+      accent: 'text-amber-400',
+      title: L('Community Incident Report', 'மக்கள் புகார் பதிவு'),
+      desc: L(
+        'Citizen-submitted observations undergoing field triage, with account privacy protected.',
+        'பொதுமக்கள் அளிக்கும் புகார்கள் — தனிப்பட்ட தகவல்கள் பாதுகாக்கப்பட்டு கள சோதனைக்கு அனுப்பப்படும்.'
+      ),
+    },
+    {
+      tier: 'TIER 5',
+      provenance: 'FIELD_VERIFIED' as const,
+      border: 'border-teal-500/30',
+      accent: 'text-teal-400',
+      title: L('Field-Verified Inspection', 'களச் சரிபார்க்கப்பட்ட தரவு'),
+      desc: L(
+        'Logged field verification records with investigator checklists, sample status updates, and audit timestamps.',
+        'கள ஆய்வு அதிகாரிகளின் சரிபார்ப்புப் பட்டியல் மற்றும் மாதிரி சோதனை விவரங்கள்.'
+      ),
+    },
+    {
+      tier: 'TIER 6',
+      provenance: 'SYNTHETIC_DEMO' as const,
+      border: 'border-stone-500/30',
+      accent: 'text-stone-300',
+      title: L('Synthetic Demo Safeguard', 'மாதிரி தரவுப் பாதுகாப்பு'),
+      desc: L(
+        'Test/demo fixtures are strictly separated and labeled — never disguised as genuine Palar Basin measurements.',
+        'சோதனை மாதிரித் தரவுகள் எப்போதும் தனித்து அடையாளமிடப்படும்; உண்மை அளவீடுகளுடன் கலக்கப்படாது.'
+      ),
+    },
+  ];
+
+  const handleLaunchDemo = (demoMode: 'simple' | 'expert', demoLang: 'en' | 'ta', targetModule: string) => {
+    setMode(demoMode);
+    setLang(demoLang);
+    onExplore(targetModule);
+  };
 
   return (
-    <div className="bg-[#020905] text-[#f4f7f5] overflow-hidden selection:bg-emerald-500/30 selection:text-emerald-200">
+    <div className="bg-transparent text-[#fcfbf7] overflow-x-clip selection:bg-emerald-500/30 selection:text-emerald-200">
       {/* ============================================================ */}
-      {/* 1. CINEMATIC 6-STAGE FULL-SCREEN SCROLL-DRIVEN HERO */}
+      {/* 1. CINEMATIC SCROLL-DRIVEN EARTH JOURNEY                     */}
       {/* ============================================================ */}
-      <div ref={heroContainerRef} className="relative h-[360vh] w-full">
-        <div className="sticky top-0 h-screen w-full overflow-hidden">
-          <CinematicHeroSequence 
-            onExplore={onExplore}
-            onOpenPresentation={onOpenPresentation}
-            scrollProgress={heroScrollProgress}
-            onScrollToStage={handleScrollToStage}
-          />
-        </div>
-      </div>
+      <ScrollEarthJourney onExplore={onExplore} />
 
       {/* ============================================================ */}
-      {/* PART 2 — DRAMATIC EDITORIAL HEADING REVEAL & 6-STAGE WORKFLOW */}
+      {/* 2. EDITORIAL INTRODUCTION & 6-STAGE PIPELINE                 */}
       {/* ============================================================ */}
-      <section id="editorial" className="py-28 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#020b06] relative">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center max-w-4xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/90 border border-emerald-500/40 text-xs font-mono text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              {lang === 'ta' ? 'அறிவியல் முன்னறிவிப்பு & நதிப் பாதுகாப்பு' : 'PALAR BASIN ENVIRONMENTAL INTELLIGENCE'}
+      <section id="editorial" className="py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-transparent">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="text-center max-w-4xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full palar-surface-glass border border-emerald-500/35 text-xs font-mono text-emerald-300">
+              {L('PALAR BASIN ENVIRONMENTAL INTELLIGENCE · TAMIL NADU', 'அறிவியல் முன்னறிவிப்பு & நதிப் பாதுகாப்பு')}
             </div>
-            
-            <h2 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.08]">
+
+            <h2 className="font-serif text-4xl sm:text-6xl font-semibold text-[#fcfbf7] tracking-tight leading-[1.08]">
               {lang === 'ta' ? (
                 <>
-                  நீரை அறிவோம். <br />
-                  <span className="text-emerald-400">நாளைய தலைமுறையை காப்போம்.</span>
+                  நீரை அறிவோம். <span className="text-emerald-400">நாளைய தலைமுறையை காப்போம்.</span>
                 </>
               ) : (
                 <>
-                  UNDERSTANDING WATER. <br />
-                  <span className="text-emerald-400">PROTECTING TOMORROW.</span>
+                  Understanding Water. <span className="text-emerald-400">Protecting Tomorrow.</span>
                 </>
               )}
             </h2>
 
-            <p className="text-base sm:text-lg text-stone-300 max-w-3xl mx-auto leading-relaxed font-normal">
-              {lang === 'ta'
-                ? 'பாலாறு நதிப்படுகைக்கான நிலத்தடி நீர், மழைப்பொழிவு, நீர் தரம் மற்றும் மாசு இடர் தகவல்களை ஒருங்கிணைக்கும் அதிநவீன சுற்றுச்சூழல் முடிவெடுக்கும் தளம்.'
-                : 'An integrated environmental intelligence platform bringing groundwater, rainfall, water quality, and pollution-risk information together for the Palar River Basin.'}
+            <p className="text-sm sm:text-base text-[#c3d0c8] max-w-3xl mx-auto leading-relaxed">
+              {L(
+                'Built by Kayalvizhi J, Harini S, and Aarthi L at Chennai Institute of Technology, PALAR GUARD AI unifies groundwater, rainfall, water quality, document extraction, and citizen stewardship across the 17,810 km² Palar catchment.',
+                'சென்னை இன்ஸ்டிடியூட் ஆஃப் டெக்னாலஜி குழுவினரால் உருவாக்கப்பட்ட பாலாறு காப்பாளர் AI, 17,810 ச.கி.மீ பாலாறு வடிநிலத்தின் நிலத்தடி நீர், மழைப்பொழிவு, நீர் தரம் மற்றும் மக்கள் புகார்களை ஒரே வெளிப்படையான தளத்தில் இணைக்கிறது.'
+              )}
             </p>
 
-            {/* 6-Stage Workflow Pills: OBSERVE → ANALYSE → PREDICT → PRIORITISE → VERIFY → ACT */}
-            <div className="pt-4 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-mono">
-              {[
-                { name: 'OBSERVE', ta: 'கண்காணி' },
-                { name: 'ANALYSE', ta: 'பகுப்பாய்' },
-                { name: 'PREDICT', ta: 'கணித்தறி' },
-                { name: 'PRIORITISE', ta: 'முன்னுரிமை' },
-                { name: 'VERIFY', ta: 'சரிபார்' },
-                { name: 'ACT', ta: 'செயல்படுத்து' }
-              ].map((stage, idx, arr) => (
-                <React.Fragment key={stage.name}>
+            {/* 6-Stage Workflow Pills */}
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-2 text-xs font-mono">
+              {workflowStages.map((stage, idx, arr) => (
+                <React.Fragment key={stage.step}>
                   <button
+                    type="button"
                     onClick={() => setActiveStage(idx)}
                     className={`px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
-                      activeStage === idx 
-                        ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 font-bold shadow-emerald-glow'
-                        : 'bg-black/40 border-white/10 text-stone-400 hover:border-emerald-500/40'
+                      activeStage === idx
+                        ? 'bg-emerald-500/20 border-emerald-400 text-emerald-200 font-bold'
+                        : 'palar-surface-glass border-white/10 text-stone-300 hover:border-emerald-500/40'
                     }`}
                   >
-                    <span className="text-[10px] text-emerald-400">0{idx + 1}</span>
-                    <span>{lang === 'ta' ? stage.ta : stage.name}</span>
+                    <span className="text-[10px] text-[#d9c27a]">{stage.step}</span>
+                    <span>{stage.name}</span>
                   </button>
-                  {idx < arr.length - 1 && (
-                    <span className="text-stone-600 font-bold select-none">→</span>
-                  )}
+                  {idx < arr.length - 1 && <span className="text-stone-500 select-none">→</span>}
                 </React.Fragment>
               ))}
             </div>
           </div>
 
-          {/* Active Stage Detailed Breakdown Banner */}
-          <div className="p-8 rounded-3xl bg-[#061e12] border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-8 shadow-forest-lg">
-            <div className="space-y-3 max-w-2xl">
+          {/* Active Stage Banner */}
+          <div className="p-6 sm:p-8 rounded-2xl palar-surface-glass border border-emerald-500/25 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-forest-md">
+            <div className="space-y-2.5 max-w-2xl">
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="text-xs font-mono font-bold text-emerald-400">
-                  STAGE {workflowStages[activeStage].step}
-                </span>
-                <span className="text-stone-500">·</span>
-                <span className="text-xs font-mono uppercase text-stone-300 font-bold">
-                  {workflowStages[activeStage].name}
+                <span className="text-xs font-mono font-bold text-[#d9c27a]">
+                  {workflowStages[activeStage].step} · {workflowStages[activeStage].name}
                 </span>
                 <DataBadge provenance={workflowStages[activeStage].provenance} />
               </div>
-              <h3 className="text-2xl font-bold text-white">{workflowStages[activeStage].title}</h3>
-              <p className="text-sm text-stone-300 leading-relaxed font-normal">{workflowStages[activeStage].desc}</p>
+              <h3 className="text-xl sm:text-2xl font-bold text-[#fcfbf7]">{workflowStages[activeStage].title}</h3>
+              <p className="text-xs sm:text-sm text-[#b9c6be] leading-relaxed">{workflowStages[activeStage].desc}</p>
             </div>
 
-            <div className="shrink-0 p-6 rounded-2xl bg-[#020b06] border border-white/10 text-center min-w-[240px]">
-              <div className="text-xs font-mono text-stone-400 mb-1">Key Operational Metric</div>
-              <div className="text-2xl font-extrabold text-emerald-400 font-sans tabular-nums mb-4">
+            <div className="shrink-0 w-full md:w-64 p-5 rounded-xl bg-[#04100b]/80 border border-white/10 text-center space-y-3">
+              <div className="text-[11px] font-mono uppercase text-[#8f9e95]">
+                {L('Operational Scope', 'செயல்பாட்டு வரம்பு')}
+              </div>
+              <div className="text-lg font-bold text-emerald-300 tabular-nums">
                 {workflowStages[activeStage].metric}
               </div>
               <button
-                onClick={() => onExplore('dashboard')}
-                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                type="button"
+                onClick={() => {
+                  setMode('expert');
+                  onExplore(workflowStages[activeStage].target);
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#10b981] hover:bg-[#059669] text-[#041a11] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
               >
-                <span>Inspect in Workspace</span>
+                <span>{L('Inspect in Console', 'பகுதியைத் திற')}</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* 3 Core Basin Vulnerability Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
-            {/* Groundwater Stress Card */}
-            <div className="p-8 rounded-2xl bg-[#071d13] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-950/90 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                <Droplets className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white">Severe Groundwater Drawdown</h3>
-              <p className="text-xs text-stone-300 leading-relaxed font-normal">
-                CGWB long-term monitoring records show water levels in Ranipet and Ambur regularly plunging below 14.9 mbgl in summer months. Over-extraction from shallow unconfined alluvium rapidly depletes community and agricultural borewells.
-              </p>
-              <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-stone-400 border-t border-white/[0.06]">
-                <span>Rate: -0.6 m / year</span>
-                <DataBadge provenance="VERIFIED_PUBLIC" />
-              </div>
-            </div>
+          {/* 3 Core Basin Vulnerability Flip Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Reveal kind="fall" delay={0}>
+              <FlipCard
+                className="h-52"
+                label={L('Groundwater stress card — flip for methodology', 'நிலத்தடி நீர் அழுத்த அட்டை — வழிமுறை பார்க்க திருப்பவும்')}
+                frontClassName="border-teal-500/25 palar-surface-teal"
+                backClassName="border-teal-400/50 bg-[#082628]/95"
+                front={
+                  <div className="h-full flex flex-col justify-between">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-2 text-xs font-mono text-teal-300">
+                        <Droplets className="w-4 h-4" />
+                        {L('GROUNDWATER STRESS', 'நிலத்தடி நீர் அழுத்தம்')}
+                      </span>
+                      <DataBadge provenance="VERIFIED_PUBLIC" />
+                    </div>
+                    <p className="text-xs text-[#c3d0c8] leading-relaxed">
+                      {L(
+                        'Tracks seasonal pre-monsoon drawdown vs post-monsoon recharge across CGWB monitoring stations.',
+                        'CGWB கண்காணிப்பு நிலையங்களில் கோடைகால நீர்மட்ட வீழ்ச்சி மற்றும் பருவமழை மீளுருவாக்கத்தைக் கண்காணிக்கிறது.'
+                      )}
+                    </p>
+                    <div className="text-[10px] font-mono text-[#d9c27a]">
+                      {L('Hover or press Enter for methodology →', 'விவரங்களுக்கு மேல் நகர்த்தவும் →')}
+                    </div>
+                  </div>
+                }
+                back={
+                  <div className="h-full flex flex-col justify-between">
+                    <div className="text-[11px] font-mono uppercase tracking-wider text-teal-300">
+                      {L('Method & Provenance', 'முறை & ஆதாரம்')}
+                    </div>
+                    <p className="text-xs text-[#fcfbf7] leading-relaxed">
+                      {L(
+                        'Quarterly depth-to-water (mbgl) measurements compared against seasonal Q2 summer minima and Q4 recovery across Ranipet, Vellore, and Ambur.',
+                        'ராணிப்பேட்டை, வேலூர் மற்றும் ஆம்பூர் நிலையங்களின் காலாண்டு ஆழ அளவீடுகள் பருவகால மீட்சியுடன் ஒப்பிடப்படுகின்றன.'
+                      )}
+                    </p>
+                    <span className="text-[10px] font-mono text-teal-300">
+                      {L('Source: CGWB Observation Network', 'ஆதாரம்: மத்திய நிலத்தடி நீர் வாரியம்')}
+                    </span>
+                  </div>
+                }
+              />
+            </Reveal>
 
-            {/* Changing Rainfall Patterns Card */}
-            <div className="p-8 rounded-2xl bg-[#071d13] border border-white/[0.08] hover:border-cyan-500/40 transition-all space-y-4">
-              <div className="w-12 h-12 rounded-xl bg-cyan-950/90 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                <CloudRain className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white">Monsoon Concentration & Deficit</h3>
-              <p className="text-xs text-stone-300 leading-relaxed font-normal">
-                The Palar Catchment receives 980 mm of annual rainfall, with over 55% crammed into short, high-intensity storms during the October–November Northeast Monsoon. High surface runoff limits natural infiltration without dedicated artificial recharge structures.
-              </p>
-              <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-stone-400 border-t border-white/[0.06]">
-                <span>NE Monsoon: 55%</span>
-                <DataBadge provenance="VERIFIED_PUBLIC" />
-              </div>
-            </div>
+            <Reveal kind="fall" delay={0.07}>
+              <FlipCard
+                className="h-52"
+                label={L('Monsoon concentration card — flip for recharge details', 'பருவமழைச் செறிவு அட்டை — விவரங்களுக்கு திருப்பவும்')}
+                frontClassName="border-cyan-500/25 palar-surface-glass"
+                backClassName="border-cyan-400/50 bg-[#08232d]/95"
+                front={
+                  <div className="h-full flex flex-col justify-between">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-2 text-xs font-mono text-cyan-300">
+                        <CloudRain className="w-4 h-4" />
+                        {L('MONSOON CONCENTRATION', 'பருவமழைச் செறிவு')}
+                      </span>
+                      <DataBadge provenance="VERIFIED_PUBLIC" />
+                    </div>
+                    <p className="text-xs text-[#c3d0c8] leading-relaxed">
+                      {L(
+                        'Separates Northeast and Southwest monsoon contributions to evaluate percolation and check-dam siting.',
+                        'வடகிழக்கு மற்றும் தென்மேற்கு பருவமழைப் பங்களிப்புகளைப் பிரித்து நீர் செறிவூட்டல் வாய்ப்புகளை மதிப்பிடுகிறது.'
+                      )}
+                    </p>
+                    <div className="text-[10px] font-mono text-[#d9c27a]">
+                      {L('Hover or press Enter for hydrology context →', 'நீரியல் விவரங்களுக்கு அழுத்தவும் →')}
+                    </div>
+                  </div>
+                }
+                back={
+                  <div className="h-full flex flex-col justify-between">
+                    <div className="text-[11px] font-mono uppercase tracking-wider text-cyan-300">
+                      {L('Hydrological Context', 'நீரியல் சூழல்')}
+                    </div>
+                    <p className="text-xs text-[#fcfbf7] leading-relaxed">
+                      {L(
+                        'Northeast monsoon storms (Oct–Dec) supply the main recharge pulse into Palar river-bed alluvium and interconnected village eris.',
+                        'வடகிழக்குப் பருவமழை (அக்–டிச) பாலாறு மணல் படுகைக்கும் ஏரித் தொடர்களுக்கும் முக்கிய நீர் ஆதாரமாகும்.'
+                      )}
+                    </p>
+                    <span className="text-[10px] font-mono text-cyan-300">
+                      {L('Source: IMD NWIC Rainfall Normals', 'ஆதாரம்: IMD மழைப்பொழிவுத் தரவு')}
+                    </span>
+                  </div>
+                }
+              />
+            </Reveal>
 
-            {/* Water Quality & Chemical Anomaly Card */}
-            <div className="p-8 rounded-2xl bg-[#071d13] border border-white/[0.08] hover:border-red-500/40 transition-all space-y-4">
-              <div className="w-12 h-12 rounded-xl bg-red-950/90 border border-red-500/30 flex items-center justify-center text-red-400">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white">Water Quality & Chemical Stress</h3>
-              <p className="text-xs text-stone-300 leading-relaxed font-normal">
-                Industrial tannery effluent historical discharges across the Vaniyambadi–Ranipet stretch cause elevated Total Dissolved Solids (&gt;1850 mg/L) and Total Chromium surges (&gt;0.05 mg/L limit), classified as CPCB Priority-V restoration corridor.
-              </p>
-              <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-stone-400 border-t border-white/[0.06]">
-                <span>CPCB Priority-V</span>
-                <DataBadge provenance="HISTORICAL_REPORT" />
-              </div>
-            </div>
+            <Reveal kind="fall" delay={0.14}>
+              <FlipCard
+                className="h-52"
+                label={L('Statistical screening card — flip for ethics protocol', 'புள்ளிவிவர ஆய்வு அட்டை — நெறிமுறை பார்க்க திருப்பவும்')}
+                frontClassName="border-rose-500/25 palar-surface-amber"
+                backClassName="border-amber-400/50 bg-[#221314]/95"
+                front={
+                  <div className="h-full flex flex-col justify-between">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-2 text-xs font-mono text-rose-300">
+                        <AlertTriangle className="w-4 h-4" />
+                        {L('STATISTICAL SCREENING', 'புள்ளிவிவர ஆய்வு')}
+                      </span>
+                      <DataBadge provenance="MODEL_PREDICTION" />
+                    </div>
+                    <p className="text-xs text-[#c3d0c8] leading-relaxed">
+                      {L(
+                        'Flags chemical outliers as investigation priorities requiring duplicate lab verification—never unverified claims.',
+                        'இரசாயன அளவு மாறுபாடுகளை ஆய்வகச் சரிபார்ப்புக்கான முன்னுரிமைகளாக மட்டுமே குறிக்கிறது.'
+                      )}
+                    </p>
+                    <div className="text-[10px] font-mono text-[#d9c27a]">
+                      {L('Hover or press Enter for verification rule →', 'சரிபார்ப்பு விதியைப் பார்க்க →')}
+                    </div>
+                  </div>
+                }
+                back={
+                  <div className="h-full flex flex-col justify-between">
+                    <div className="text-[11px] font-mono uppercase tracking-wider text-amber-300">
+                      {L('Scientific Integrity Rule', 'அறிவியல் நேர்மை விதி')}
+                    </div>
+                    <p className="text-xs text-[#fcfbf7] leading-relaxed">
+                      {L(
+                        'Robust Z-score & IQR flags only trigger Kanban field verification; official contamination rulings require accredited TNPCB assay.',
+                        'Z-மதிப்பு மாறுபாடுகள் கள ஆய்வை மட்டுமே தொடங்கும்; அதிகாரப்பூர்வ மாசு உறுதிப்படுத்தலுக்கு ஆய்வகப் பரிசோதனை அவசியம்.'
+                      )}
+                    </p>
+                    <span className="text-[10px] font-mono text-rose-300">
+                      {L('Protocol: Evidence Before Attribution', 'நெறிமுறை: ஆதாரத்திற்குப் பின்னரே முடிவு')}
+                    </span>
+                  </div>
+                }
+              />
+            </Reveal>
           </div>
         </div>
       </section>
 
       {/* ============================================================ */}
-      {/* PART 3 — VERTICAL FALLING-CARD TIMELINE (FROM OBSERVATION TO ACTION) */}
+      {/* 3. SIX INTELLIGENCE DIMENSIONS (RESTORED ORIGINAL BENTO)     */}
+      {/* ============================================================ */}
+      <section id="capabilities" className="py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-transparent">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full palar-surface-glass border border-teal-500/35 text-xs font-mono text-teal-300">
+              {L('SECTION 03 · CORE CAPABILITIES', 'பிரிவு 03 · முக்கியத் திறன்கள்')}
+            </div>
+            <h2 className="font-serif text-3xl sm:text-5xl font-semibold text-[#fcfbf7] tracking-tight">
+              {L('Six Intelligence Dimensions.', 'ஆறு சுற்றுச்சூழல் நுண்ணறிவுப் பரிமாணங்கள்.')}
+            </h2>
+            <p className="text-sm sm:text-base text-[#b9c6be]">
+              {L(
+                'Purpose-built modules for environmental analysts, hydrogeologists, field investigators, and communities.',
+                'சுற்றுச்சூழல் ஆய்வாளர்கள், நீரியல் வல்லுநர்கள், கள அதிகாரிகள் மற்றும் பொதுமக்களுக்கான சிறப்புப் பிரிவுகள்.'
+              )}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {capabilities.map((cap, idx) => {
+              const Icon = cap.icon;
+              return (
+                <Reveal key={cap.id} kind="rise" delay={idx * 0.05}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('expert');
+                      onExplore(cap.id);
+                    }}
+                    className={`w-full h-full text-left p-6 rounded-2xl border transition-all space-y-3.5 group ${cap.accent}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="p-2.5 rounded-xl bg-black/30 border border-white/10 group-hover:scale-105 transition-transform">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <DataBadge provenance={cap.provenance} />
+                    </div>
+                    <h3 className="text-base font-bold text-[#fcfbf7]">{cap.title}</h3>
+                    <p className="text-xs text-[#c5d1ca] leading-relaxed">{cap.desc}</p>
+                  </button>
+                </Reveal>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 4. THE EIGHT-STAGE TIMELINE (THE JOURNEY OF PALAR GUARD AI)  */}
       {/* ============================================================ */}
       <VerticalFallingTimeline onExplore={onExplore} />
 
       {/* ============================================================ */}
-      {/* SECTION 3 — OUR CAPABILITIES (6 BENTO FEATURES) */}
+      {/* 5. WORKSPACES & LIVE BASIN DIGITAL TWIN PREVIEW              */}
       {/* ============================================================ */}
-      <section id="capabilities" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#04120a]">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
-              SECTION 03 · CORE CAPABILITIES
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              Six Intelligence Dimensions.
-            </h2>
-            <p className="text-base text-stone-300">
-              Built for environmental analysts, hydrogeologists, field investigators, and policy makers.
-            </p>
+      <section id="platform-preview" className="py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-transparent">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Reveal kind="left">
+              <div className="rounded-2xl border border-emerald-500/30 palar-surface-glass p-7 h-full flex flex-col justify-between space-y-5">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-2 text-xs font-mono text-emerald-300">
+                      <Users className="w-4 h-4" />
+                      {L('COMMUNITY WORKSPACE', 'மக்கள் பயன்பாட்டுப் பகுதி')}
+                    </span>
+                    <span className="text-[11px] font-mono text-[#b9c6be]">English & தமிழ்</span>
+                  </div>
+                  <h3 className="text-2xl font-semibold text-[#fcfbf7]">
+                    {L('Clear Water Guidance & Citizen Reporting', 'எளிய நீர் வழிகாட்டி & மக்கள் புகார் தளம்')}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#b9c6be] leading-relaxed">
+                    {L(
+                      'For residents, farmers, and students: check local water status without dense scientific charts, submit geotagged concerns, track reports, and follow conservation guidance.',
+                      'விவசாயிகள், மாணவர்கள் மற்றும் பொதுமக்களுக்காக: சிக்கலான வரைபடங்கள் இன்றி உங்கள் ஊர் நீர் நிலை, குடிநீர் பாதுகாப்பு மற்றும் புகார் நிலையைப் பாருங்கள்.'
+                    )}
+                  </p>
+                  <ul className="space-y-2 text-xs text-[#fcfbf7]">
+                    {[
+                      L('Water Near You & Understand Your Water', 'உங்கள் பகுதி நீர் நிலை & எளிய விளக்கம்'),
+                      L('Report Water Issue & Track Status Updates', 'நீர் பிரச்சனை புகார் & நிலை கண்காணிப்பு'),
+                      L('Public Alerts, Community Updates & Conservation Tips', 'பொது எச்சரிக்கைகள் & நீர் சேமிப்பு வழிகாட்டி'),
+                    ].map((item) => (
+                      <li key={item} className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('simple');
+                    onExplore('dashboard');
+                  }}
+                  className="w-full py-3 rounded-xl bg-[#10b981] hover:bg-[#059669] text-[#041a11] text-xs font-semibold transition-colors"
+                >
+                  {L('Open Community Workspace', 'மக்கள் பலகம் திற')}
+                </button>
+              </div>
+            </Reveal>
+
+            <Reveal kind="right">
+              <div className="rounded-2xl border border-[#d9c27a]/35 palar-surface-amber p-7 h-full flex flex-col justify-between space-y-5">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-2 text-xs font-mono text-[#d9c27a]">
+                      <Compass className="w-4 h-4" />
+                      {L('PROFESSIONAL WORKSPACE', 'தொழில்முறை ஆய்வுப் பகுதி')}
+                    </span>
+                    <span className="text-[11px] font-mono text-[#b9c6be]">RBAC Enforced</span>
+                  </div>
+                  <h3 className="text-2xl font-semibold text-[#fcfbf7]">
+                    {L('13 Dedicated Modules & Document Intelligence', '13 சிறப்பு ஆய்வுப் பிரிவுகள் & ஆவண நுண்ணறிவு')}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#b9c6be] leading-relaxed">
+                    {L(
+                      'Distinct GIS mapping, ivory laboratory water quality assays, MCDA ranking, Kanban field verification, watchlists, and document extraction studios.',
+                      'புவிசார் வரைபடம், ஆய்வகத் தரப் பகுப்பாய்வு, கான்பன் கள சரிபார்ப்பு மற்றும் ஆவண நுண்ணறிவு ஆகியவை தனித்தனி வடிவமைப்புடன்.'
+                    )}
+                  </p>
+                  <ul className="space-y-2 text-xs text-[#fcfbf7]">
+                    {[
+                      L('Document Intelligence: PDF, DOCX, CSV, XLSX, TXT extraction & Tamil translation', 'ஆவண நுண்ணறிவு: PDF, DOCX, CSV, XLSX பிரித்தெடுத்தல் & தமிழ் மொழிபெயர்ப்பு'),
+                      L('Kanban Field Verification & Role-Protected Audit Console', 'கள ஆய்வு கான்பன் பலகை & தணிக்கை நிர்வாகம்'),
+                      L('Saved Location Watchlist, MCDA Ranking & Dossier Export', 'கண்காணிப்பு பட்டியல், இடர் தரவரிசை & அறிக்கை ஏற்றுமதி'),
+                    ].map((item) => (
+                      <li key={item} className="flex items-center gap-2">
+                        <FileSearch className="w-4 h-4 text-[#d9c27a] shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('expert');
+                    onExplore('dashboard');
+                  }}
+                  className="w-full py-3 rounded-xl border border-[#d9c27a]/60 text-[#fcfbf7] hover:bg-[#d9c27a]/10 text-xs font-semibold transition-colors"
+                >
+                  {L('Open Professional Console', 'தொழில்முறை பலகம் திற')}
+                </button>
+              </div>
+            </Reveal>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* 1. Groundwater Intelligence */}
-            <div 
-              onClick={() => onExplore('groundwater')}
-              className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 cursor-pointer transition-all space-y-4 group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-xl bg-emerald-950/90 border border-emerald-500/30 text-emerald-400 group-hover:scale-105 transition-transform">
-                  <Droplets className="w-5 h-5" />
+          {/* Interactive Live Digital Twin Map (natural height, zero clipped overflow) */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-mono uppercase tracking-widest text-teal-300">
+                  {L('LIVE GEOSPATIAL EXPLORER', 'நேரடி புவிசார் வரைபடம்')}
                 </div>
-                <DataBadge provenance="VERIFIED_PUBLIC" />
+                <h3 className="text-xl sm:text-2xl font-bold text-[#fcfbf7]">
+                  {L('Palar Basin Digital Twin (7 Stations)', 'பாலாறு வடிநில டிஜிட்டல் இரட்டை (7 நிலையங்கள்)')}
+                </h3>
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors">
-                1. Groundwater Intelligence
-              </h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Multi-year quarterly hydrographs from CGWB national hydrograph network wells tracking water table elevation, seasonal recharge amplitude, and specific yield dynamics.
-              </p>
-            </div>
-
-            {/* 2. Rainfall Response Analysis */}
-            <div 
-              onClick={() => onExplore('rainfall')}
-              className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-cyan-500/40 cursor-pointer transition-all space-y-4 group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-xl bg-cyan-950/90 border border-cyan-500/30 text-cyan-400 group-hover:scale-105 transition-transform">
-                  <CloudRain className="w-5 h-5" />
-                </div>
-                <DataBadge provenance="VERIFIED_PUBLIC" />
-              </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
-                2. Rainfall Response Analysis
-              </h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Catchment-wide precipitation series analyzing Southwest vs. Northeast monsoon rainfall, departure from normal benchmarks, and rainfall-to-groundwater infiltration lags.
-              </p>
-            </div>
-
-            {/* 3. Water Quality Anomaly Detection */}
-            <div 
-              onClick={() => onExplore('water_quality')}
-              className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-amber-500/40 cursor-pointer transition-all space-y-4 group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-xl bg-amber-950/90 border border-amber-500/30 text-amber-400 group-hover:scale-105 transition-transform">
-                  <Activity className="w-5 h-5" />
-                </div>
-                <DataBadge provenance="HISTORICAL_REPORT" />
-              </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-amber-300 transition-colors">
-                3. Water Quality Anomaly Detection
-              </h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Surveillance of Total Chromium, TDS, Electrical Conductivity, BOD, and Dissolved Oxygen with Median Absolute Deviation (MAD) robust statistical outlier flagging.
-              </p>
-            </div>
-
-            {/* 4. AI Risk Prediction */}
-            <div 
-              onClick={() => onExplore('forecasting')}
-              className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 cursor-pointer transition-all space-y-4 group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-xl bg-emerald-950/90 border border-emerald-500/30 text-emerald-400 group-hover:scale-105 transition-transform">
-                  <LineChart className="w-5 h-5" />
-                </div>
-                <DataBadge provenance="MODEL_PREDICTION" />
-              </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors">
-                4. AI Risk Prediction
-              </h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Walk-forward seasonal forecast models projecting water-table depression across 4 quarters with backtested validation errors and explicit ±1.2m confidence intervals.
-              </p>
-            </div>
-
-            {/* 5. Geospatial Risk Prioritisation */}
-            <div 
-              onClick={() => onExplore('risk_priority')}
-              className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-amber-500/40 cursor-pointer transition-all space-y-4 group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-xl bg-amber-950/90 border border-amber-500/30 text-amber-400 group-hover:scale-105 transition-transform">
-                  <Compass className="w-5 h-5" />
-                </div>
-                <DataBadge provenance="MODEL_PREDICTION" />
-              </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-amber-300 transition-colors">
-                5. Geospatial Risk Prioritisation
-              </h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Multi-Criteria Decision Analysis (MCDA) generating transparent 0–100 risk ranks to dispatch field resources to highest urgency stretches first.
-              </p>
-            </div>
-
-            {/* 6. Evidence Verification & Confidence */}
-            <div 
-              onClick={() => onExplore('confidence')}
-              className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-teal-500/40 cursor-pointer transition-all space-y-4 group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-xl bg-teal-950/90 border border-teal-500/30 text-teal-400 group-hover:scale-105 transition-transform">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <DataBadge provenance="VERIFIED_PUBLIC" />
-              </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-teal-300 transition-colors">
-                6. Evidence Verification & Provenance
-              </h3>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Every measurement is traceable to official CGWB, CPCB, or peer-reviewed literature benchmarks with complete audit logs and zero synthetic fabrication in verified metrics.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* SECTION 4 — EXPLORE THE PLATFORM (REAL INTERACTIVE PREVIEW) */}
-      {/* ============================================================ */}
-      <section id="platform-preview" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#020d07]">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400 mb-2">
-                SECTION 04 · LIVE CONSOLE PREVIEW
-              </div>
-              <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-                Palar Basin Digital Twin
-              </h2>
-              <p className="text-sm text-stone-300 max-w-xl mt-1">
-                Explore real geographic coordinates across 7 continuous stations from Vaniyambadi in the upper basin to Chengalpattu at the Bay of Bengal estuary.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
               <button
-                onClick={() => onExplore('digital_twin')}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow-forest-sm flex items-center gap-2 transition-all"
+                type="button"
+                onClick={() => {
+                  setMode('expert');
+                  onExplore('digital_twin');
+                }}
+                className="px-4 py-2 rounded-xl bg-teal-950/80 border border-teal-500/35 text-xs font-medium text-teal-200 hover:bg-teal-900/60 transition-colors inline-flex items-center gap-1.5"
               >
-                <span>Full Screen Digital Twin</span>
-                <Compass className="w-4 h-4" />
+                <span>{L('Open Full Basin Explorer', 'முழு வரைபடம் திற')}</span>
+                <Compass className="w-3.5 h-3.5" />
               </button>
             </div>
-          </div>
-
-          <div className="h-[520px]">
             <DigitalTwinMap onSelectLocation={() => onExplore('groundwater')} />
           </div>
         </div>
       </section>
 
       {/* ============================================================ */}
-      {/* SECTION 5 — WHO USES PALAR GUARD AI */}
+      {/* 6. BUILT FOR EVERY STAKEHOLDER & TAMIL ACCESSIBILITY         */}
       {/* ============================================================ */}
-      <section id="stakeholders" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#04120a]">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
-              SECTION 05 · WHO USES THE PLATFORM
+      <section id="stakeholders" className="py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-transparent">
+        <div className="max-w-7xl mx-auto space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full palar-surface-glass border border-cyan-500/30 text-xs font-mono text-cyan-300">
+              {L('SECTION 05 · BUILT FOR EVERY STAKEHOLDER', 'பிரிவு 05 · அனைத்துப் பயனர்களுக்கும்')}
             </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              Built for Every Stakeholder <br />
-              <span className="text-[#2ad58b]">Across the River Basin.</span>
+            <h2 className="font-serif text-3xl sm:text-5xl font-semibold text-[#fcfbf7]">
+              {L('Across Every Reach of the Palar Basin.', 'பாலாறு வடிநிலத்தின் ஒவ்வொரு பகுதிக்கும்.')}
             </h2>
-            <p className="text-base text-stone-300">
-              From local farmers facing dry borewells to environmental researchers, field inspectors, and state water authorities.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* 1. Farmers and Residents */}
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                <Users className="w-5 h-5" />
-              </div>
-              <h4 className="text-base font-bold text-white">Farmers & Local Residents</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Check local water table depths in their village, track seasonal monsoon rainfall, report well depletion or discolored discharge in Tamil, and get plain-language recommendations.
-              </p>
-              <div className="pt-2 text-[11px] font-mono text-emerald-400 border-t border-white/[0.06]">
-                Role: Community / விவசாயி
-              </div>
-            </div>
-
-            {/* 2. Environmental Researchers */}
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                <GraduationCap className="w-5 h-5" />
-              </div>
-              <h4 className="text-base font-bold text-white">Environmental Researchers</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Analyze multi-year CGWB groundwater hydrographs, compute depletion rates, run walk-forward seasonal forecasts, inspect geochemical parameters, and export research-ready datasets.
-              </p>
-              <div className="pt-2 text-[11px] font-mono text-cyan-400 border-t border-white/[0.06]">
-                Role: Researcher / ஆய்வாளர்
-              </div>
-            </div>
-
-            {/* 3. Field Officers & Inspectors */}
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-950 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                <ShieldAlert className="w-5 h-5" />
-              </div>
-              <h4 className="text-base font-bold text-white">Field Officers & Inspectors</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Receive prioritized inspection tickets, review citizen incident reports, verify anomalies on-site with GPS coordinates, upload water sample evidence, and update investigation logs.
-              </p>
-              <div className="pt-2 text-[11px] font-mono text-amber-400 border-t border-white/[0.06]">
-                Role: Field Investigator / கள அதிகாரி
-              </div>
-            </div>
-
-            {/* 4. Watershed & Basin Authorities */}
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-teal-950 border border-teal-500/30 flex items-center justify-center text-teal-400">
-                <Building2 className="w-5 h-5" />
-              </div>
-              <h4 className="text-base font-bold text-white">Water Resource Authorities</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Prioritize high-risk reaches (e.g. Ranipet CPCB Priority-V corridor), evaluate recharge suitability scores for check dams and percolation tanks, and download executive policy dossiers.
-              </p>
-              <div className="pt-2 text-[11px] font-mono text-teal-400 border-t border-white/[0.06]">
-                Role: Institutional / நீர்வளத்துறை
-              </div>
-            </div>
-
-            {/* 5. Community Water Groups & NGOs */}
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                <Compass className="w-5 h-5" />
-              </div>
-              <h4 className="text-base font-bold text-white">Basin Watch NGOs</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Monitor community water quality alerts, organize desiltation campaigns for traditional eri irrigation tanks, and hold transparent evidence-backed dialogues with stakeholders.
-              </p>
-              <div className="pt-2 text-[11px] font-mono text-emerald-400 border-t border-white/[0.06]">
-                Role: NGO / சமூகக் குழுக்கள்
-              </div>
-            </div>
-
-            {/* 6. Platform Administrators */}
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-stone-900 border border-stone-700 flex items-center justify-center text-stone-300">
-                <Cpu className="w-5 h-5" />
-              </div>
-              <h4 className="text-base font-bold text-white">System Administrators</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Manage role-based access control (RBAC), multi-tenant institutional workspaces, verify ingestion pipelines from CGWB/IMD/TNPCB, and inspect immutable system audit logs.
-              </p>
-              <div className="pt-2 text-[11px] font-mono text-stone-400 border-t border-white/[0.06]">
-                Role: Administrator / கணினி நிர்வாகி
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* SECTION 6 — TAMIL ACCESSIBILITY & AI ASSISTANT */}
-      {/* ============================================================ */}
-      <section id="tamil-accessibility" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#020d07]">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
-              SECTION 06 · முதல்நிலை தமிழ் இடைமுகம்
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              First-Class Tamil Accessibility. <br />
-              <span className="text-[#2ad58b]">அனைவருக்கும் புரியும் தமிழ் AI.</span>
-            </h2>
-            <p className="text-base text-stone-300">
-              Environmental intelligence shouldn't be gated behind complex English technical jargon. PALAR GUARD AI provides seamless bilingual navigation and conversational Tamil speech support.
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {stakeholders.map((st, idx) => {
+              const Icon = st.icon;
+              return (
+                <Reveal key={st.title} kind="fall" delay={idx * 0.04}>
+                  <div className="p-6 rounded-2xl palar-surface-glass border border-white/[0.08] hover:border-emerald-500/35 transition-colors space-y-3 h-full flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${st.color}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <h4 className="text-base font-bold text-[#fcfbf7]">{st.title}</h4>
+                      <p className="text-xs text-[#b9c6be] leading-relaxed">{st.desc}</p>
+                    </div>
+                    <div className="pt-2 text-[11px] font-mono text-[#d9c27a] border-t border-white/[0.06]">
+                      {st.role}
+                    </div>
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            {/* Left: Interactive Tamil Voice Showcase */}
-            <div className="p-8 rounded-2xl bg-[#061e12] border border-emerald-500/30 space-y-6 shadow-forest-lg">
+          {/* Bilingual Tamil AI Highlight Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center pt-2">
+            <div className="p-6 sm:p-7 rounded-2xl palar-surface-glass border border-violet-500/25 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                  <div className="w-8 h-8 rounded-lg bg-violet-950/80 border border-violet-400/40 flex items-center justify-center text-violet-300">
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white">PALAR AI — உங்கள் நீர் உதவியாளர்</h4>
-                    <p className="text-[11px] text-stone-400">Grounded Bilingual Voice Copilot</p>
+                    <h4 className="text-sm font-bold text-[#fcfbf7]">
+                      {L('PALAR AI — Bilingual Voice & Tamil Companion', 'PALAR AI — உங்கள் தமிழ் நீர் உதவியாளர்')}
+                    </h4>
+                    <p className="text-[11px] text-[#a4b2a9]">
+                      {L('Grounded bilingual Q&A in English & தமிழ்', 'ஆங்கிலம் மற்றும் தமிழில் ஆதாரப்பூர்வமான பதில்கள்')}
+                    </p>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-950 text-[10px] font-mono text-emerald-400 border border-emerald-500/30">
-                  தமிழ் / English
+                <span className="px-2 py-0.5 rounded-full bg-violet-950 text-[10px] font-mono text-violet-200 border border-violet-500/30">
+                  தமிழ் / EN
                 </span>
               </div>
 
-              {/* Sample Dialog Bubbles */}
-              <div className="space-y-3">
-                <div className="p-3.5 rounded-xl bg-black/40 border border-white/[0.06] text-xs text-stone-300">
-                  <span className="text-emerald-400 font-bold block mb-1">பயனர் கேள்வி:</span>
+              <div className="space-y-2.5 text-xs">
+                <div className="p-3 rounded-xl bg-black/35 border border-white/[0.06] text-stone-200">
+                  <span className="text-emerald-300 font-semibold block mb-1">
+                    {L('Sample Tamil Query:', 'மாதிரி தமிழ் கேள்வி:')}
+                  </span>
                   "ராணிப்பேட்டை பகுதியில் நிலத்தடி நீர் நிலை எப்படி இருக்கிறது? மழை போதுமானதாக உள்ளதா?"
                 </div>
-
-                <div className="p-4 rounded-xl bg-[#092b1a] border border-emerald-500/40 text-xs text-stone-200 space-y-2">
-                  <span className="text-emerald-300 font-bold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>PALAR AI பதில் [VERIFIED PUBLIC]:</span>
+                <div className="p-3.5 rounded-xl bg-[#09241a]/85 border border-emerald-500/30 text-stone-200 space-y-1.5">
+                  <span className="text-emerald-300 font-semibold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    {L('Grounded Database Response [VERIFIED_PUBLIC]:', 'தரவுத்தளப் பதில் [VERIFIED_PUBLIC]:')}
                   </span>
                   <p className="leading-relaxed">
-                    "வணக்கம். ராணிப்பேட்டை பகுதியில் தற்போதைய நிலத்தடி நீர்மட்டம் 14.8 mbgl ஆழத்தில் உள்ளது. கடந்த வடகிழக்கு பருவமழையில் 682 மி.மீ (+12%) பதிவாகியுள்ளது. எனினும், முந்தைய அதிகப்படியான உறிஞ்சுதலால் நீர்மட்டம் தொடர்ந்து கண்காணிக்கப்பட வேண்டும்."
-                  </p>
-                  <div className="pt-2 flex items-center justify-between text-[10px] font-mono text-stone-400 border-t border-white/[0.08]">
-                    <span>ஆதாரம்: CGWB & IMD NWIC 2024</span>
-                    <button 
-                      onClick={() => onExplore('assistant')}
-                      className="text-emerald-400 hover:underline font-bold"
-                    >
-                      AI உதவியாளருடன் பேசுக →
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Key Tamil Accessibility Pillars */}
-            <div className="space-y-4">
-              <div className="p-5 rounded-xl bg-[#071c12] border border-white/[0.08] flex items-start gap-4">
-                <div className="p-2.5 rounded-lg bg-emerald-950 text-emerald-400 shrink-0">
-                  <CheckCircle2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white">முழுமையான தமிழ் மொழிபெயர்ப்பு</h4>
-                  <p className="text-xs text-stone-300 mt-1 leading-relaxed">
-                    வரைபடக் குறியீடுகள், வரைபடப் புள்ளிகள், எச்சரிக்கைகள், படிவங்கள், மற்றும் பகுப்பாய்வு அறிக்கைகள் அனைத்தும் எளிய மற்றும் அதிகாரப்பூர்வ தமிழில் வழங்கப்படுகின்றன.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-5 rounded-xl bg-[#071c12] border border-white/[0.08] flex items-start gap-4">
-                <div className="p-2.5 rounded-lg bg-cyan-950 text-cyan-400 shrink-0">
-                  <Droplets className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white">குரல் வழி உள்ளீடு & ஒலி வெளியீடு (STT & TTS)</h4>
-                  <p className="text-xs text-stone-300 mt-1 leading-relaxed">
-                    விவசாயிகள் மற்றும் பொதுமக்கள் தட்டச்சு செய்ய வேண்டிய அவசியமின்றி, தமிழில் குரல் மூலமாக கேள்விகளை கேட்கலாம் மற்றும் ஒலி வடிவில் பதில்களைப் பெறலாம்.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-5 rounded-xl bg-[#071c12] border border-white/[0.08] flex items-start gap-4">
-                <div className="p-2.5 rounded-lg bg-amber-950 text-amber-400 shrink-0">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white">தமிழ் மக்கள் புகார் பதிவு</h4>
-                  <p className="text-xs text-stone-300 mt-1 leading-relaxed">
-                    ஆற்றங்கரையில் நீர் மாசுபாடு அல்லது கிணற்று நீர் வற்றுதல் குறித்த புகார்களை எளிமையாக தமிழில் பதிவு செய்து கண்காணிப்பு எண் பெறலாம்.
+                    "ராணிப்பேட்டை கண்காணிப்பு நிலையப் பதிவுகளின்படி கோடைக்கால நீர்மட்டம் ஆழமாக உள்ளது; ஆய்வக சோதனை இல்லாமல் மாசு உறுதிப்படுத்தப்படாது."
                   </p>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ============================================================ */}
-      {/* SECTION 6 — THE JOURNEY BEHIND PALAR GUARD AI (TIMELINE) */}
-      {/* ============================================================ */}
-      <section id="journey" className="relative py-28 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#020905] overflow-hidden">
-        {/* Bokeh Particle Galaxy Atmosphere */}
-        <BokehParticleGalaxy 
-          opacity={0.45} 
-          speedMultiplier={0.7} 
-          className="absolute inset-0 z-0 pointer-events-none" 
-        />
-
-        <div className="relative z-10 max-w-6xl mx-auto space-y-20">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
-              SECTION 06 · PROJECT & SCIENTIFIC MILESTONES
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              {lang === 'ta' ? 'பாலாறு காப்பாளர் AI: உருவான கதை' : 'The Journey Behind PALAR GUARD AI'}
-            </h2>
-            <p className="text-base text-stone-300">
-              {lang === 'ta'
-                ? 'பாலாற்று படுகையின் கள எதார்த்தங்களில் தொடங்கி, AI-ஆற்றல் கொண்ட நதி படுகை சுற்றுச்சூழல் நுண்ணறிவு தளம் உருவான பயணம்.'
-                : 'From groundwater field realities across Tamil Nadu to an explainable, public-participation environmental intelligence decision platform.'}
-            </p>
-          </div>
-
-          {/* Connected Scroll-Driven Timeline Spine */}
-          <div className="relative">
-            {/* Central Vertical Glowing Line */}
-            <div className="absolute left-4 sm:left-1/2 top-4 bottom-4 w-0.5 -translate-x-1/2 bg-gradient-to-b from-emerald-500 via-emerald-400/50 to-[#04120c] pointer-events-none" />
-
-            <div className="space-y-12">
-              {journeyMilestones.map((milestone, idx) => {
-                const isEven = idx % 2 === 0;
-
+            <div className="space-y-3">
+              {[
+                {
+                  icon: CheckCircle2,
+                  color: 'bg-emerald-950 text-emerald-400',
+                  title: L('Full Bilingual Localization', 'முழுமையான தமிழ் & ஆங்கில இடைமுகம்'),
+                  desc: L(
+                    'All navigation, legends, KPI telemetry, community reporting forms, and Document Intelligence summaries switch seamlessly between English and தமிழ்.',
+                    'வரைபடக் குறியீடுகள், எச்சரிக்கைகள், படிவங்கள் மற்றும் ஆவணப் பகுப்பாய்வு அனைத்தும் தமிழ் மற்றும் ஆங்கிலத்தில் இயங்குகின்றன.'
+                  ),
+                },
+                {
+                  icon: FileText,
+                  color: 'bg-cyan-950 text-cyan-400',
+                  title: L('Document Translation to Tamil', 'ஆவணங்களின் தமிழ் விளக்கம்'),
+                  desc: L(
+                    'Upload technical hydrology CSV/PDF documents and generate plain-language Tamil summaries alongside source citations.',
+                    'தொழில்நுட்ப அறிக்கைகளைப் பதிவேற்றி எளிய தமிழில் ஆதாரங்களுடன் கூடிய விளக்கங்களைப் பெறலாம்.'
+                  ),
+                },
+              ].map((item) => {
+                const Icon = item.icon;
                 return (
-                  <div 
-                    key={milestone.num}
-                    className={`relative flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-12 ${
-                      isEven ? 'sm:flex-row' : 'sm:flex-row-reverse'
-                    }`}
-                  >
-                    {/* Timeline Node Ring */}
-                    <div className="absolute left-4 sm:left-1/2 -translate-x-1/2 z-20 w-8 h-8 rounded-full bg-[#03110a] border-2 border-emerald-400 flex items-center justify-center shadow-emerald-glow shrink-0">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <div key={item.title} className="p-4 rounded-xl palar-surface-glass border border-white/[0.08] flex items-start gap-3.5">
+                    <div className={`p-2 rounded-lg shrink-0 ${item.color}`}>
+                      <Icon className="w-4 h-4" />
                     </div>
-
-                    {/* Content Card */}
-                    <div className={`w-full sm:w-1/2 pl-12 sm:pl-0 ${isEven ? 'sm:pr-12 text-left' : 'sm:pl-12 text-left'}`}>
-                      <div className="p-6 sm:p-7 rounded-2xl bg-[#061e13]/90 backdrop-blur-md border border-white/[0.08] hover:border-emerald-500/40 transition-all shadow-forest-md space-y-3 group hover:scale-[1.01]">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">
-                            {milestone.num} · {milestone.phase}
-                          </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-500/30">
-                            {milestone.badge}
-                          </span>
-                        </div>
-
-                        <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">
-                          {milestone.title}
-                        </h3>
-
-                        <div className="text-[11px] font-mono text-stone-400">
-                          {milestone.period}
-                        </div>
-
-                        <p className="text-xs text-stone-300 leading-relaxed">
-                          {milestone.desc}
-                        </p>
-
-                        <div className="pt-2 flex items-center justify-between text-xs font-mono border-t border-white/5">
-                          <span className="text-stone-400">Key Milestone Outcome:</span>
-                          <span className="font-bold text-emerald-400">{milestone.metric}</span>
-                        </div>
-                      </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-[#fcfbf7]">{item.title}</h4>
+                      <p className="text-xs text-[#b9c6be] mt-1 leading-relaxed">{item.desc}</p>
                     </div>
-
-                    {/* Symmetrical Desktop Layout Balance Spacer */}
-                    <div className="hidden sm:block sm:w-1/2" />
                   </div>
                 );
               })}
@@ -832,305 +848,92 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
       </section>
 
       {/* ============================================================ */}
-      {/* SECTION 7 — TRUST, DATA PROVENANCE & SCIENTIFIC INTEGRITY */}
+      {/* 7. SIX-TIER PROVENANCE & HOW TO USE PALAR GUARD AI           */}
       {/* ============================================================ */}
-      <section id="trust-data" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#04120a]">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
-              SECTION 07 · SCIENTIFIC PROVENANCE & TRANSPARENCY
+      <section id="trust-data" className="py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-transparent">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full palar-surface-glass border border-[#d9c27a]/35 text-xs font-mono text-[#d9c27a]">
+              {L('SECTION 07 · SCIENTIFIC PROVENANCE & TRANSPARENCY', 'பிரிவு 07 · அறிவியல் ஆதாரம் & வெளிப்படைத்தன்மை')}
             </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              Every Metric Has an Audit Trail. <br />
-              <span className="text-[#2ad58b]">Zero Fabricated Data.</span>
+            <h2 className="font-serif text-3xl sm:text-5xl font-semibold text-[#fcfbf7]">
+              {L('Every Metric Has an Audit Trail.', 'ஒவ்வொரு அளவீட்டிற்கும் தெளிவான ஆதாரம்.')}
             </h2>
-            <p className="text-base text-stone-300">
-              PALAR GUARD AI strictly enforces scientific data ethics. We explicitly classify every number on the platform into clear provenance tiers.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-emerald-500/30 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-emerald-400">TIER 1</span>
-                <DataBadge provenance="VERIFIED_PUBLIC" />
-              </div>
-              <h4 className="text-base font-bold text-white">Verified Public Observation</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Directly ingested from official government monitoring networks: Central Ground Water Board (CGWB), India Meteorological Department (IMD), and Tamil Nadu Pollution Control Board (TNPCB).
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-cyan-500/30 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-cyan-400">TIER 2</span>
-                <DataBadge provenance="HISTORICAL_REPORT" />
-              </div>
-              <h4 className="text-base font-bold text-white">Historical Published Benchmark</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Peer-reviewed academic surveys, long-term basin monographs, and CPCB River Restoration reports (e.g. CPCB Priority-V restoration corridor documentation).
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-purple-500/30 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-purple-400">TIER 3</span>
-                <DataBadge provenance="MODEL_PREDICTION" />
-              </div>
-              <h4 className="text-base font-bold text-white">Statistical Model Forecast</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Walk-forward seasonal projections with explicit 90% confidence uncertainty bands (e.g. ±1.2m). Clearly separated from observed measurements and never represented as ground truth.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-amber-500/30 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-amber-400">TIER 4</span>
-                <DataBadge provenance="COMMUNITY_REPORT" />
-              </div>
-              <h4 className="text-base font-bold text-white">Community Incident Report</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Citizen-submitted observations undergoing field investigation triage. Privacy-protected with sensitive personal information redacted from public views.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-teal-500/30 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-teal-400">TIER 5</span>
-                <DataBadge provenance="FIELD_VERIFIED" />
-              </div>
-              <h4 className="text-base font-bold text-white">Field-Verified Ground Truth</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                On-site field inspection records with authenticated GPS coordinates, duplicate laboratory sample analyses, and inspector credentials.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#071c12] border border-stone-600/30 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-stone-400">TIER 6</span>
-                <DataBadge provenance="SYNTHETIC_DEMO" />
-              </div>
-              <h4 className="text-base font-bold text-white">Synthetic Demo Data</h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Explicitly labeled scenario testing data for unmonitored test stretches. Clearly tagged with: "SYNTHETIC DEMONSTRATION DATA — NOT A REAL ENVIRONMENTAL MEASUREMENT".
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {provenanceTiers.map((tItem, idx) => (
+              <Reveal key={tItem.tier} kind="rise" delay={idx * 0.04}>
+                <div className={`p-5 rounded-2xl palar-surface-glass border ${tItem.border} space-y-2.5 h-full`}>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-mono font-bold ${tItem.accent}`}>{tItem.tier}</span>
+                    <DataBadge provenance={tItem.provenance} />
+                  </div>
+                  <h4 className="text-sm font-bold text-[#fcfbf7]">{tItem.title}</h4>
+                  <p className="text-xs text-[#b9c6be] leading-relaxed">{tItem.desc}</p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* SECTION 8 — PLATFORM ACCESS & INSTITUTIONAL SERVICES (BUSINESS MODEL) */}
-      {/* ============================================================ */}
-      <section id="services" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#020d07]">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
-              SECTION 08 · PLATFORM ACCESS & INSTITUTIONAL SERVICES
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              Sustainable Institutional <br />
-              <span className="text-[#2ad58b]">Environmental SaaS Model.</span>
-            </h2>
-            <p className="text-base text-stone-300">
-              Proposed service plans designed for public transparency, ethical research support, and long-term platform viability. All citizen reporting remains 100% free and open.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Plan 1: Community & Open Tier */}
-            <div className="p-8 rounded-2xl bg-[#071c12] border border-white/[0.08] space-y-6 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="inline-block px-3 py-1 rounded-full bg-emerald-950 text-xs font-mono text-emerald-400 border border-emerald-500/30">
-                  PUBLIC GOOD TIER
-                </div>
-                <h3 className="text-xl font-bold text-white">Community & Citizen Access</h3>
-                <div className="text-3xl font-extrabold text-emerald-400 font-sans">
-                  Free Forever
-                </div>
-                <p className="text-xs text-stone-300 leading-relaxed">
-                  For residents, farmers, and grassroots citizen groups across the Palar Catchment.
-                </p>
-                <ul className="space-y-2.5 text-xs text-stone-200">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>View village groundwater levels</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Submit bilingual water concern reports</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Interactive Tamil AI Voice Copilot</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Public health & water quality alerts</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                onClick={() => onExplore('dashboard')}
-                className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs border border-white/10 transition-colors"
-              >
-                Access Public Console
-              </button>
-            </div>
-
-            {/* Plan 2: Research & Academic Tier */}
-            <div className="p-8 rounded-2xl bg-[#09271a] border-2 border-[#2ad58b] space-y-6 flex flex-col justify-between shadow-emerald-glow relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#2ad58b] text-[#061811] text-[10px] font-bold font-mono uppercase">
-                Proposed Academic Plan
-              </div>
-              <div className="space-y-4">
-                <div className="inline-block px-3 py-1 rounded-full bg-emerald-950 text-xs font-mono text-emerald-400 border border-emerald-500/30">
-                  RESEARCH INSTITUTIONS
-                </div>
-                <h3 className="text-xl font-bold text-white">Research & Modeling Suite</h3>
-                <div className="text-3xl font-extrabold text-white font-sans">
-                  ₹15,000 <span className="text-xs font-normal text-stone-400">/ lab / month (proposed)</span>
-                </div>
-                <p className="text-xs text-stone-300 leading-relaxed">
-                  For university environmental departments, hydrology researchers, and water policy institutes.
-                </p>
-                <ul className="space-y-2.5 text-xs text-stone-200">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>All Community features included</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Full historical hydrograph series (1980–2024)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Walk-forward forecast modeling sandbox</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Robust Z-Score Anomaly algorithms</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>CSV / GeoJSON dataset batch export</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                onClick={() => onExplore('groundwater')}
-                className="w-full py-3 rounded-xl bg-[#2ad58b] hover:bg-[#25be7c] text-[#061811] font-bold text-xs shadow-emerald-glow transition-all"
-              >
-                Explore Research Capabilities
-              </button>
-            </div>
-
-            {/* Plan 3: Institutional & Regulatory Tier */}
-            <div className="p-8 rounded-2xl bg-[#071c12] border border-white/[0.08] space-y-6 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="inline-block px-3 py-1 rounded-full bg-cyan-950 text-xs font-mono text-cyan-400 border border-cyan-500/30">
-                  STATE & BASIN AUTHORITIES
-                </div>
-                <h3 className="text-xl font-bold text-white">Institutional Enterprise</h3>
-                <div className="text-3xl font-extrabold text-white font-sans">
-                  Custom Contract <span className="text-xs font-normal text-stone-400">(proposed)</span>
-                </div>
-                <p className="text-xs text-stone-300 leading-relaxed">
-                  For state water resources departments, pollution control boards, and district collectors.
-                </p>
-                <ul className="space-y-2.5 text-xs text-stone-200">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                    <span>Multi-tenant organizational workspaces</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                    <span>Field investigation dispatch & triage queue</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                    <span>Automated executive PDF dossier generator</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                    <span>Dedicated SLA & on-premise data connectors</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                    <span>Role-based access & immutable audit trails</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                onClick={() => onExplore('admin_audit')}
-                className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs border border-white/10 transition-colors"
-              >
-                Inspect Administration Console
-              </button>
-            </div>
-          </div>
-
-          {/* Ethical Safeguards Banner */}
-          <div className="p-5 rounded-2xl bg-[#04160e] border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0" />
-              <div className="text-xs text-stone-300">
-                <span className="font-bold text-white block">ETHICAL BUSINESS SAFEGUARDS:</span>
-                We never charge vulnerable citizens for reporting water risks, never sell private user telemetry, and keep open public hydrological records strictly transparent.
-              </div>
-            </div>
-            <div className="text-xs font-mono text-emerald-400 font-bold shrink-0">
-              100% ETHICAL CLIMATE-TECH
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 8. Bilingual Walkthroughs */}
+      <HowToUseSection onLaunchDemo={handleLaunchDemo} />
 
       {/* ============================================================ */}
-      {/* SECTION 9 — FINAL CTA */}
+      {/* 9. CLOSING CALL TO ACTION                                    */}
       {/* ============================================================ */}
-      <section className="relative py-28 px-4 sm:px-6 lg:px-8 bg-gradient-to-t from-[#010603] to-[#04120a] border-t border-white/[0.08] overflow-hidden">
-        {/* Bokeh Particle Galaxy Atmosphere */}
-        <BokehParticleGalaxy 
-          opacity={0.6} 
-          speedMultiplier={0.7} 
-          className="absolute inset-0 z-0 pointer-events-none" 
-        />
-
-        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-400/40 text-xs font-mono text-emerald-300">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            READY FOR NATIONAL EVALUATION
+      <section className="py-14 sm:py-16 px-4 sm:px-6 lg:px-8 bg-transparent">
+        <div className="max-w-4xl mx-auto text-center space-y-6 palar-surface-glass border border-white/10 rounded-3xl p-8 sm:p-12">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#d9c27a]/40 bg-[#061811]/90 px-4 py-1 text-xs font-mono text-[#d9c27a]">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>{L('CHENNAI INSTITUTE OF TECHNOLOGY · PALAR BASIN INITIATIVE', 'சென்னை இன்ஸ்டிடியூட் ஆஃப் டெக்னாலஜி · பாலாறு வடிநில முயற்சி')}</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
-            Protecting water starts with <br />
-            <span className="text-[#2ad58b]">seeing the risk.</span>
+          <h2 className="font-serif text-3xl sm:text-5xl font-semibold text-[#fcfbf7] leading-tight">
+            {L('See the Risk. Predict the Change. Protect Every Drop.', 'ஆபத்தை அறிவோம். மாற்றத்தைக் கணிப்போம். ஒவ்வொரு துளியையும் காப்போம்.')}
           </h2>
 
-          <p className="text-base sm:text-lg text-stone-300 max-w-2xl mx-auto font-normal">
-            Join environmental analysts, researchers, and authorities using explainable AI to protect every drop in the Palar River Basin.
+          <p className="text-sm sm:text-base text-[#b9c6be] max-w-2xl mx-auto">
+            {L(
+              'Explore the Community Portal in English or Tamil, or open the Professional Console to inspect data provenance, analyze uploaded reports, and track field verification.',
+              'தமிழ் அல்லது ஆங்கிலத்தில் மக்கள் பலகத்தைப் பயன்படுத்தவும் அல்லது ஆவண நுண்ணறிவு மற்றும் கள ஆய்வுகளைப் பார்க்க தொழில்முறை பலகத்தைத் திறக்கவும்.'
+            )}
           </p>
 
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <button
-              onClick={() => onExplore('dashboard')}
-              className="px-8 py-4 rounded-full bg-[#2ad58b] hover:bg-[#25be7c] text-[#061811] font-bold text-sm shadow-emerald-glow transition-all transform hover:scale-105 flex items-center gap-2"
+              type="button"
+              onClick={() => {
+                setMode('simple');
+                onExplore('dashboard');
+              }}
+              className="px-7 py-3 rounded-full bg-[#10b981] hover:bg-[#059669] text-[#041a11] text-xs sm:text-sm font-semibold inline-flex items-center gap-2 transition-colors"
             >
-              <span>EXPLORE PALAR GUARD AI</span>
+              <span>{L('Open Community Workspace', 'மக்கள் பலகம் திற')}</span>
               <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMode('expert');
+                onExplore('dashboard');
+              }}
+              className="px-7 py-3 rounded-full border border-[#d9c27a]/60 text-[#fcfbf7] hover:bg-[#d9c27a]/10 text-xs sm:text-sm font-semibold transition-colors"
+            >
+              {L('Open Professional Console', 'தொழில்முறை பலகம் திற')}
             </button>
 
             {onOpenPresentation && (
               <button
+                type="button"
                 onClick={onOpenPresentation}
-                className="px-7 py-4 rounded-full bg-white/5 hover:bg-white/10 text-stone-200 border border-white/10 hover:border-emerald-500/40 text-sm font-semibold transition-colors flex items-center gap-2"
+                className="px-6 py-3 rounded-full border border-white/15 text-[#c3d0c8] hover:text-[#fcfbf7] text-xs sm:text-sm font-medium inline-flex items-center gap-2 transition-colors"
               >
-                <Award className="w-4 h-4 text-emerald-400" />
-                <span>Launch Jury Pitch Walkthrough</span>
+                <Award className="w-4 h-4 text-[#d9c27a]" />
+                <span>{L('Launch Guided Overview', 'வழிகாட்டுதல் காட்சி')}</span>
               </button>
             )}
           </div>

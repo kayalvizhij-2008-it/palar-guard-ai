@@ -3,17 +3,45 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    background-color: #061811;
-    color: #f3f1ea;
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  html {
+    scroll-behavior: smooth;
+    background-color: #040d09;
   }
 
-  /* Accessible focus rings */
+  body {
+    background:
+      radial-gradient(ellipse 80% 55% at 18% 8%, rgba(16, 185, 129, 0.12), transparent 62%),
+      radial-gradient(ellipse 70% 50% at 86% 24%, rgba(8, 145, 178, 0.11), transparent 60%),
+      radial-gradient(ellipse 65% 45% at 52% 88%, rgba(217, 194, 122, 0.06), transparent 65%),
+      linear-gradient(180deg, #030a07 0%, #05140e 42%, #061813 78%, #030b08 100%);
+    background-attachment: fixed;
+    color: #fcfbf7;
+    font-family: 'Plus Jakarta Sans', 'Noto Sans Tamil', system-ui, sans-serif;
+    overflow-x: clip;
+  }
+
+  .font-serif {
+    font-family: 'Cormorant Garamond', 'Noto Sans Tamil', Georgia, serif;
+  }
+
   *:focus-visible {
     outline: 2px solid #10b981;
     outline-offset: 2px;
   }
+}
+
+/* Reusable semantic gradient surfaces across Landing & Console */
+.palar-surface-glass {
+  background: linear-gradient(145deg, rgba(10, 34, 24, 0.72), rgba(5, 20, 14, 0.84));
+  backdrop-filter: blur(10px);
+}
+
+.palar-surface-teal {
+  background: linear-gradient(145deg, rgba(8, 36, 40, 0.78), rgba(4, 18, 22, 0.88));
+}
+
+.palar-surface-amber {
+  background: linear-gradient(145deg, rgba(32, 22, 14, 0.78), rgba(16, 12, 10, 0.88));
 }
 
 /* Tabular figures for numbers */
@@ -27,7 +55,7 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #061811;
+  background: #040d09;
 }
 ::-webkit-scrollbar-thumb {
   background: #144d3a;
@@ -46,7 +74,7 @@
 }
 .leaflet-popup-content-wrapper {
   background: #0f382a !important;
-  color: #f3f1ea !important;
+  color: #fcfbf7 !important;
   border: 1px solid rgba(16, 185, 129, 0.3) !important;
   border-radius: 8px !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
@@ -55,7 +83,6 @@
   background: #0f382a !important;
 }
 
-/* Premium Cursor Ripple Animation */
 @keyframes cursorRipple {
   0% {
     transform: scale(0.5);
@@ -71,7 +98,6 @@
   animation: cursorRipple 0.4s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
 }
 
-/* Global Particle Layering */
 .global-particle-background {
   position: fixed;
   inset: 0;
@@ -82,11 +108,21 @@
   opacity: 0.85;
 }
 
-/* Ensure foreground application layers sit securely above background canvas */
 .dashboard-shell,
 .dashboard-content,
 .dashboard-sidebar,
 .dashboard-header {
   position: relative;
   z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
