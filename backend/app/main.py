@@ -8,7 +8,7 @@ from .seed_data import init_db
 from .api import (
     auth, locations, groundwater, water_quality, 
     rainfall, anomalies, investigations, community, 
-    recharge, assistant, analytics
+    recharge, assistant, analytics, maps
 )
 
 app = FastAPI(
@@ -44,6 +44,7 @@ app.include_router(community.router, prefix=settings.API_V1_STR)
 app.include_router(recharge.router, prefix=settings.API_V1_STR)
 app.include_router(assistant.router, prefix=settings.API_V1_STR)
 app.include_router(analytics.router, prefix=settings.API_V1_STR)
+app.include_router(maps.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():

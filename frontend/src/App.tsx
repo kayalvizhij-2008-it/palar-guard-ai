@@ -6,7 +6,8 @@ import { Footer } from './components/layout/Footer';
 import { AppSidebar } from './components/layout/AppSidebar';
 import { AuthModal } from './components/modules/AuthModal';
 import { PresentationModeModal } from './components/modules/PresentationModeModal';
-import { CustomCursor } from './components/common/CustomCursor';
+import { PremiumCursor } from './components/effects/PremiumCursor';
+import { GlobalParticleBackground } from './components/effects/GlobalParticleBackground';
 
 // Modules
 import { LandingPage } from './components/modules/LandingPage';
@@ -111,8 +112,8 @@ export function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#061811] text-[#f4f7f5] flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
-      {/* Refined Desktop Custom Cursor */}
-      <CustomCursor />
+      {/* Premium Desktop Custom Cursor */}
+      <PremiumCursor />
 
       {/* Top Sticky Navigation */}
       <Navbar
@@ -132,19 +133,23 @@ export function AppContent() {
           <Footer />
         </main>
       ) : (
-        // Authenticated 16-Module Platform Console
-        <div className="flex-1 flex overflow-hidden">
-          <AppSidebar
-            currentModule={currentView}
-            onSelectModule={handleNavigate}
-            onBackToLanding={() => handleNavigate('landing')}
-            onOpenPresentation={() => setPresentationOpen(true)}
-          />
-          <main className="flex-1 overflow-y-auto p-3 sm:p-4 bg-[#04120c]">
-            <div className="w-full">
-              {renderConsoleModule()}
-            </div>
-          </main>
+        // Authenticated 16-Module Platform Console with Global Falling Particles
+        <div className="flex-1 flex overflow-hidden relative dashboard-shell">
+          {/* Continuous Environmental Falling Particle System behind all content */}
+          <GlobalParticleBackground />
+          <div className="relative z-10 flex w-full h-full overflow-hidden">
+            <AppSidebar
+              currentModule={currentView}
+              onSelectModule={handleNavigate}
+              onBackToLanding={() => handleNavigate('landing')}
+              onOpenPresentation={() => setPresentationOpen(true)}
+            />
+            <main className="flex-1 overflow-y-auto p-3 sm:p-4 bg-[#04120c]/70 backdrop-blur-[0.5px] dashboard-content">
+              <div className="w-full">
+                {renderConsoleModule()}
+              </div>
+            </main>
+          </div>
         </div>
       )}
 

@@ -350,13 +350,15 @@ function CinematicGlobe({
       radarPulseRef.current.scale.set(s, s, s);
     }
 
-    // Camera trajectory mapping based on currentScene (1 through 6)
-    // Scene 1: Distant Earth [0, 0.4, 5.0]
-    // Scene 2: India Subcontinent Approach [0.4, 0.6, 3.2]
-    // Scene 3: Tamil Nadu Regional Zoom [0.35, 0.45, 2.3]
-    // Scene 4: Palar Basin Delineation [0.25, 0.35, 1.45]
-    // Scene 5: Digital Twin Elevated Perspective [0.22, 0.38, 1.25]
-    // Scene 6: Brand Horizon Reveal [0, -1.15, 3.2]
+    // Camera trajectory mapping based on currentScene (1 through 8)
+    // Scene 1: Deep Space Earth [1.15, 0.15, 4.7]
+    // Scene 2: Asia & Subcontinent Approach [0.85, 0.75, 3.8]
+    // Scene 3: India Highlighted [0.65, 0.65, 3.0]
+    // Scene 4: Tamil Nadu Regional Zoom [0.48, 0.55, 2.35]
+    // Scene 5: Palar Basin Delineation [0.35, 0.48, 1.55]
+    // Scene 6: Basin Intelligence & Geospatial Points [0.32, 0.52, 1.35]
+    // Scene 7: Dashboard Transition Perspective [0.2, 0.25, 1.8]
+    // Scene 8: Brand Horizon Reveal [0, -0.9, 3.3]
     let targetPos = new THREE.Vector3(0, 0.3, 5.0);
     let targetLookAt = new THREE.Vector3(0, 0, 0);
 
@@ -364,19 +366,25 @@ function CinematicGlobe({
       targetPos.set(1.15, 0.15, 4.7);
       targetLookAt.set(0.55, 0, 0);
     } else if (currentScene === 2) {
-      targetPos.set(0.65, 0.65, 3.2);
-      targetLookAt.set(0.3, 0.35, 0.5);
+      targetPos.set(0.85, 0.75, 3.8);
+      targetLookAt.set(0.4, 0.45, 0.6);
     } else if (currentScene === 3) {
+      targetPos.set(0.65, 0.65, 3.0);
+      targetLookAt.set(0.3, 0.35, 0.7);
+    } else if (currentScene === 4) {
       targetPos.set(0.48, 0.55, 2.35);
       targetLookAt.set(0.35, 0.42, 0.9);
-    } else if (currentScene === 4) {
+    } else if (currentScene === 5) {
       targetPos.set(0.35, 0.48, 1.55);
       targetLookAt.set(0.32, 0.42, 1.1);
-    } else if (currentScene === 5) {
+    } else if (currentScene === 6) {
       targetPos.set(0.32, 0.52, 1.35);
       targetLookAt.set(0.32, 0.44, 1.15);
+    } else if (currentScene === 7) {
+      targetPos.set(0.2, 0.25, 1.8);
+      targetLookAt.set(0.1, 0.2, 0.8);
     } else {
-      // Scene 6: Tilt down to show curved Earth horizon at the bottom!
+      // Scene 8: Tilt down to show curved Earth horizon at the bottom!
       targetPos.set(0, -0.9, 3.3);
       targetLookAt.set(0, 0.4, 0);
     }
@@ -607,15 +615,17 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
   const [progress, setProgress] = useState<number>(0);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
 
-  // Total runtime 20 seconds:
-  // Scene 1: 0–3s
-  // Scene 2: 3–6s
-  // Scene 3: 6–9s
-  // Scene 4: 9–13s
-  // Scene 5: 13–17s
-  // Scene 6: 17–20s
-  const sceneDurations = [3, 3, 3, 4, 4, 3];
-  const totalDuration = sceneDurations.reduce((a, b) => a + b, 0); // 20s
+  // Total runtime 25 seconds across 8 scenes:
+  // Scene 1: 0–3s  (Earth in deep space)
+  // Scene 2: 3–6s  (Asia & Subcontinent approach)
+  // Scene 3: 6–9s  (India highlighted)
+  // Scene 4: 9–12s (Tamil Nadu regional zoom)
+  // Scene 5: 12–15s (Palar Basin delineation)
+  // Scene 6: 15–18s (Basin intelligence & monitoring stations)
+  // Scene 7: 18–21s (Dashboard transition preview)
+  // Scene 8: 21–25s (Brand reveal, tagline & final CTAs)
+  const sceneDurations = [3, 3, 3, 3, 3, 3, 3, 4];
+  const totalDuration = sceneDurations.reduce((a, b) => a + b, 0); // 25s
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -624,7 +634,7 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
       setProgress((prev) => {
         const next = prev + 0.1;
         if (next >= totalDuration) {
-          return totalDuration; // Stay on Scene 6 (Brand reveal)
+          return totalDuration; // Stay on Scene 8 (Brand reveal)
         }
         return next;
       });
@@ -632,6 +642,29 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
 
     return () => clearInterval(interval);
   }, [isPlaying, totalDuration]);
+
+  // Scroll / Wheel scrubbing listener: user can scroll naturally forwards and backwards
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      // Natural scroll scrubbing through the 8 scenes
+      if (Math.abs(e.deltaY) > 5) {
+        setProgress((prev) => {
+          const delta = (e.deltaY > 0 ? 0.45 : -0.45);
+          const next = Math.max(0, Math.min(totalDuration, prev + delta));
+          return next;
+        });
+      }
+    };
+
+    const el = containerRef.current;
+    if (el) {
+      el.addEventListener('wheel', handleWheel, { passive: true });
+    }
+    return () => {
+      if (el) el.removeEventListener('wheel', handleWheel);
+    };
+  }, [totalDuration]);
 
   // Determine currentScene from progress seconds
   useEffect(() => {
@@ -655,8 +688,8 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
   };
 
   const handleSkipIntro = () => {
-    setProgress(17.5);
-    setCurrentScene(6);
+    setProgress(21.5);
+    setCurrentScene(8);
   };
 
   const handleReplay = () => {
@@ -666,7 +699,10 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
   };
 
   return (
-    <div className="relative w-full h-screen bg-[#020905] overflow-hidden select-none flex flex-col justify-between">
+    <div 
+      ref={containerRef}
+      className="relative w-full h-screen bg-[#020905] overflow-hidden select-none flex flex-col justify-between"
+    >
       {/* 1. 3D WebGL Canvas Layer */}
       <div className="absolute inset-0 z-0">
         <Canvas
@@ -852,8 +888,8 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
         </svg>
       </button>
 
-      {/* 3. Floating HUD Telemetry Panels (SCENE 05 — Environmental Intelligence) */}
-      {currentScene === 5 && (
+      {/* 3. Floating HUD Telemetry Panels (SCENE 06 — Environmental Intelligence & Points) */}
+      {currentScene === 6 && (
         <div className="relative z-20 px-6 max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in pointer-events-none">
           {/* Card 1: RAINFALL */}
           <div className="pointer-events-auto p-4 rounded-2xl bg-[#061811]/90 backdrop-blur-md border border-white/10 shadow-2xl flex items-center gap-3.5 min-w-[210px]">
@@ -893,8 +929,57 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
         </div>
       )}
 
-      {/* 4. SCENE 06 — Cinematic Brand Reveal Overlay */}
-      {currentScene === 6 && (
+      {/* 4. SCENE 07 — Transition into the Real Dashboard Console */}
+      {currentScene === 7 && (
+        <div className="relative z-20 px-6 max-w-4xl mx-auto w-full animate-fade-in my-auto pb-12">
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#061811]/95 backdrop-blur-xl border border-emerald-500/30 shadow-2xl shadow-emerald-500/10 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
+                <h3 className="text-lg font-bold text-white font-sans">
+                  {lang === 'ta' ? 'பாலாறு கார்ட் AI - ஒருங்கிணைந்த கட்டளை மையம்' : 'PALAR GUARD AI · Unified Command Center'}
+                </h3>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-xs font-mono">
+                17,810 km² Basin Online
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                <div className="text-[10px] font-mono text-stone-400">MONITORED STATIONS</div>
+                <div className="text-2xl font-black text-emerald-400 font-sans tabular-nums">7 Key Reach</div>
+                <div className="text-xs text-stone-300">Ranipet, Vellore, Kanchi</div>
+              </div>
+              <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                <div className="text-[10px] font-mono text-stone-400">ACTIVE FIELD UNITS</div>
+                <div className="text-2xl font-black text-cyan-400 font-sans tabular-nums">12 Teams</div>
+                <div className="text-xs text-stone-300">4 Critical Verified</div>
+              </div>
+              <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                <div className="text-[10px] font-mono text-stone-400">SYSTEM RELIABILITY</div>
+                <div className="text-2xl font-black text-white font-sans tabular-nums">95.4%</div>
+                <div className="text-xs text-emerald-400">High Confidence Rating</div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <div className="text-xs text-stone-400 font-mono">
+                Live Data Synchronized · CGWB, TNPCB & IMD NWIC
+              </div>
+              <button
+                onClick={() => onExplore('dashboard')}
+                className="px-6 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-[#061811] text-xs font-bold transition-all shadow-forest-sm flex items-center gap-2 transform hover:scale-105"
+              >
+                <span>{lang === 'ta' ? 'கண்காணிப்பு மையத்திற்குள் நுழைக →' : 'Enter Live Command Console →'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. SCENE 08 — Cinematic Brand Reveal Overlay */}
+      {currentScene === 8 && (
         <div className="relative z-20 text-center max-w-3xl mx-auto px-4 space-y-6 animate-fade-in my-auto pb-16">
           {/* Logo Mark */}
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[#2ad58b] to-[#10b981] p-0.5 shadow-2xl shadow-emerald-500/20">
@@ -909,7 +994,9 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
               PALAR <span className="text-[#2ad58b]">GUARD AI</span>
             </h1>
             <p className="text-lg sm:text-xl text-stone-200 font-medium tracking-wide">
-              See the Risk. Predict the Change. Protect Every Drop.
+              {lang === 'ta'
+                ? 'ஆபத்தைக் கண்டறி. மாற்றத்தைக் கணித்து அறி. ஒவ்வொரு துளியையும் பாதுகாப்போம்.'
+                : 'See the Risk. Predict the Change. Protect Every Drop.'}
             </p>
           </div>
 
@@ -919,7 +1006,7 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
               onClick={() => onExplore('dashboard')}
               className="px-8 py-3.5 rounded-full bg-[#2ad58b] hover:bg-[#25be7c] text-[#061811] font-bold text-sm shadow-emerald-glow transition-all transform hover:scale-105 flex items-center gap-2"
             >
-              <span>Explore the Platform</span>
+              <span>{lang === 'ta' ? 'கண்காணிப்பு தளம் →' : 'Explore the Platform'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
             <button
@@ -927,7 +1014,7 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
               className="px-7 py-3.5 rounded-full bg-emerald-950/90 hover:bg-emerald-900 text-emerald-200 border border-emerald-400/40 text-sm font-semibold transition-all flex items-center gap-2 shadow-forest-sm"
             >
               <Compass className="w-4 h-4 text-emerald-400" />
-              <span>Open Intelligence Dashboard</span>
+              <span>{lang === 'ta' ? 'கட்டுப்பாட்டு மையம்' : 'Open Intelligence Dashboard'}</span>
             </button>
             {onOpenPresentation && (
               <button
@@ -935,14 +1022,14 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
                 className="px-6 py-3.5 rounded-full bg-white/5 hover:bg-white/10 text-stone-200 border border-white/10 hover:border-emerald-500/40 text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <Award className="w-4 h-4 text-emerald-400" />
-                <span>Watch Guided Demo</span>
+                <span>{lang === 'ta' ? 'டெமோ பார்க்க' : 'Watch Guided Demo'}</span>
               </button>
             )}
             <a
               href="#challenge"
               className="px-5 py-3.5 rounded-full bg-transparent hover:bg-white/5 text-stone-300 text-sm font-medium transition-colors"
             >
-              Learn More ↓
+              {lang === 'ta' ? 'மேலும் அறிக ↓' : 'Learn More ↓'}
             </a>
           </div>
 
@@ -953,7 +1040,7 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
         </div>
       )}
 
-      {/* 5. Bottom Cinema Scrub Bar & Timeline Controller */}
+      {/* 6. Bottom Cinema Scrub Bar & Timeline Controller */}
       <footer className="relative z-20 px-6 py-4 bg-gradient-to-t from-[#020905] via-[#020905]/80 to-transparent flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/[0.06]">
         {/* Playback Toggle & Timecode */}
         <div className="flex items-center gap-3">
@@ -978,20 +1065,22 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
           </span>
         </div>
 
-        {/* 6-Scene Quick Jump Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] font-mono">
+        {/* 8-Scene Quick Jump Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] font-mono scrollbar-none max-w-full">
           {[
-            { id: 1, label: "01 Earth" },
-            { id: 2, label: "02 India" },
-            { id: 3, label: "03 Tamil Nadu" },
-            { id: 4, label: "04 Palar Basin" },
-            { id: 5, label: "05 Intelligence" },
-            { id: 6, label: "06 Brand Reveal" },
+            { id: 1, label: "01 Space" },
+            { id: 2, label: "02 Asia" },
+            { id: 3, label: "03 India" },
+            { id: 4, label: "04 Tamil Nadu" },
+            { id: 5, label: "05 Palar Basin" },
+            { id: 6, label: "06 Intelligence" },
+            { id: 7, label: "07 Dashboard" },
+            { id: 8, label: "08 Brand" },
           ].map((sc) => (
             <button
               key={sc.id}
               onClick={() => handleJumpToScene(sc.id)}
-              className={`px-3 py-1 rounded-full transition-all ${
+              className={`px-2.5 py-1 rounded-full whitespace-nowrap transition-all ${
                 currentScene === sc.id
                   ? 'bg-emerald-500 text-[#061811] font-bold shadow-forest-sm'
                   : 'bg-white/5 hover:bg-white/10 text-stone-400 hover:text-white'

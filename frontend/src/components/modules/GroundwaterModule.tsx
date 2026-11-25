@@ -3,6 +3,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import { PALAR_LOCATIONS, GROUNDWATER_TIMESERIES } from '../../data/palarData';
 import { DataBadge } from '../common/DataBadge';
 import { Droplets, Info, TrendingDown, ArrowDownRight, Compass } from 'lucide-react';
+import { BasinMap } from '../maps/BasinMap';
 
 interface GroundwaterModuleProps {
   initialLocationId?: number;
@@ -137,6 +138,23 @@ export const GroundwaterModule: React.FC<GroundwaterModuleProps> = ({ initialLoc
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Geospatial Well Distribution Map */}
+      <div className="space-y-2 pt-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <Compass className="w-4 h-4 text-emerald-400" />
+            <span>Palar Aquifer Observation Well Distribution</span>
+          </h3>
+          <span className="text-xs font-mono text-stone-400">Click any well on the map to switch hydrograph</span>
+        </div>
+        <BasinMap 
+          onSelectStation={(id) => setSelectedStationId(id)}
+          initialStationId={selectedStationId}
+          heightClass="h-[360px]"
+          showLayerControls={false}
+        />
       </div>
     </div>
   );

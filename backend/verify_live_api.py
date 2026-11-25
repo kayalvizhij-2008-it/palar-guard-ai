@@ -34,6 +34,19 @@ def main():
         ("GET /api/v1/recharge/", f"{base}/api/v1/recharge/", "GET", None),
         ("POST /api/v1/assistant/query", f"{base}/api/v1/assistant/query", "POST", {"prompt": "Ranipet groundwater status"}),
         ("GET /api/v1/analytics/summary", f"{base}/api/v1/analytics/summary", "GET", None),
+        ("GET /api/v1/maps/overview", f"{base}/api/v1/maps/overview", "GET", None),
+        ("GET /api/v1/maps/layers", f"{base}/api/v1/maps/layers", "GET", None),
+        ("GET /api/v1/maps/stations", f"{base}/api/v1/maps/stations", "GET", None),
+        ("GET /api/v1/maps/stations/1", f"{base}/api/v1/maps/stations/1", "GET", None),
+        ("GET /api/v1/maps/groundwater", f"{base}/api/v1/maps/groundwater", "GET", None),
+        ("GET /api/v1/maps/rainfall", f"{base}/api/v1/maps/rainfall", "GET", None),
+        ("GET /api/v1/maps/water-quality", f"{base}/api/v1/maps/water-quality", "GET", None),
+        ("GET /api/v1/maps/anomalies", f"{base}/api/v1/maps/anomalies", "GET", None),
+        ("GET /api/v1/maps/risks", f"{base}/api/v1/maps/risks", "GET", None),
+        ("GET /api/v1/maps/community-reports", f"{base}/api/v1/maps/community-reports", "GET", None),
+        ("GET /api/v1/maps/investigations", f"{base}/api/v1/maps/investigations", "GET", None),
+        ("GET /api/v1/maps/recharge", f"{base}/api/v1/maps/recharge", "GET", None),
+        ("GET /api/v1/maps/locations/search", f"{base}/api/v1/maps/locations/search?q=Ranipet", "GET", None),
     ]
 
     passed = 0

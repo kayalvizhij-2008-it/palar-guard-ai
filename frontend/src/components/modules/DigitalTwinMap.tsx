@@ -4,6 +4,7 @@ import { PALAR_LOCATIONS, WATER_QUALITY_STATIONS, ANOMALIES_DATA } from '../../d
 import { LocationData } from '../../types';
 import { DataBadge } from '../common/DataBadge';
 import { BasinHero3D } from '../hero/BasinHero3D';
+import { BasinMap } from '../maps/BasinMap';
 import { 
   Layers, Compass, AlertCircle, Box, Map as MapIcon, 
   X, Droplets, Activity, ShieldCheck, ArrowRight, Info, CheckCircle2 
@@ -215,7 +216,7 @@ export const DigitalTwinMap: React.FC<DigitalTwinMapProps> = ({ onSelectLocation
       {/* Main Display: 2D Leaflet DOM or 3D WebGL Canvas */}
       {viewMode === '2d' ? (
         <div className="relative flex-1 min-h-[460px] w-full">
-          <div ref={mapContainerRef} className="h-full w-full min-h-[460px]" />
+          <BasinMap onSelectStation={onSelectLocation} heightClass="h-full min-h-[520px]" />
 
           {/* Legend Box */}
           <div className="absolute bottom-4 left-4 z-[1000] bg-[#071912]/90 backdrop-blur-md p-3 rounded-lg border border-white/10 shadow-forest-md text-xs pointer-events-none">

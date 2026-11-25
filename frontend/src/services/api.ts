@@ -215,5 +215,59 @@ export const apiService = {
       console.warn("Backend registration unreachable", e);
     }
     return null;
+  },
+
+  // 11. Geospatial Maps & GIS Layer Endpoints
+  async getMapOverview(): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/maps/overview`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Maps overview API unreachable", e);
+    }
+    return null;
+  },
+
+  async getMapLayers(): Promise<any[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/maps/layers`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Maps layers API unreachable", e);
+    }
+    return [];
+  },
+
+  async getMapStations(district?: string, minRisk?: number): Promise<any> {
+    try {
+      const params = new URLSearchParams();
+      if (district && district !== 'all') params.append('district', district);
+      if (minRisk && minRisk > 0) params.append('min_risk', minRisk.toString());
+      const res = await fetch(`${API_BASE_URL}/maps/stations?${params.toString()}`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Maps stations API unreachable", e);
+    }
+    return null;
+  },
+
+  async getMapStationDetail(stationId: number): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/maps/stations/${stationId}`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Maps station detail API unreachable", e);
+    }
+    return null;
+  },
+
+  async searchMapLocations(query: string): Promise<any[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/maps/locations/search?q=${encodeURIComponent(query)}`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Maps search API unreachable", e);
+    }
+    return [];
   }
 };
