@@ -84,11 +84,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>{currentView === 'landing' ? (lang === 'ta' ? 'கண்காணிப்பு பலகம் →' : 'Command Console →') : (lang === 'ta' ? '← 3D முகப்பு' : '← 3D Story Hero')}</span>
           </button>
           
-          {/* Simple vs Expert Mode Pill */}
-          <div className="hidden lg:flex items-center bg-[#072116] p-0.5 rounded-full border border-white/[0.08]">
+          {/* Community vs Professional Mode Pill */}
+          <div className="hidden md:flex items-center bg-[#072116] p-0.5 rounded-full border border-white/[0.08]">
             <button
               onClick={() => setMode('simple')}
-              className={`px-2.5 py-1 text-[11px] font-medium rounded-full transition-all ${
+              title="Community Access — Simple language, local water levels, easy incident reporting"
+              className={`px-3 py-1 text-[11px] font-semibold rounded-full transition-all ${
                 mode === 'simple'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-stone-300 hover:text-white'
@@ -98,9 +99,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
             <button
               onClick={() => setMode('expert')}
-              className={`px-2.5 py-1 text-[11px] font-medium rounded-full transition-all ${
+              title="Professional Workspace — 16 advanced hydrological modules & decision tools"
+              className={`px-3 py-1 text-[11px] font-semibold rounded-full transition-all ${
                 mode === 'expert'
-                  ? 'bg-emerald-600 text-white shadow-sm'
+                  ? 'bg-cyan-600 text-white shadow-sm'
                   : 'text-stone-300 hover:text-white'
               }`}
             >

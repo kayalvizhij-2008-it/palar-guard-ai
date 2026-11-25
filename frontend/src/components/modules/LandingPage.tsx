@@ -3,6 +3,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { CinematicHeroSequence } from '../hero/CinematicHeroSequence';
 import { DigitalTwinMap } from './DigitalTwinMap';
 import { DataBadge } from '../common/DataBadge';
+import { BokehParticleGalaxy } from '../effects/BokehParticleGalaxy';
 import { 
   ArrowRight, ShieldCheck, ShieldAlert, Droplets, AlertTriangle, Layers, 
   Search, Eye, Activity, Database, CheckCircle2, FileText, 
@@ -67,6 +68,97 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
       desc: lang === 'ta' ? "கள ஆய்வுக் குழுக்களை அனுப்புதல், தடுப்பணைகள், ஊடுருவல் கிணறுகள் மற்றும் பாரம்பரிய ஏரிகளை தூர்வாரும் இடங்களை அடையாளம் காணுதல்." : "Dispatch field inspection teams with duplicate sample checklists while identifying optimal alluvium zones for check dams, percolation tanks, and traditional eri desiltation.",
       metric: lang === 'ta' ? "ஆய்வுக் குழு அனுப்பப்பட்டது" : "Team Alpha Dispatched",
       provenance: "VERIFIED_PUBLIC" as const
+    }
+  ];
+
+  const journeyMilestones = [
+    {
+      num: "01",
+      phase: "THE PROBLEM",
+      title: lang === 'ta' ? "கடும் நிலத்தடி நீர் வீழ்ச்சி & இரசாயன அழுத்தம்" : "Acute Groundwater Depletion & Industrial Stress",
+      period: "Field Observations 2020–2022",
+      desc: lang === 'ta' 
+        ? "ராணிப்பேட்டை, ஆம்பூர் மற்றும் வாணியம்பாடியில் கடுமையான கோடை காலங்களில் நீர்மட்டம் 14.9 மீட்டருக்கும் ஆழமாக குறைந்து, கிணறுகள் வறண்டு போவது கண்டறியப்பட்டது."
+        : "Field reconnaissance across Ranipet, Ambur, and Vaniyambadi revealed pre-monsoon water tables plunging deeper than 14.9 mbgl, causing dry borewells and acute ionic stress in domestic supplies.",
+      badge: "GROUND REALITY",
+      metric: "14.9 mbgl Drawdown"
+    },
+    {
+      num: "02",
+      phase: "RESEARCH",
+      title: lang === 'ta' ? "பாலாற்று படுகை ஹைட்ரோஜியோலஜி ஆய்வு" : "Palar River Basin Hydrogeological Research",
+      period: "Scientific Literature & Archives",
+      desc: lang === 'ta'
+        ? "17,810 ச.கி.மீ நீர்ப்பிடிப்பு பகுதி, சார்னோகைட் பாறை அமைப்புகள் மற்றும் CPCB முன்னுரிமை-V நதிப் பகுதிகள் குறித்த விரிவான அறிவியல் ஆய்வு."
+        : "Comprehensive investigation of the 17,810 km² catchment area, weathered charnockite fissured aquifers, and CPCB Priority-V polluted river stretches published in hydrogeochemical bulletins.",
+      badge: "VERIFIED ARCHIVES",
+      metric: "17,810 km² Catchment"
+    },
+    {
+      num: "03",
+      phase: "OBSERVATION",
+      title: lang === 'ta' ? "பல மூலத் தரவு ஒருங்கிணைப்பு" : "Multi-Source Telemetry Integration",
+      period: "Data Infrastructure",
+      desc: lang === 'ta'
+        ? "மத்திய நிலத்தடி நீர் வாரியம் (CGWB) கிணறு தரவுகள், IMD மழைப்பொழிவு பதிவுகள் மற்றும் TNPCB நீர் தர பகுப்பாய்வுகளை ஒரே அமைப்பில் இணைத்தல்."
+        : "Automated ingestion pipeline unifying quarterly CGWB observation well hydrographs, IMD NWIC precipitation series, and TNPCB ionic surveillance assays across 7 baseline river stations.",
+      badge: "LIVE INGESTION",
+      metric: "7 Baseline Stations"
+    },
+    {
+      num: "04",
+      phase: "INTELLIGENCE",
+      title: lang === 'ta' ? "முன்னோக்கு கணிப்பு & வலுவான புள்ளிவிவர மாதிரிகள்" : "Walk-Forward Forecasting & Robust MAD Screening",
+      period: "AI & ML Architecture",
+      desc: lang === 'ta'
+        ? "90% நம்பிக்கை இடைவெளியுடன் 4 காலாண்டுகளுக்கான நீர்மட்ட கணிப்பு மற்றும் Median Absolute Deviation கொண்டு துல்லியமான மாறுபாடுகளைக் கண்டறிதல்."
+        : "Built explainable walk-forward seasonal models with ±1.2m empirical confidence intervals and Median Absolute Deviation (MAD) robust Z-score screening to avoid skew from pollution surges.",
+      badge: "ALGORITHMIC CORE",
+      metric: "MAD Z-Score = 3.84"
+    },
+    {
+      num: "05",
+      phase: "PRIORITISATION",
+      title: lang === 'ta' ? "விளக்கக்கூடிய பல-அளவுகோல் இடர் தரவரிசை" : "Multi-Criteria Decision Prioritisation",
+      period: "MCDA Framework",
+      desc: lang === 'ta'
+        ? "நீர்மட்ட அழுத்தம், நீர் தரம், மழை பற்றாக்குறை ஆகிய 5 காரணிகளை கொண்டு 0–100 இடர் மதிப்பெண் வழங்கி கள ஆய்வுக்கு முன்னுரிமை அளித்தல்."
+        : "Engineered objective weighted index synthesizing groundwater stress (30%), water quality (35%), and rainfall deficits (15%) to rank stretches; Ranipet prioritized at 78.5/100.",
+      badge: "DECISION SUPPORT",
+      metric: "Rank #1: Ranipet 78.5"
+    },
+    {
+      num: "06",
+      phase: "VERIFICATION",
+      title: lang === 'ta' ? "கள ஆய்வு & சான்று சரிபார்ப்பு பணிப்பாய்வு" : "Field Verification & Evidence Workflows",
+      period: "Operational Protocol",
+      desc: lang === 'ta'
+        ? "கள ஆய்வாளர்களுக்கு பணி ஒதுக்கீடு, இரட்டை மாதிரி சேகரிப்பு மற்றும் மாற்ற முடியாத தணிக்கை பதிவேடு மூலம் நம்பகத்தன்மையை உறுதி செய்தல்."
+        : "Integrated dispatcher assigning field inspection checklists, mobile spectrophotometer duplicate sampling, and immutable audit logs to verify anomalies before public advisories.",
+      badge: "AUDITABLE INTEGRITY",
+      metric: "100% Provenance Badges"
+    },
+    {
+      num: "07",
+      phase: "ACTION",
+      title: lang === 'ta' ? "மறுசுழற்சி & தடுப்பணை திட்டமிடல்" : "Managed Aquifer Recharge (MAR) Interventions",
+      period: "Engineering Decision Siting",
+      desc: lang === 'ta'
+        ? "மழைநீரை பூமிக்குள் செலுத்தும் தடுப்பணைகள், செறிவூட்டும் கிணறுகள் மற்றும் ஊடுருவல் குளங்களுக்கான இடம் தேர்வு செய்யும் வழிகாட்டி."
+        : "Site suitability scoring based on soil permeability, hydraulic gradient, and aquifer storage, directing check dams and infiltration shafts to maximize post-monsoon water replenishment.",
+      badge: "GROUND ACTION",
+      metric: "84% Suitability Score"
+    },
+    {
+      num: "08",
+      phase: "THE FUTURE",
+      title: lang === 'ta' ? "மக்கள் பங்களிப்பு & எதிர்கால நதி பாதுகாப்பு" : "Decentralized Public Participation & Scalable Future",
+      period: "2026 & Beyond",
+      desc: lang === 'ta'
+        ? "விவசாயிகள் மற்றும் பொதுமக்கள் நேரடியாக நீர் பிரச்சனைகளை பதிவு செய்யும் மக்கள் பலகம் மற்றும் தமிழ் வழிகாட்டி மூலம் பாலாற்றை மீட்டெடுக்கும் கூட்டு முயற்சி."
+        : "Empowering basin communities through Community Access portal, bilingual educational resources, and transparent environmental intelligence to protect every drop.",
+      badge: "CITIZEN STEWARDSHIP",
+      metric: "Palar Basin Protected"
     }
   ];
 
@@ -615,6 +707,94 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
       </section>
 
       {/* ============================================================ */}
+      {/* SECTION 6 — THE JOURNEY BEHIND PALAR GUARD AI (TIMELINE) */}
+      {/* ============================================================ */}
+      <section id="journey" className="relative py-28 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#020905] overflow-hidden">
+        {/* Bokeh Particle Galaxy Atmosphere */}
+        <BokehParticleGalaxy 
+          opacity={0.45} 
+          speedMultiplier={0.7} 
+          className="absolute inset-0 z-0 pointer-events-none" 
+        />
+
+        <div className="relative z-10 max-w-6xl mx-auto space-y-20">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-mono text-emerald-400">
+              SECTION 06 · PROJECT & SCIENTIFIC MILESTONES
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+              {lang === 'ta' ? 'பாலாறு காப்பாளர் AI: உருவான கதை' : 'The Journey Behind PALAR GUARD AI'}
+            </h2>
+            <p className="text-base text-stone-300">
+              {lang === 'ta'
+                ? 'பாலாற்று படுகையின் கள எதார்த்தங்களில் தொடங்கி, AI-ஆற்றல் கொண்ட நதி படுகை சுற்றுச்சூழல் நுண்ணறிவு தளம் உருவான பயணம்.'
+                : 'From groundwater field realities across Tamil Nadu to an explainable, public-participation environmental intelligence decision platform.'}
+            </p>
+          </div>
+
+          {/* Connected Scroll-Driven Timeline Spine */}
+          <div className="relative">
+            {/* Central Vertical Glowing Line */}
+            <div className="absolute left-4 sm:left-1/2 top-4 bottom-4 w-0.5 -translate-x-1/2 bg-gradient-to-b from-emerald-500 via-emerald-400/50 to-[#04120c] pointer-events-none" />
+
+            <div className="space-y-12">
+              {journeyMilestones.map((milestone, idx) => {
+                const isEven = idx % 2 === 0;
+
+                return (
+                  <div 
+                    key={milestone.num}
+                    className={`relative flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-12 ${
+                      isEven ? 'sm:flex-row' : 'sm:flex-row-reverse'
+                    }`}
+                  >
+                    {/* Timeline Node Ring */}
+                    <div className="absolute left-4 sm:left-1/2 -translate-x-1/2 z-20 w-8 h-8 rounded-full bg-[#03110a] border-2 border-emerald-400 flex items-center justify-center shadow-emerald-glow shrink-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    </div>
+
+                    {/* Content Card */}
+                    <div className={`w-full sm:w-1/2 pl-12 sm:pl-0 ${isEven ? 'sm:pr-12 text-left' : 'sm:pl-12 text-left'}`}>
+                      <div className="p-6 sm:p-7 rounded-2xl bg-[#061e13]/90 backdrop-blur-md border border-white/[0.08] hover:border-emerald-500/40 transition-all shadow-forest-md space-y-3 group hover:scale-[1.01]">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">
+                            {milestone.num} · {milestone.phase}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-500/30">
+                            {milestone.badge}
+                          </span>
+                        </div>
+
+                        <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">
+                          {milestone.title}
+                        </h3>
+
+                        <div className="text-[11px] font-mono text-stone-400">
+                          {milestone.period}
+                        </div>
+
+                        <p className="text-xs text-stone-300 leading-relaxed">
+                          {milestone.desc}
+                        </p>
+
+                        <div className="pt-2 flex items-center justify-between text-xs font-mono border-t border-white/5">
+                          <span className="text-stone-400">Key Milestone Outcome:</span>
+                          <span className="font-bold text-emerald-400">{milestone.metric}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Symmetrical Desktop Layout Balance Spacer */}
+                    <div className="hidden sm:block sm:w-1/2" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
       {/* SECTION 7 — TRUST, DATA PROVENANCE & SCIENTIFIC INTEGRITY */}
       {/* ============================================================ */}
       <section id="trust-data" className="py-24 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08] bg-[#04120a]">
@@ -875,8 +1055,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onExplore, onOpenPrese
       {/* ============================================================ */}
       {/* SECTION 9 — FINAL CTA */}
       {/* ============================================================ */}
-      <section className="py-28 px-4 sm:px-6 lg:px-8 bg-gradient-to-t from-[#010603] to-[#04120a] border-t border-white/[0.08]">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
+      <section className="relative py-28 px-4 sm:px-6 lg:px-8 bg-gradient-to-t from-[#010603] to-[#04120a] border-t border-white/[0.08] overflow-hidden">
+        {/* Bokeh Particle Galaxy Atmosphere */}
+        <BokehParticleGalaxy 
+          opacity={0.6} 
+          speedMultiplier={0.7} 
+          className="absolute inset-0 z-0 pointer-events-none" 
+        />
+
+        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-400/40 text-xs font-mono text-emerald-300">
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             READY FOR NATIONAL EVALUATION

@@ -19,9 +19,16 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onSelectModule, 
   onBackToLanding,
 }) => {
-  const { t, lang } = useLanguage();
+  const { t, lang, mode, setMode } = useLanguage();
 
-  const menuItems = [
+  const communityMenuItems = [
+    { id: 'dashboard', label: lang === 'ta' ? 'மக்களுக்கான பலகம்' : 'Community Portal', icon: <Home className="w-4 h-4 shrink-0" /> },
+    { id: 'digital_twin', label: lang === 'ta' ? 'பாலாறு வரைபடம்' : 'Basin Explorer', icon: <Compass className="w-4 h-4 shrink-0" /> },
+    { id: 'community', label: lang === 'ta' ? 'மக்கள் புகார் & பதிவு' : 'Report Water Issue', icon: <Users className="w-4 h-4 shrink-0" /> },
+    { id: 'assistant', label: lang === 'ta' ? 'PALAR AI உதவியாளர்' : 'Water AI Assistant', icon: <Bot className="w-4 h-4 shrink-0" /> },
+  ];
+
+  const professionalMenuItems = [
     { id: 'dashboard', label: t('overview'), icon: <Home className="w-4 h-4 shrink-0" /> },
     { id: 'digital_twin', label: t('digital_twin'), icon: <Compass className="w-4 h-4 shrink-0" /> },
     { id: 'groundwater', label: t('groundwater'), icon: <Droplets className="w-4 h-4 shrink-0" /> },
@@ -38,6 +45,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
     { id: 'analytics', label: t('analytics'), icon: <FileText className="w-4 h-4 shrink-0" /> },
     { id: 'admin_audit', label: t('admin_audit'), icon: <Settings className="w-4 h-4 shrink-0" /> },
   ];
+
+  const menuItems = mode === 'simple' ? communityMenuItems : professionalMenuItems;
 
   return (
     <aside className="w-60 md:w-64 bg-[#051811] border-r border-white/[0.08] flex flex-col h-full select-none shrink-0 transition-all duration-300">
@@ -62,6 +71,27 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             </button>
           );
         })}
+
+        {/* Mode Quick Toggle Pill inside sidebar */}
+        <div className="pt-3 px-1 border-t border-white/[0.06]">
+          {mode === 'simple' ? (
+            <button
+              onClick={() => setMode('expert')}
+              className="w-full py-2.5 px-3 rounded-xl bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-forest-sm"
+              title="Open full environmental intelligence workspace"
+            >
+              <span>{lang === 'ta' ? 'அறிவியல் பலகம் (16 பிரிவுகள்) →' : 'Professional Tools (16 Modules) →'}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setMode('simple')}
+              className="w-full py-2 px-3 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-emerald-300 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors"
+              title="Switch to citizen portal with plain language"
+            >
+              <span>{lang === 'ta' ? '← எளிய மக்கள் பலகம்' : '← Switch to Community Portal'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Bottom Scenic Banner (Temple & River) matching reference image */}

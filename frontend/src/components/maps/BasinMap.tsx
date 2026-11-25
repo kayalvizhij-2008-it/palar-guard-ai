@@ -243,7 +243,13 @@ export const BasinMap: React.FC<BasinMapProps> = ({
 
     mapInstanceRef.current = map;
 
+    // Invalidate map size after container dimensions settle
+    const t1 = setTimeout(() => map.invalidateSize(), 100);
+    const t2 = setTimeout(() => map.invalidateSize(), 350);
+
     return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
       map.remove();
       mapInstanceRef.current = null;
     };

@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { AppSidebar } from './components/layout/AppSidebar';
 import { AuthModal } from './components/modules/AuthModal';
 import { PresentationModeModal } from './components/modules/PresentationModeModal';
-import { PremiumCursor } from './components/effects/PremiumCursor';
-import { GlobalParticleBackground } from './components/effects/GlobalParticleBackground';
+import { CustomCursor } from './components/effects/CustomCursor';
+import { StardustBackground } from './components/effects/StardustBackground';
+import { ExperienceModeModal } from './components/common/ExperienceModeModal';
 
 // Modules
 import { LandingPage } from './components/modules/LandingPage';
 import { DashboardOverview } from './components/modules/DashboardOverview';
+import { CommunityDashboard } from './components/modules/CommunityDashboard';
 import { DigitalTwinMap } from './components/modules/DigitalTwinMap';
 import { GroundwaterModule } from './components/modules/GroundwaterModule';
 import { ForecastingModule } from './components/modules/ForecastingModule';
@@ -39,10 +41,12 @@ export function AppContent() {
     return 'landing';
   };
 
+  const { mode, setMode } = useLanguage();
   const [currentView, setCurrentView] = useState<string>(getInitialView);
   const [selectedLocationId, setSelectedLocationId] = useState<number>(1);
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
   const [presentationOpen, setPresentationOpen] = useState<boolean>(false);
+  const [modeModalOpen, setModeModalOpen] = useState<boolean>(false);
 
   // Global 'P' shortcut to toggle Jury Presentation Walkthrough
   useEffect(() => {
@@ -99,6 +103,14 @@ export function AppContent() {
         return <AdminAuditModule />;
       case 'dashboard':
       default:
+        if (mode === 'simple') {
+          return (
+            <CommunityDashboard
+              onSwitchToProfessional={() => setMode('expert')}
+              onSelectLocation={(locId) => handleNavigate('groundwater', locId)}
+            />
+          );
+        }
         return (
           <DashboardOverview 
             onSelectModule={handleNavigate} 
@@ -113,7 +125,7 @@ export function AppContent() {
   return (
     <div className="min-h-screen bg-[#061811] text-[#f4f7f5] flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
       {/* Premium Desktop Custom Cursor */}
-      <PremiumCursor />
+      <CustomCursor />
 
       {/* Top Sticky Navigation */}
       <Navbar
@@ -124,7 +136,7 @@ export function AppContent() {
       />
 
       {isLanding ? (
-        // Public 14-Section Landing Page View
+        // Public Landing Page View
         <main className="flex-1">
           <LandingPage 
             onExplore={handleNavigate} 
@@ -133,10 +145,10 @@ export function AppContent() {
           <Footer />
         </main>
       ) : (
-        // Authenticated 16-Module Platform Console with Global Falling Particles
+        // Authenticated Platform Console with Shared Stardust Background
         <div className="flex-1 flex overflow-hidden relative dashboard-shell">
-          {/* Continuous Environmental Falling Particle System behind all content */}
-          <GlobalParticleBackground />
+          {/* Subtle Shared Stardust / Sparkles Particle System behind dashboard content */}
+          <StardustBackground />
           <div className="relative z-10 flex w-full h-full overflow-hidden">
             <AppSidebar
               currentModule={currentView}
@@ -152,6 +164,13 @@ export function AppContent() {
           </div>
         </div>
       )}
+
+      {/* Experience Mode Selection Modal (Community vs Professional) */}
+      <ExperienceModeModal
+        isOpen={modeModalOpen}
+        onClose={() => setModeModalOpen(false)}
+        onSelectMode={(m) => setMode(m)}
+      />
 
       {/* Auth Modal */}
       <AuthModal

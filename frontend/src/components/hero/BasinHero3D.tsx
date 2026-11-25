@@ -202,14 +202,42 @@ function BasinGlobeModel({
                   <div className="text-[10px] text-stone-400 mb-1.5">{st.district} District</div>
                   
                   <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-[#030d08] rounded border border-white/10 text-[10px] font-mono">
-                    <div>
-                      <div className="text-stone-400">Water Depth</div>
-                      <div className="font-bold text-amber-400">{st.depth} mbgl</div>
-                    </div>
-                    <div>
-                      <div className="text-stone-400">Risk Score</div>
-                      <div className="font-bold text-emerald-300">{st.risk}/100</div>
-                    </div>
+                    {mode === 'groundwater' && (
+                      <>
+                        <div>
+                          <div className="text-stone-400">Water Depth</div>
+                          <div className="font-bold text-amber-400">{st.depth} mbgl</div>
+                        </div>
+                        <div>
+                          <div className="text-stone-400">Risk Score</div>
+                          <div className="font-bold text-emerald-300">{st.risk}/100</div>
+                        </div>
+                      </>
+                    )}
+                    {mode === 'water_quality' && (
+                      <>
+                        <div>
+                          <div className="text-stone-400">TDS Value</div>
+                          <div className="font-bold text-emerald-300">{st.tds} mg/L</div>
+                        </div>
+                        <div>
+                          <div className="text-stone-400">Chromium</div>
+                          <div className="font-bold text-red-400">{st.id === 1 ? '0.082' : '0.015'} mg/L</div>
+                        </div>
+                      </>
+                    )}
+                    {mode === 'rainfall' && (
+                      <>
+                        <div>
+                          <div className="text-stone-400">Recharge</div>
+                          <div className="font-bold text-emerald-400">84% Suitable</div>
+                        </div>
+                        <div>
+                          <div className="text-stone-400">Rainfall</div>
+                          <div className="font-bold text-cyan-300">682 mm</div>
+                        </div>
+                      </>
+                    )}
                   </div>
                   
                   {st.hasAnomaly && (
@@ -347,7 +375,7 @@ export const BasinHero3D: React.FC<{ onNavigateToModule?: (mod: string) => void 
       </div>
 
       {/* Top Right: Layer Mode Switcher HUD */}
-      <div className="absolute top-4 right-4 bg-[#05150e]/90 backdrop-blur-md p-1.5 rounded-xl border border-white/[0.08] flex items-center gap-1 shadow-forest-sm">
+      <div className="absolute top-4 right-4 z-20 bg-[#05150e]/90 backdrop-blur-md p-1.5 rounded-xl border border-white/[0.08] flex items-center gap-1 shadow-forest-sm">
         <button
           onClick={() => setMode('groundwater')}
           className={`px-2.5 py-1 rounded-lg text-[11px] font-mono flex items-center gap-1.5 transition-colors ${

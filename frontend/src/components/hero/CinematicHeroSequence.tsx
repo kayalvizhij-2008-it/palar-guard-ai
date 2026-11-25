@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { PALAR_LOCATIONS } from '../../data/palarData';
+import { BokehParticleGalaxy } from '../effects/BokehParticleGalaxy';
 
 // --- GEOGRAPHIC & SPHERICAL PROJECTIONS ---
 // Earth sphere radius = 2.0
@@ -703,33 +704,41 @@ export const CinematicHeroSequence: React.FC<CinematicHeroSequenceProps> = ({
       ref={containerRef}
       className="relative w-full h-screen bg-[#020905] overflow-hidden select-none flex flex-col justify-between"
     >
-      {/* 1. 3D WebGL Canvas Layer */}
-      <div className="absolute inset-0 z-0">
+      {/* 1. Celestial Bokeh Particle Galaxy Atmosphere */}
+      <BokehParticleGalaxy 
+        opacity={0.7} 
+        speedMultiplier={0.8}
+        className="absolute inset-0 z-0 pointer-events-none" 
+      />
+
+      {/* 2. 3D WebGL Earth Canvas Layer (Rock-Solid Camera & Atmosphere) */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas
-          camera={{ position: [0, 0.3, 5.0], fov: 42 }}
-          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+          camera={{ position: [0, 0.3, 5.0], fov: 42, near: 0.1, far: 1000 }}
+          gl={{ 
+            antialias: true, 
+            alpha: true, 
+            powerPreference: 'high-performance'
+          }}
+          onCreated={({ gl }) => {
+            gl.domElement.addEventListener('webglcontextlost', (e) => {
+              e.preventDefault();
+            }, false);
+          }}
         >
-          {/* Stars Field from Drei */}
-          <Stars radius={80} depth={45} count={1800} factor={3} fade speed={0.3} />
+          {/* Subtle Starfield */}
+          <Stars radius={80} depth={45} count={1200} factor={2.5} fade speed={0.2} />
 
           {/* Cinematic Sunlight Lighting */}
-          <ambientLight intensity={0.4} />
+          <ambientLight intensity={0.45} />
           <directionalLight position={[6, 4, 3]} intensity={2.2} color="#ffffff" />
-          <directionalLight position={[-4, -2, -2]} intensity={0.3} color="#10b981" />
+          <directionalLight position={[-4, -2, -2]} intensity={0.35} color="#10b981" />
 
-          {/* Core Globe Visualization */}
+          {/* Core Globe Visualization (Interpolates Camera without OrbitControls conflicts) */}
           <CinematicGlobe 
             currentScene={currentScene} 
             progress={progress}
             onSelectStation={(loc) => setSelectedLocation(loc)}
-          />
-
-          <OrbitControls 
-            enableZoom={false} 
-            enablePan={false} 
-            rotateSpeed={0.5} 
-            maxPolarAngle={Math.PI / 1.7} 
-            minPolarAngle={Math.PI / 3}
           />
         </Canvas>
       </div>
