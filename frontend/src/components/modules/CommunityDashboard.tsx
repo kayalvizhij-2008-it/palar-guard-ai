@@ -106,99 +106,101 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
     <div className="space-y-6 animate-fade-in text-left">
       {/* 1. Welcome Banner & Mode Awareness */}
       <div className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#042115] via-[#072e1e] to-[#051c12] border border-emerald-500/30 shadow-forest-lg overflow-hidden">
-        <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/40 text-xs font-mono text-emerald-300">
-            <HeartHandshake className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{lang === 'ta' ? 'மக்களுக்கான நீர் கண்காணிப்பு தளம்' : 'COMMUNITY ACCESS & CITIZEN PORTAL'}</span>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div className="max-w-3xl space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/40 text-xs font-mono text-emerald-300">
+              <HeartHandshake className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{lang === 'ta' ? 'மக்களுக்கான நீர் கண்காணிப்பு தளம்' : 'COMMUNITY ACCESS & CITIZEN PORTAL'}</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+              {lang === 'ta' 
+                ? 'உங்கள் பகுதி நீர் நிலவரம் & பாதுகாப்பு' 
+                : 'Water Situation In Your Area & Protection'}
+            </h1>
+
+            <p className="text-sm sm:text-base text-stone-300 leading-relaxed max-w-2xl">
+              {lang === 'ta'
+                ? 'எளிய மொழியில் பாலாற்று படுகை நிலத்தடி நீர் நிலை, குடிநீர் பாதுகாப்பு மற்றும் உடனடி நீர் பிரச்சனை புகார்கள் பதிவு செய்யும் இடம்.'
+                : 'Clear water health insights for farmers, residents, and citizens. Check your local water levels, understand drinking safety, and report water pollution incidents in under two minutes.'}
+            </p>
+
+            {/* Quick Sub-Navigation Pills */}
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  activeTab === 'overview'
+                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
+                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
+                }`}
+              >
+                <Droplets className="w-4 h-4" />
+                <span>{lang === 'ta' ? 'உள்ளூர் நீர் நிலை' : 'Water Near You'}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('report')}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  activeTab === 'report'
+                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
+                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
+                }`}
+              >
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <span>{lang === 'ta' ? 'புகார் பதிவு செய்ய' : 'Report Water Issue'}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('explain')}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  activeTab === 'explain'
+                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
+                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
+                }`}
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span>{lang === 'ta' ? 'நீரை புரிந்து கொள்ளுங்கள்' : 'Understand Your Water'}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('tracker')}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  activeTab === 'tracker'
+                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
+                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+                <span>{lang === 'ta' ? 'என் புகார்கள்' : 'My Reports'} ({userReports.length})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('learn')}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  activeTab === 'learn'
+                    ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
+                    : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
+                }`}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>{lang === 'ta' ? 'மழைநீர் சேகரிப்பு வழிகாட்டி' : 'Conservation Tips'}</span>
+              </button>
+            </div>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-            {lang === 'ta' 
-              ? 'உங்கள் பகுதி நீர் நிலவரம் & பாதுகாப்பு' 
-              : 'Water Situation In Your Area & Protection'}
-          </h1>
-
-          <p className="text-sm sm:text-base text-stone-300 leading-relaxed max-w-2xl">
-            {lang === 'ta'
-              ? 'எளிய மொழியில் பாலாற்று படுகை நிலத்தடி நீர் நிலை, குடிநீர் பாதுகாப்பு மற்றும் உடனடி நீர் பிரச்சனை புகார்கள் பதிவு செய்யும் இடம்.'
-              : 'Clear water health insights for farmers, residents, and citizens. Check your local water levels, understand drinking safety, and report water pollution incidents in under two minutes.'}
-          </p>
-
-          {/* Quick Sub-Navigation Pills */}
-          <div className="flex flex-wrap items-center gap-2 pt-2">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                activeTab === 'overview'
-                  ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                  : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-              }`}
-            >
-              <Droplets className="w-4 h-4" />
-              <span>{lang === 'ta' ? 'உள்ளூர் நீர் நிலை' : 'Water Near You'}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('report')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                activeTab === 'report'
-                  ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                  : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-              }`}
-            >
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <span>{lang === 'ta' ? 'புகார் பதிவு செய்ய' : 'Report Water Issue'}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('explain')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                activeTab === 'explain'
-                  ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                  : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-              }`}
-            >
-              <HelpCircle className="w-4 h-4" />
-              <span>{lang === 'ta' ? 'நீரை புரிந்து கொள்ளுங்கள்' : 'Understand Your Water'}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('tracker')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                activeTab === 'tracker'
-                  ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                  : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>{lang === 'ta' ? 'என் புகார்கள்' : 'My Reports'} ({userReports.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('learn')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                activeTab === 'learn'
-                  ? 'bg-emerald-500 text-[#061811] shadow-emerald-glow'
-                  : 'bg-black/30 hover:bg-black/50 text-stone-200 border border-white/10'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span>{lang === 'ta' ? 'மழைநீர் சேகரிப்பு வழிகாட்டி' : 'Conservation Tips'}</span>
-            </button>
-          </div>
+          {/* Top Right Switcher to Professional Mode (Flex-safe) */}
+          {onSwitchToProfessional && (
+            <div className="flex-shrink-0 pt-1">
+              <button
+                onClick={onSwitchToProfessional}
+                className="px-4 py-2.5 rounded-xl bg-[#092b1d] hover:bg-[#0c3926] text-emerald-300 border border-emerald-500/40 text-xs font-semibold flex items-center gap-2 shadow-forest-sm transition-colors"
+              >
+                <span>{lang === 'ta' ? 'தொழில்முறை ஆய்வு பலகம் →' : 'Switch to Professional Workspace →'}</span>
+              </button>
+            </div>
+          )}
         </div>
-
-        {/* Floating Top Right Switcher to Professional Mode */}
-        {onSwitchToProfessional && (
-          <div className="mt-4 sm:mt-0 sm:absolute sm:top-6 sm:right-6">
-            <button
-              onClick={onSwitchToProfessional}
-              className="px-4 py-2 rounded-xl bg-[#092b1d] hover:bg-[#0c3926] text-emerald-300 border border-emerald-500/40 text-xs font-semibold flex items-center gap-2 shadow-forest-sm transition-colors"
-            >
-              <span>{lang === 'ta' ? 'தொழில்முறை ஆய்வு பலகம் →' : 'Switch to Professional Workspace →'}</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* ============================================================ */}
@@ -217,19 +219,22 @@ export const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {PALAR_LOCATIONS.slice(0, 5).map(loc => (
-                <button
-                  key={loc.id}
-                  onClick={() => setSelectedStationId(loc.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    selectedStationId === loc.id
-                      ? 'bg-emerald-600 text-white shadow-forest-sm'
-                      : 'bg-[#09251a] hover:bg-[#0c3122] text-stone-300 border border-white/5'
-                  }`}
-                >
-                  {loc.district}
-                </button>
-              ))}
+              {PALAR_LOCATIONS.slice(0, 5).map(loc => {
+                const shortLabel = loc.name.replace(' Industrial Corridor', '').replace(' Tannery Cluster', '').replace(' Cantonment', '');
+                return (
+                  <button
+                    key={loc.id}
+                    onClick={() => setSelectedStationId(loc.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      selectedStationId === loc.id
+                        ? 'bg-emerald-600 text-white shadow-forest-sm'
+                        : 'bg-[#09251a] hover:bg-[#0c3122] text-stone-300 border border-white/5'
+                    }`}
+                  >
+                    {shortLabel}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
