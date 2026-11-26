@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { X, Droplet, ArrowRight, ShieldAlert, Loader2, Copy, Check, KeyRound } from 'lucide-react';
@@ -26,6 +26,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [submitting, setSubmitting] = useState(false);
   const [demoSubmitting, setDemoSubmitting] = useState(false);
   const [copiedField, setCopiedField] = useState<'email' | 'password' | null>(null);
+  const [slowWait, setSlowWait] = useState(false);
+
+  // Always reset to Sign In mode when reopened so users aren't stuck in Register view
+  useEffect(() => {
+    if (isOpen) {
+      setIsRegister(false);
+      setErrorMsg(null);
+      setSlowWait(false);
+    }
+  }, [isOpen]);
+
+  // Show a gentle cold-start status hint if authentication takes > 4s
+  useEffect(() => {
+    if (!submitting && !demoSubmitting) {
+      setSlowWait(false);
+      return;
+    }
+    const t = setTimeout(() => setSlowWait(true), 4000);
+    return () => clearTimeout(t);
+  }, [submitting, demoSubmitting]);
 
   if (!isOpen) return null;
 
@@ -95,7 +115,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       aria-labelledby="auth-modal-title"
       className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
     >
-      <div className="w-full max-w-md max-h-[92vh] overflow-y-auto bg-[#092218] border border-emerald-500/30 rounded-2xl p-6 shadow-2xl space-y-5 relative">
+      <div className="w-full max-w-md max-h-[94vh] overflow-y-auto bg-[#092218] border border-emerald-500/30 rounded-2xl p-5 shadow-2xl space-y-3.5 relative">
         <button
           type="button"
           onClick={onClose}
@@ -123,6 +143,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           <div className="p-3 rounded-xl bg-rose-950/70 border border-rose-500/40 text-xs text-rose-200 flex items-start gap-2">
             <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
             <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {slowWait && !errorMsg && (
+          <div className="p-2.5 rounded-xl bg-emerald-950/70 border border-emerald-500/30 text-[11px] text-emerald-200 flex items-center gap-2">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400 shrink-0" />
+            <span>
+              {L(
+                'Verifying credentials with backend service (waking server if idle)...',
+                'சேவையகத்துடன் சான்று சரிபார்க்கப்படுகிறது...'
+              )}
+            </span>
           </div>
         )}
 

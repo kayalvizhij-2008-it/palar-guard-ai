@@ -1,19 +1,11 @@
-databases:
-  # Persistent Managed PostgreSQL for Render Deployment (prevents data loss on restart)
-  - name: palar-guard-db
-    region: singapore
-    plan: free
-    databaseName: palar_guard
-    user: palar_guard_user
-
 services:
   # FastAPI Environmental Intelligence Backend on Render
   - type: web
     name: palar-guard-ai-backend
-    env: python
+    runtime: python
     region: singapore
     plan: free
-    buildCommand: "cd backend && pip install -r requirements.txt && python -c 'from app.seed_data import init_db; init_db()'"
+    buildCommand: "cd backend && pip install -r requirements.txt"
     startCommand: "cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /health
     envVars:
@@ -21,33 +13,14 @@ services:
         value: 3.11.9
       - key: ENVIRONMENT
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: palar-guard-db
-          property: connectionString
+      # Optional: set DATABASE_URL (PostgreSQL) in Render Dashboard Environment;
+      # when unset, FastAPI safely uses sqlite:///./palar_guard.db on free instances.
       - key: CORS_ORIGINS
         value: "https://frontend-tau-kohl-99.vercel.app,https://frontend-6xbla5345-kayalvizhij-2008-its-projects.vercel.app"
       - key: SECRET_KEY
         generateValue: true
+      - key: DEMO_ACCOUNT_EMAIL
+        value: "demo@palarguard.ai"
+      - key: DEMO_ACCOUNT_PASSWORD
+        value: "PalarDemo@2026"
       # Set INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD in Render Dashboard (or run python -m app.provision_admin)
-
-  # Static Frontend on Render (Backup / Multi-Cloud Mirror)
-  - type: web
-    name: palar-guard-ai-frontend
-    env: static
-    region: singapore
-    plan: free
-    buildCommand: "cd frontend && npm install && npm run build"
-    staticPublishPath: ./frontend/dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: NODE_VERSION
-        value: 20.18.0
-      - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: palar-guard-ai-backend
-          property: host

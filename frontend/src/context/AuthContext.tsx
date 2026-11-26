@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, UserRole } from '../types';
-import { apiService } from '../services/api';
+import { ApiError, apiService } from '../services/api';
 
 export interface Organization {
   id: string;
@@ -47,9 +47,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const me = await apiService.getMe();
       setUser(me);
       localStorage.setItem('palar_user', JSON.stringify(me));
-    } catch {
-      localStorage.removeItem('palar_token');
-      localStorage.removeItem('palar_user');
+    } catch (err: any) {
+      // Clear persisted credentials when token is rejected or deployment has no backend.
+      const isAuthRejection =
+        err instanceof ApiError &&
+        (err.status === 401 || err.status === 403 || (err.status === 0 && err.message.includes('not connected')));
+      if (isAuthRejection) {
+        localStorage.removeItem('palar_token');
+        localStorage.removeItem('palar_user');
+      }
       setUser(null);
     } finally {
       setIsLoadingSession(false);

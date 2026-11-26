@@ -9,14 +9,18 @@ export interface JourneyKey {
   label: { en: string; ta: string };
 }
 
+// Sequence: Space -> Earth -> Asia -> India -> South India -> Tamil Nadu -> Palar Basin -> Title reveal.
+// Distances and scroll track bands are spaced cleanly so every geographic stage
+// has generous dwell time and zero overlapping label windows.
 export const JOURNEY_KEYS: JourneyKey[] = [
-  { id: 'space', p: 0.0, lat: 16, lon: 42, dist: 5.2, label: { en: 'Space', ta: 'விண்வெளி' } },
-  { id: 'earth', p: 0.14, lat: 18, lon: 68, dist: 3.1, label: { en: 'Earth', ta: 'பூமி' } },
-  { id: 'asia', p: 0.28, lat: 24, lon: 84, dist: 2.3, label: { en: 'Asia', ta: 'ஆசியா' } },
-  { id: 'india', p: 0.42, lat: 19, lon: 79, dist: 1.75, label: { en: 'India', ta: 'இந்தியா' } },
-  { id: 'tamil-nadu', p: 0.56, lat: 11.8, lon: 78.9, dist: 1.38, label: { en: 'Tamil Nadu', ta: 'தமிழ்நாடு' } },
-  { id: 'palar', p: 0.7, lat: 12.9, lon: 79.3, dist: 1.24, label: { en: 'Palar River Basin', ta: 'பாலாறு வடிநிலம்' } },
-  { id: 'verified', p: 0.84, lat: 12.9, lon: 79.3, dist: 1.18, label: { en: 'Verified basin view', ta: 'சரிபார்க்கப்பட்ட வடிநிலக் காட்சி' } },
+  { id: 'space',       p: 0.00, lat: 16.0,  lon: 44.0,  dist: 5.00, label: { en: 'Space',               ta: 'விண்வெளி' } },
+  { id: 'earth',       p: 0.12, lat: 17.0,  lon: 68.0,  dist: 3.05, label: { en: 'Earth',               ta: 'பூமி' } },
+  { id: 'asia',        p: 0.24, lat: 23.0,  lon: 82.0,  dist: 2.35, label: { en: 'Asia',                ta: 'ஆசியா' } },
+  { id: 'india',       p: 0.37, lat: 21.0,  lon: 79.0,  dist: 1.92, label: { en: 'India',               ta: 'இந்தியா' } },
+  { id: 'south-india', p: 0.50, lat: 12.2,  lon: 78.6,  dist: 1.54, label: { en: 'South India',         ta: 'தென் இந்தியா' } },
+  { id: 'tamil-nadu',  p: 0.64, lat: 10.9,  lon: 78.5,  dist: 1.33, label: { en: 'Tamil Nadu',          ta: 'தமிழ்நாடு' } },
+  { id: 'palar',       p: 0.78, lat: 12.82, lon: 79.05, dist: 1.22, label: { en: 'Palar River Basin',   ta: 'பாலாறு வடிநிலம்' } },
+  { id: 'verified',    p: 0.94, lat: 12.82, lon: 79.05, dist: 1.19, label: { en: 'Verified basin view', ta: 'சரிபார்க்கப்பட்ட வடிநிலக் காட்சி' } },
 ];
 
 export interface JourneySample {
@@ -51,7 +55,8 @@ export function sampleJourney(p: number): JourneySample {
     dist,
     stage,
     zoom: clamp(zoom, 0, 1),
-    reveal: smoothstep(0.82, 0.94, pp),
+    // Starts only after Palar label fades out (0.87) and reaches 1.0 before Verified key (0.94)
+    reveal: smoothstep(0.88, 0.935, pp),
   };
 }
 

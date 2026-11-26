@@ -172,7 +172,9 @@ export const apiService = {
       {
         method: 'POST',
         body: JSON.stringify({ email, password }),
-      }
+      },
+      // Generous timeout: the hosted backend may need to cold-start before answering.
+      90000
     );
     localStorage.setItem('palar_token', data.access_token);
     localStorage.setItem('palar_user', JSON.stringify(data.user));
@@ -188,11 +190,11 @@ export const apiService = {
     return requestJson<User>(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       body: JSON.stringify({ full_name, email, password, role }),
-    });
+    }, 90000);
   },
 
   async getMe(): Promise<User> {
-    return requestJson<User>(`${API_BASE_URL}/auth/me`);
+    return requestJson<User>(`${API_BASE_URL}/auth/me`, undefined, 60000);
   },
 
   async updateUserRole(userId: number, role: string, isActive?: boolean): Promise<User> {

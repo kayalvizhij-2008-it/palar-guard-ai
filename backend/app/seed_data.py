@@ -2,7 +2,7 @@ import os
 from sqlalchemy import inspect, text
 from .core.config import settings
 from .core.database import SessionLocal, engine, Base
-from .core.security import get_password_hash
+from .core.security import get_password_hash, verify_password
 from .models.models import (
     User, Location, GroundwaterRecord, RainfallRecord,
     WaterQualityRecord, AnomalyAlert, Investigation,
@@ -73,9 +73,11 @@ def ensure_demo_account(db) -> None:
 
     existing = db.query(User).filter(User.email == demo_email).first()
     if existing:
-        # Reuse existing demo account cleanly; never elevate privileges.
-        if existing.role == "Administrator":
-            existing.role = "Viewer"
+        # Keep the public demo identity active, read-only, and usable after restarts.
+        existing.role = "Viewer"
+        existing.is_active = True
+        if not verify_password(demo_password, existing.hashed_password):
+            existing.hashed_password = get_password_hash(demo_password)
         return
 
     demo_user = User(

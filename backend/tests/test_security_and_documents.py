@@ -56,6 +56,36 @@ def _ensure_user(email: str, password: str, role: str, name: str) -> User:
         db.close()
 
 
+def test_demo_seed_repairs_password_and_keeps_account_read_only():
+    demo_email = "demo@palarguard.ai"
+    demo_password = "PalarDemo@2026"
+    db = SessionLocal()
+    try:
+        demo = db.query(User).filter(User.email == demo_email).first()
+        assert demo is not None
+        demo.hashed_password = get_password_hash("StalePassword123!")
+        demo.role = "Administrator"
+        demo.is_active = False
+        db.commit()
+    finally:
+        db.close()
+
+    init_db()
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": demo_email, "password": demo_password},
+    )
+    assert response.status_code == 200
+    assert response.json()["user"]["role"] == "Viewer"
+    headers = {"Authorization": f"Bearer {response.json()['access_token']}"}
+    assert client.get("/api/v1/admin/users", headers=headers).status_code == 403
+    assert client.post(
+        "/api/v1/auth/login",
+        json={"email": demo_email, "password": "StalePassword123!"},
+    ).status_code == 401
+
+
 def test_public_registration_blocks_administrator_and_privileged_roles():
     for forbidden_role in ["Administrator", "Environmental Analyst", "Field Investigator", "Researcher"]:
         res = client.post(
